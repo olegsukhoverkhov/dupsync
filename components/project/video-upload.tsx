@@ -156,10 +156,19 @@ export function VideoUpload({
           </div>
 
           {uploading && (
-            <div className="mt-3">
-              <Progress value={progress} />
-              <p className="mt-1 text-xs text-muted-foreground text-center">
-                Uploading... {progress}%
+            <div className="mt-4">
+              <div className="flex justify-between text-xs mb-2">
+                <span className="text-slate-400">Uploading video...</span>
+                <span className="text-white font-medium">{progress}%</span>
+              </div>
+              <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-pink-500 to-violet-500 transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-slate-500 text-center">
+                {progress < 50 ? "Sending file to server..." : progress < 90 ? "Almost there..." : "Finalizing upload..."}
               </p>
             </div>
           )}

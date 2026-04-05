@@ -31,7 +31,16 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-pink-400" />
+        <div className="text-center">
+          <div className="relative h-12 w-12 mx-auto mb-3">
+            <svg className="h-12 w-12 -rotate-90 animate-spin" style={{ animationDuration: "2s" }} viewBox="0 0 48 48">
+              <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" strokeWidth="3" className="text-white/5" />
+              <circle cx="24" cy="24" r="20" fill="none" stroke="url(#dpg)" strokeWidth="3" strokeLinecap="round" strokeDasharray="80" strokeDashoffset="60" />
+              <defs><linearGradient id="dpg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#ec4899" /><stop offset="100%" stopColor="#8b5cf6" /></linearGradient></defs>
+            </svg>
+          </div>
+          <p className="text-sm text-slate-400">Loading projects...</p>
+        </div>
       </div>
     );
   }

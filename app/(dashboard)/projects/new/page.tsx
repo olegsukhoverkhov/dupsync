@@ -19,6 +19,7 @@ import { createClient } from "@/lib/supabase/client";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { Profile, TranscriptSegment, Project } from "@/lib/supabase/types";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { ProcessingIndicator } from "@/components/ui/processing-indicator";
 
 type Step = "upload" | "transcript" | "languages" | "processing";
 
@@ -199,12 +200,17 @@ export default function NewProjectPage() {
             )}
 
             {loading && (
-              <div className="flex items-center justify-center gap-2 py-8">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span className="text-sm text-muted-foreground">
-                  Transcribing your video...
-                </span>
-              </div>
+              <ProcessingIndicator
+                label="Transcribing your video"
+                sublabel="AI is converting speech to text"
+                steps={[
+                  "Uploading video",
+                  "Extracting audio",
+                  "Running speech recognition",
+                  "Generating transcript",
+                ]}
+                currentStep={2}
+              />
             )}
           </CardContent>
         </Card>
@@ -272,12 +278,17 @@ export default function NewProjectPage() {
       {/* Processing state */}
       {step === "processing" && (
         <Card>
-          <CardContent className="flex flex-col items-center py-16">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
-            <h3 className="mt-4 text-lg font-medium">Starting dubbing...</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Redirecting to project page...
-            </p>
+          <CardContent>
+            <ProcessingIndicator
+              label="Starting dubbing"
+              sublabel="Preparing your video for AI processing"
+              steps={[
+                "Creating dub jobs",
+                "Initializing AI pipeline",
+                "Redirecting to project...",
+              ]}
+              currentStep={1}
+            />
           </CardContent>
         </Card>
       )}

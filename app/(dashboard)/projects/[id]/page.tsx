@@ -101,7 +101,16 @@ export default function ProjectDetailPage({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="text-center">
+          <div className="relative h-12 w-12 mx-auto mb-3">
+            <svg className="h-12 w-12 -rotate-90 animate-spin" style={{ animationDuration: "2s" }} viewBox="0 0 48 48">
+              <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" strokeWidth="3" className="text-white/5" />
+              <circle cx="24" cy="24" r="20" fill="none" stroke="url(#pg)" strokeWidth="3" strokeLinecap="round" strokeDasharray="80" strokeDashoffset="60" />
+              <defs><linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#ec4899" /><stop offset="100%" stopColor="#8b5cf6" /></linearGradient></defs>
+            </svg>
+          </div>
+          <p className="text-sm text-slate-400">Loading project...</p>
+        </div>
       </div>
     );
   }
@@ -252,12 +261,42 @@ export default function ProjectDetailPage({
       {isProcessing && (
         <Card className="mt-6">
           <CardContent className="py-4">
-            <div className="flex items-center gap-3">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm">
-                Processing {dubs.filter((d) => d.status === "done").length}/
-                {dubs.length} languages...
-              </span>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white font-medium">
+                  Dubbing in progress
+                </span>
+                <span className="text-slate-400">
+                  {dubs.filter((d) => d.status === "done").length}/{dubs.length} languages done
+                </span>
+              </div>
+              <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-pink-500 to-violet-500 transition-all duration-500"
+                  style={{
+                    width: `${dubs.length > 0 ? (dubs.filter((d) => d.status === "done").length / dubs.length) * 100 : 0}%`,
+                  }}
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {dubs.map((dub) => (
+                  <span
+                    key={dub.id}
+                    className={`inline-flex items-center gap-1 text-xs rounded-md px-2 py-1 ${
+                      dub.status === "done"
+                        ? "bg-green-500/10 text-green-400 border border-green-500/20"
+                        : dub.status === "error"
+                          ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                          : "bg-white/5 text-slate-400 border border-white/10"
+                    }`}
+                  >
+                    {dub.target_language}
+                    {dub.status === "done" && " ✓"}
+                    {dub.status === "error" && " ✗"}
+                    {!["done", "error"].includes(dub.status) && ` ${dub.progress}%`}
+                  </span>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
