@@ -29,6 +29,8 @@ import {
   CheckCircle,
   AlertCircle,
   Trash2,
+  Play,
+  X,
 } from "lucide-react";
 
 const STATUS_LABELS: Record<DubStatus, string> = {
@@ -87,16 +89,30 @@ export default function ProjectDetailPage({
     return () => clearInterval(interval);
   }, [id]);
 
-  async function handleDownload(dub: Dub) {
-    if (!dub.dubbed_video_url) return;
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  async function handlePreview(dub: Dub) {
+    if (!dub.dubbed_video_url) return;
     const supabase = createClient();
     const { data } = await supabase.storage
       .from("videos")
       .createSignedUrl(dub.dubbed_video_url, 3600);
+    if (data?.signedUrl) setPreviewUrl(data.signedUrl);
+  }
 
+  async function handleDownload(dub: Dub) {
+    if (!dub.dubbed_video_url) return;
+    const supabase = createClient();
+    const { data } = await supabase.storage
+      .from("videos")
+      .createSignedUrl(dub.dubbed_video_url, 3600);
     if (data?.signedUrl) {
-      window.open(data.signedUrl, "_blank");
+      const a = document.createElement("a");
+      a.href = data.signedUrl;
+      a.download = `${project?.title || "dubbed"}-${dub.target_language}.mp3`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
   }
 
@@ -239,10 +255,22 @@ export default function ProjectDetailPage({
                 </CardDescription>
               </div>
               {activeDub.status === "done" && (
-                <Button size="sm" onClick={() => handleDownload(activeDub)}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Download
-                </Button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handlePreview(activeDub)}
+                    className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-1"
+                  >
+                    <Play className="h-3 w-3" />
+                    Preview
+                  </button>
+                  <button
+                    onClick={() => handleDownload(activeDub)}
+                    className="gradient-button rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1"
+                  >
+                    <Download className="h-3 w-3" />
+                    Download
+                  </button>
+                </div>
               )}
             </div>
           </CardHeader>
@@ -319,6 +347,25 @@ export default function ProjectDetailPage({
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Audio/Video Preview */}
+      {previewUrl && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setPreviewUrl(null)} />
+          <div className="relative w-full max-w-lg rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-2xl">
+            <button
+              onClick={() => setPreviewUrl(null)}
+              className="absolute top-4 right-4 text-slate-500 hover:text-white cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <h3 className="text-sm font-semibold text-white mb-4">Preview</h3>
+            <audio controls autoPlay className="w-full" src={previewUrl}>
+              Your browser does not support audio playback.
+            </audio>
+          </div>
+        </div>
       )}
 
       <ConfirmModal

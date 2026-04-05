@@ -48,12 +48,20 @@ export async function runTranscription(projectId: string) {
 
     console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Transcription done: ${segments.length} segments, language=${language}`);
 
+    // Calculate duration from last segment end time
+    const durationSeconds = segments.length > 0
+      ? Math.ceil(segments[segments.length - 1].end)
+      : 0;
+
+    console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Duration: ${durationSeconds}s`);
+
     await supabase
       .from("projects")
       .update({
         status: "ready",
         transcript: segments,
         original_language: language,
+        duration_seconds: durationSeconds,
       })
       .eq("id", projectId);
   } catch (error) {
@@ -161,6 +169,23 @@ export async function runDubbing(dubId: string) {
       .eq("id", dubId);
 
     log(dubId, "Dubbing COMPLETE");
+
+    // Deduct credits (1 credit = 1 minute of video)
+    const durationMinutes = Math.ceil((project.duration_seconds as number || 60) / 60);
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("credits_remaining, plan")
+      .eq("id", project.user_id)
+      .single();
+
+    if (profileData && profileData.credits_remaining !== -1) {
+      const newCredits = Math.max(0, profileData.credits_remaining - durationMinutes);
+      await supabase
+        .from("profiles")
+        .update({ credits_remaining: newCredits })
+        .eq("id", project.user_id);
+      log(dubId, `Credits deducted: ${durationMinutes} min (remaining: ${newCredits})`);
+    }
 
     // Check if all dubs for this project are done
     const { data: allDubs } = await supabase
