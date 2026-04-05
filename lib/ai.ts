@@ -242,6 +242,77 @@ export async function textToSpeechWithSpeed(
   return Buffer.from(await response.arrayBuffer());
 }
 
+// Generate TTS as PCM and pad to exact duration as WAV
+export async function textToSpeechPadded(
+  text: string,
+  voiceId: string,
+  targetDurationSec: number,
+  speed: number = 1.0
+): Promise<Buffer> {
+  const SAMPLE_RATE = 24000;
+  const clampedSpeed = Math.max(0.5, Math.min(2.0, speed));
+  console.log(`[TTS_PADDED] ${text.length} chars, target=${targetDurationSec}s, speed=${clampedSpeed.toFixed(2)}`);
+
+  // Get PCM audio from ElevenLabs
+  const response = await fetch(
+    `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=pcm_24000`,
+    {
+      method: "POST",
+      headers: {
+        "xi-api-key": process.env.ELEVENLABS_API_KEY!,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text,
+        model_id: "eleven_multilingual_v2",
+        voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+        speed: clampedSpeed,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errBody = await response.text().catch(() => "");
+    throw new Error(`ElevenLabs TTS error: ${response.status} ${errBody.slice(0, 200)}`);
+  }
+
+  const pcmBuffer = Buffer.from(await response.arrayBuffer());
+  const pcmSamples = pcmBuffer.length / 2; // 16-bit = 2 bytes per sample
+  const pcmDuration = pcmSamples / SAMPLE_RATE;
+
+  console.log(`[TTS_PADDED] PCM: ${pcmSamples} samples = ${pcmDuration.toFixed(2)}s`);
+
+  // Target total samples for exact video duration
+  const targetSamples = Math.ceil(targetDurationSec * SAMPLE_RATE);
+
+  // Build WAV with PCM data + silence padding
+  const totalSamples = Math.max(targetSamples, pcmSamples);
+  const wavSize = 44 + totalSamples * 2;
+  const wav = Buffer.alloc(wavSize);
+
+  // WAV header
+  wav.write("RIFF", 0);
+  wav.writeUInt32LE(wavSize - 8, 4);
+  wav.write("WAVE", 8);
+  wav.write("fmt ", 12);
+  wav.writeUInt32LE(16, 16);
+  wav.writeUInt16LE(1, 20); // PCM
+  wav.writeUInt16LE(1, 22); // mono
+  wav.writeUInt32LE(SAMPLE_RATE, 24);
+  wav.writeUInt32LE(SAMPLE_RATE * 2, 28);
+  wav.writeUInt16LE(2, 32);
+  wav.writeUInt16LE(16, 34);
+  wav.write("data", 36);
+  wav.writeUInt32LE(totalSamples * 2, 40);
+
+  // Copy PCM data (rest is zeros = silence)
+  pcmBuffer.copy(wav, 44, 0, Math.min(pcmBuffer.length, totalSamples * 2));
+
+  console.log(`[TTS_PADDED] WAV: ${totalSamples} samples = ${(totalSamples / SAMPLE_RATE).toFixed(2)}s (padded ${Math.max(0, targetSamples - pcmSamples)} samples silence)`);
+
+  return wav;
+}
+
 // fal.ai lip sync using latentsync model
 export async function lipSync(
   videoUrl: string,

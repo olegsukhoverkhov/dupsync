@@ -155,24 +155,24 @@ export async function runDubbing(dubId: string) {
       log(dubId, `Using pre-made voice: ${voiceId}`);
     }
 
-    // Generate TTS with speed adjusted to match original video duration
+    // Generate TTS padded to exact video duration as WAV
     const videoDuration = (project.duration_seconds as number) || 0;
     const fullText = translatedSegments.map((s) => s.text).join(". ");
-    const estimatedSpeechSec = fullText.length / 15; // ~15 chars per second average
+    const estimatedSpeechSec = fullText.length / 15;
     const targetSpeed = videoDuration > 0
       ? Math.max(0.5, Math.min(2.0, estimatedSpeechSec / videoDuration))
       : 1.0;
 
     log(dubId, `TTS: ${fullText.length} chars, est=${estimatedSpeechSec.toFixed(1)}s, video=${videoDuration}s, speed=${targetSpeed.toFixed(2)}`);
 
-    const audioBuffer = await ai.textToSpeechWithSpeed(fullText, voiceId, targetSpeed);
-    log(dubId, `TTS done: ${(audioBuffer.byteLength / 1024).toFixed(0)}KB audio`);
+    const audioBuffer = await ai.textToSpeechPadded(fullText, voiceId, videoDuration, targetSpeed);
+    log(dubId, `TTS done: ${(audioBuffer.byteLength / 1024).toFixed(0)}KB WAV`);
 
-    // Upload dubbed audio
-    const audioPath = `${project.user_id}/${project.id}/${dub.id}/dubbed-audio.mp3`;
+    // Upload dubbed audio as WAV
+    const audioPath = `${project.user_id}/${project.id}/${dub.id}/dubbed-audio.wav`;
     const { error: uploadError } = await supabase.storage
       .from("videos")
-      .upload(audioPath, audioBuffer, { contentType: "audio/mpeg", upsert: true });
+      .upload(audioPath, audioBuffer, { contentType: "audio/wav", upsert: true });
 
     if (uploadError) {
       log(dubId, `Audio upload error: ${uploadError.message}`);
