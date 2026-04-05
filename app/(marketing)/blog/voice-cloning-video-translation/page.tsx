@@ -1,4 +1,5 @@
 import { BlogPostLayout } from "@/components/blog/blog-post-layout";
+import { getBlogHreflang } from "@/lib/seo/blog-hreflang";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
     "How voice cloning technology preserves speaker identity across languages. Learn about neural TTS, quality benchmarks, and privacy safeguards.",
   alternates: {
     canonical: "https://dubsync.app/blog/voice-cloning-video-translation",
+    languages: getBlogHreflang("voice-cloning-video-translation"),
   },
   openGraph: {
     type: "article",

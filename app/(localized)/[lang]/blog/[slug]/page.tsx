@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { isValidLocale, LOCALES } from "@/lib/i18n/dictionaries";
+import { getBlogHreflang } from "@/lib/seo/blog-hreflang";
 import { getArticleTranslation, TRANSLATED_SLUGS, type ArticleTranslation } from "@/lib/i18n/blog/translations";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
@@ -37,6 +38,7 @@ export async function generateMetadata({
     description: article.excerpt,
     alternates: {
       canonical: `https://dubsync.app/${lang}/blog/${slug}`,
+      languages: getBlogHreflang(slug),
     },
     openGraph: {
       type: "article",

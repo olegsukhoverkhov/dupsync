@@ -2,12 +2,33 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
-import { LOCALE_INFO, type Locale } from "@/lib/i18n/dictionaries";
+import { LOCALE_INFO, LOCALES, type Locale } from "@/lib/i18n/dictionaries";
+
+const LOCALE_PREFIXES = LOCALES.filter((l) => l !== "en").map((l) => `/${l}`);
+
+function getLocalizedPath(currentPath: string, targetLang: string): string {
+  // Strip existing locale prefix
+  let cleanPath = currentPath;
+  for (const prefix of LOCALE_PREFIXES) {
+    if (cleanPath === prefix || cleanPath.startsWith(prefix + "/")) {
+      cleanPath = cleanPath.slice(prefix.length) || "/";
+      break;
+    }
+  }
+
+  // Add target prefix
+  if (targetLang === "en") {
+    return cleanPath || "/";
+  }
+  return `/${targetLang}${cleanPath === "/" ? "" : cleanPath}`;
+}
 
 export function LanguageSwitcher({ current }: { current: Locale }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -36,7 +57,7 @@ export function LanguageSwitcher({ current }: { current: Locale }) {
           {Object.entries(LOCALE_INFO).map(([code, loc]) => (
             <Link
               key={code}
-              href={code === "en" ? "/" : `/${code}`}
+              href={getLocalizedPath(pathname, code)}
               onClick={() => setOpen(false)}
               className={`flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors ${
                 code === current

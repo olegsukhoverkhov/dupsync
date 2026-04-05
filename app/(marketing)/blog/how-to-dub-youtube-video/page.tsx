@@ -1,4 +1,5 @@
 import { BlogPostLayout } from "@/components/blog/blog-post-layout";
+import { getBlogHreflang } from "@/lib/seo/blog-hreflang";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
     "Step-by-step tutorial: upload your YouTube video, choose languages, and get dubbed versions ready to publish. No editing skills required.",
   alternates: {
     canonical: "https://dubsync.app/blog/how-to-dub-youtube-video",
+    languages: getBlogHreflang("how-to-dub-youtube-video"),
   },
   openGraph: {
     type: "article",

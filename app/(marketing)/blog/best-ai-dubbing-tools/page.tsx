@@ -1,4 +1,5 @@
 import { BlogPostLayout } from "@/components/blog/blog-post-layout";
+import { getBlogHreflang } from "@/lib/seo/blog-hreflang";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
     "We tested 8 AI dubbing platforms on the same video. See how DubSync, Rask AI, ElevenLabs, HeyGen, and others compare on price, quality, and features.",
   alternates: {
     canonical: "https://dubsync.app/blog/best-ai-dubbing-tools",
+    languages: getBlogHreflang("best-ai-dubbing-tools"),
   },
   openGraph: {
     type: "article",

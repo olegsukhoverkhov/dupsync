@@ -56,7 +56,6 @@ export default async function LocalizedLayout({
         }}
       />
       {children}
-      <BreadcrumbSchema items={[{ name: LOCALE_INFO[lang].nativeName, url: `https://dubsync.app/${lang}/` }]} />
     </div>
   );
 }

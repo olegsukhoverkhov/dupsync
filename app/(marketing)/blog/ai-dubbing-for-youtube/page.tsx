@@ -1,4 +1,5 @@
 import { BlogPostLayout } from "@/components/blog/blog-post-layout";
+import { getBlogHreflang } from "@/lib/seo/blog-hreflang";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
     "How YouTube creators use AI dubbing to reach viewers in 30+ languages, grow subscribers, and monetize international audiences.",
   alternates: {
     canonical: "https://dubsync.app/blog/ai-dubbing-for-youtube",
+    languages: getBlogHreflang("ai-dubbing-for-youtube"),
   },
   openGraph: {
     type: "article",

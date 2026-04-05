@@ -1,4 +1,5 @@
 import { BlogPostLayout } from "@/components/blog/blog-post-layout";
+import { getBlogHreflang } from "@/lib/seo/blog-hreflang";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
     "Compare AI dubbing and traditional dubbing on cost, speed, and quality. Learn when to use each approach and why most creators are switching to AI.",
   alternates: {
     canonical: "https://dubsync.app/blog/ai-dubbing-vs-traditional",
+    languages: getBlogHreflang("ai-dubbing-vs-traditional"),
   },
   openGraph: {
     type: "article",

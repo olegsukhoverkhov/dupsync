@@ -1,4 +1,5 @@
 import { BlogPostLayout } from "@/components/blog/blog-post-layout";
+import { getBlogHreflang } from "@/lib/seo/blog-hreflang";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
     "Learn how AI video dubbing works — from transcription to voice cloning and lip sync. Discover benefits, use cases, and why creators choose AI over traditional dubbing.",
   alternates: {
     canonical: "https://dubsync.app/blog/what-is-ai-video-dubbing",
+    languages: getBlogHreflang("what-is-ai-video-dubbing"),
   },
   openGraph: {
     type: "article",

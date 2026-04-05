@@ -1,4 +1,5 @@
 import { BlogPostLayout } from "@/components/blog/blog-post-layout";
+import { getBlogHreflang } from "@/lib/seo/blog-hreflang";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
     "Learn how AI voice cloning works for video dubbing, how to get the best results, and how DubSync keeps your voice data private and secure.",
   alternates: {
     canonical: "https://dubsync.app/blog/how-to-clone-voice-for-video",
+    languages: getBlogHreflang("how-to-clone-voice-for-video"),
   },
   openGraph: {
     type: "article",
