@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   Settings,
   CreditCard,
+  Code,
   Languages,
   LogOut,
   Plus,
@@ -17,6 +18,7 @@ const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Settings", href: "/settings", icon: Settings },
   { name: "Credits", href: "/credits", icon: CreditCard },
+  { name: "API", href: "/api-keys", icon: Code },
 ];
 
 export function DashboardSidebar() {

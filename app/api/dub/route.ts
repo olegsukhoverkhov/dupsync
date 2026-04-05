@@ -125,6 +125,24 @@ export async function POST(request: Request) {
         credits_remaining: Math.max(0, typedProfile.credits_remaining - requiredCredits),
       })
       .eq("id", user.id);
+
+    // Record usage per language
+    const { data: projData } = await supabase
+      .from("projects")
+      .select("title")
+      .eq("id", projectId)
+      .single();
+
+    const usageInserts = languages.map((lang) => ({
+      user_id: user.id,
+      project_id: projectId,
+      project_title: projData?.title || "Untitled",
+      dub_language: lang,
+      credits_used: durationSec * 5,
+      video_seconds: durationSec,
+    }));
+
+    await supabase.from("credit_usage").insert(usageInserts);
   }
 
   // Start dubbing pipelines after response is sent
