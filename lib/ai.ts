@@ -285,10 +285,10 @@ export async function textToSpeechPadded(
   // Target total samples for exact video duration
   const targetSamples = Math.ceil(targetDurationSec * SAMPLE_RATE);
 
-  // Build WAV with PCM data + silence padding
-  const totalSamples = Math.max(targetSamples, pcmSamples);
+  // Build WAV with EXACT target duration — trim if speech longer, pad if shorter
+  const totalSamples = targetSamples; // ALWAYS exact target duration
   const wavSize = 44 + totalSamples * 2;
-  const wav = Buffer.alloc(wavSize);
+  const wav = Buffer.alloc(wavSize); // zeros = silence for padding
 
   // WAV header
   wav.write("RIFF", 0);
@@ -341,8 +341,8 @@ export async function lipSync(
   const { request_id } = await submitResponse.json();
   console.log(`[LIP_SYNC] Job submitted: ${request_id}`);
 
-  // Poll for result (max 4 minutes)
-  const maxAttempts = 120; // 120 * 2s = 4 minutes
+  // Poll for result (max 3 minutes to stay within Vercel after() limits)
+  const maxAttempts = 90; // 90 * 2s = 3 minutes
   for (let i = 0; i < maxAttempts; i++) {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 

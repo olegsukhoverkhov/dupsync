@@ -211,7 +211,15 @@ export default function ProjectDetailPage({
     fetchData();
 
     // Poll while processing
-    const interval = setInterval(fetchData, 3000);
+    let pollCount = 0;
+    const interval = setInterval(() => {
+      fetchData();
+      pollCount++;
+      // Check for stuck dubs every ~30 seconds (every 10th poll)
+      if (pollCount % 10 === 0) {
+        fetch("/api/check-stuck").catch(() => {});
+      }
+    }, 3000);
     return () => clearInterval(interval);
   }, [id]);
 
