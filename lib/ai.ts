@@ -227,13 +227,14 @@ export async function textToSpeech(
   return Buffer.from(await response.arrayBuffer());
 }
 
-// fal.ai lip sync
+// fal.ai lip sync using latentsync model
 export async function lipSync(
   videoUrl: string,
   audioUrl: string
 ): Promise<string> {
-  // Submit job
-  const submitResponse = await fetch("https://queue.fal.run/fal-ai/lipsync", {
+  console.log("[LIP_SYNC] Submitting to fal-ai/latentsync...");
+
+  const submitResponse = await fetch("https://queue.fal.run/fal-ai/latentsync", {
     method: "POST",
     headers: {
       Authorization: `Key ${process.env.FAL_KEY}`,
@@ -246,37 +247,47 @@ export async function lipSync(
   });
 
   if (!submitResponse.ok) {
-    throw new Error(`fal.ai submit error: ${submitResponse.statusText}`);
+    const errBody = await submitResponse.text().catch(() => "");
+    console.error(`[LIP_SYNC] Submit failed ${submitResponse.status}: ${errBody}`);
+    throw new Error(`fal.ai submit error: ${submitResponse.status} ${errBody.slice(0, 200)}`);
   }
 
   const { request_id } = await submitResponse.json();
+  console.log(`[LIP_SYNC] Job submitted: ${request_id}`);
 
-  // Poll for result
-  while (true) {
+  // Poll for result (max 4 minutes)
+  const maxAttempts = 120; // 120 * 2s = 4 minutes
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     const statusResponse = await fetch(
-      `https://queue.fal.run/fal-ai/lipsync/requests/${request_id}/status`,
+      `https://queue.fal.run/fal-ai/latentsync/requests/${request_id}/status`,
       {
         headers: { Authorization: `Key ${process.env.FAL_KEY}` },
       }
     );
 
     const statusData = await statusResponse.json();
+    if (i % 5 === 0) console.log(`[LIP_SYNC] Poll ${i}: ${statusData.status}`);
 
     if (statusData.status === "COMPLETED") {
       const resultResponse = await fetch(
-        `https://queue.fal.run/fal-ai/lipsync/requests/${request_id}`,
+        `https://queue.fal.run/fal-ai/latentsync/requests/${request_id}`,
         {
           headers: { Authorization: `Key ${process.env.FAL_KEY}` },
         }
       );
       const result = await resultResponse.json();
-      return result.video.url;
+      console.log(`[LIP_SYNC] Completed successfully`);
+      return result.video?.url || result.video;
     }
 
     if (statusData.status === "FAILED") {
-      throw new Error(`fal.ai lip sync failed: ${statusData.error}`);
+      const detail = statusData.error || statusData.detail || "Unknown error";
+      console.error(`[LIP_SYNC] Failed: ${JSON.stringify(detail).slice(0, 300)}`);
+      throw new Error(`Lip sync failed: ${typeof detail === "string" ? detail : JSON.stringify(detail).slice(0, 200)}`);
     }
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
+
+  throw new Error("Lip sync timed out after 4 minutes");
 }

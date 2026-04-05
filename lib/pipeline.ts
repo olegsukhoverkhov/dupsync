@@ -195,13 +195,33 @@ export async function runDubbing(dubId: string) {
 
     let finalOutputPath = audioPath; // fallback to audio-only
 
+    let lipSyncTimer: ReturnType<typeof setInterval> | null = null;
+
     if (videoSignedUrl?.signedUrl && audioSignedUrlData?.signedUrl) {
       try {
         log(dubId, "Starting lip sync via fal.ai...");
+
+        // Update progress periodically during lip sync
+        lipSyncTimer = setInterval(async () => {
+          const { data: currentDub } = await supabase
+            .from("dubs")
+            .select("progress")
+            .eq("id", dubId)
+            .single();
+          const currentProgress = currentDub?.progress || 82;
+          if (currentProgress < 92) {
+            await supabase
+              .from("dubs")
+              .update({ progress: Math.min(currentProgress + 1, 92) })
+              .eq("id", dubId);
+          }
+        }, 5000);
+
         const syncedVideoUrl = await ai.lipSync(
           videoSignedUrl.signedUrl,
           audioSignedUrlData.signedUrl
         );
+        if (lipSyncTimer) clearInterval(lipSyncTimer);
 
         log(dubId, `Lip sync done, downloading result...`);
 
@@ -226,6 +246,7 @@ export async function runDubbing(dubId: string) {
           log(dubId, `Video upload failed: ${videoUploadErr.message}, keeping audio-only`);
         }
       } catch (lipSyncErr) {
+        if (lipSyncTimer) clearInterval(lipSyncTimer);
         log(dubId, `Lip sync failed: ${lipSyncErr instanceof Error ? lipSyncErr.message : "unknown"}, keeping audio-only`);
         // Continue with audio-only output
       }
