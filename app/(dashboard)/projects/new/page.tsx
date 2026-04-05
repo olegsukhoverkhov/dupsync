@@ -92,7 +92,10 @@ export default function NewProjectPage() {
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to create project");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to create project");
+      }
 
       const proj = await res.json();
       setProject(proj);
@@ -119,9 +122,9 @@ export default function NewProjectPage() {
           setAlertModal({ title: "Transcription Failed", message: "Could not transcribe the video. Please try again or use a different file.", type: "error" });
         }
       }, 3000);
-    } catch {
+    } catch (err) {
       setLoading(false);
-      setAlertModal({ title: "Error", message: "Failed to create project. Please try again.", type: "error" });
+      setAlertModal({ title: "Error", message: err instanceof Error ? err.message : "Failed to create project. Please try again.", type: "error" });
     }
   }
 

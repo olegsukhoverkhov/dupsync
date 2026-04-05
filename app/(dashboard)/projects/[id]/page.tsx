@@ -478,7 +478,7 @@ export default function ProjectDetailPage({
       )}
 
       {/* Continue dubbing — show language selector inline */}
-      {(project.status === "ready" || project.status === "done") && !isProcessing && (
+      {(project.status === "ready" || project.status === "done" || project.status === "error" || project.status === "dubbing") && !isProcessing && (
         <Card className="mt-6">
           <CardContent className="py-5">
             {!showLanguageSelect ? (
