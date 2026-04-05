@@ -151,7 +151,7 @@ export async function getMultilingualVoice(): Promise<string> {
   return PREMADE_VOICES[0];
 }
 
-// ElevenLabs voice cloning — accepts mp3, mp4, wav, m4a, webm
+// ElevenLabs voice cloning with high-quality settings
 export async function cloneVoice(
   fileBuffer: Buffer,
   name: string,
@@ -164,17 +164,21 @@ export async function cloneVoice(
     avi: "video/mp4", mkv: "video/mp4",
   };
   const mimeType = mimeMap[ext] || "video/mp4";
-  // ElevenLabs accepts mp4, so send unsupported formats as mp4
   const fileName = `sample.${WHISPER_FORMATS.has(ext) ? ext : "mp4"}`;
 
   const formData = new FormData();
-  formData.append("name", `dubsync-${name.slice(0, 8)}`);
+  formData.append("name", `dubsync-${name.slice(0, 8)}-${Date.now()}`);
   formData.append(
     "files",
     new Blob([new Uint8Array(fileBuffer)], { type: mimeType }),
     fileName
   );
-  formData.append("description", "Voice cloned by DubSync");
+  formData.append("description", "Voice cloned by DubSync for video dubbing");
+  // Labels help ElevenLabs optimize the voice model
+  formData.append("labels", JSON.stringify({
+    use_case: "dubbing",
+    source: "video",
+  }));
 
   console.log(`[VOICE_CLONE] Uploading ${(fileBuffer.byteLength / 1024 / 1024).toFixed(2)}MB as ${fileName} (${mimeType})`);
 
@@ -193,7 +197,21 @@ export async function cloneVoice(
   }
 
   const data = await response.json();
+  console.log(`[VOICE_CLONE] Success: voice_id=${data.voice_id}`);
   return data.voice_id;
+}
+
+// Delete a cloned voice after use to keep the account clean
+export async function deleteClonedVoice(voiceId: string): Promise<void> {
+  try {
+    await fetch(`https://api.elevenlabs.io/v1/voices/${voiceId}`, {
+      method: "DELETE",
+      headers: { "xi-api-key": process.env.ELEVENLABS_API_KEY! },
+    });
+    console.log(`[VOICE_CLONE] Deleted voice ${voiceId}`);
+  } catch {
+    console.warn(`[VOICE_CLONE] Failed to delete voice ${voiceId}`);
+  }
 }
 
 // ElevenLabs text-to-speech
@@ -265,7 +283,12 @@ export async function textToSpeechPadded(
       body: JSON.stringify({
         text,
         model_id: "eleven_multilingual_v2",
-        voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+        voice_settings: {
+          stability: 0.3,         // lower = more expressive, closer to original
+          similarity_boost: 0.95, // maximum similarity to cloned voice
+          style: 0.4,             // some style transfer from original
+          use_speaker_boost: true, // enhance speaker similarity
+        },
         speed: clampedSpeed,
       }),
     }

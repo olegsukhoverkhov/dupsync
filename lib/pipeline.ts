@@ -48,10 +48,10 @@ export async function runTranscription(projectId: string) {
 
     console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Transcription done: ${segments.length} segments, language=${language}`);
 
-    // Calculate duration from last segment end time
-    const durationSeconds = segments.length > 0
-      ? Math.ceil(segments[segments.length - 1].end)
-      : 0;
+    // Calculate duration from last segment end time + buffer
+    // Whisper segments don't capture trailing silence, so add 1s buffer
+    const rawEnd = segments.length > 0 ? segments[segments.length - 1].end : 0;
+    const durationSeconds = Math.ceil(rawEnd + 1);
 
     console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Duration: ${durationSeconds}s`);
 
@@ -272,6 +272,11 @@ export async function runDubbing(dubId: string) {
       .eq("id", dubId);
 
     log(dubId, "Dubbing COMPLETE");
+
+    // Clean up cloned voice to keep ElevenLabs account tidy
+    if (voiceId && !["FGY2WhTYpPnrIDTdsKH5", "EXAVITQu4vr4xnSDxMaL", "XrExE9yKIg1WjnnlVkGX"].includes(voiceId)) {
+      await ai.deleteClonedVoice(voiceId);
+    }
 
     // Credits already deducted in API route before pipeline starts
 
