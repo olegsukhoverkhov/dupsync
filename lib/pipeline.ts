@@ -155,8 +155,26 @@ export async function runDubbing(dubId: string) {
       log(dubId, `Using pre-made voice: ${voiceId}`);
     }
 
-    const fullText = translatedSegments.map((s) => s.text).join(" ");
-    log(dubId, `Generating TTS (${fullText.length} chars)`);
+    // Build text with pauses to match original timing
+    const videoDuration = (project.duration_seconds as number) || 0;
+    let fullText = "";
+    for (let i = 0; i < translatedSegments.length; i++) {
+      const seg = translatedSegments[i];
+      fullText += seg.text + " ";
+      // Add pause between segments based on gap to next segment
+      if (i < translatedSegments.length - 1) {
+        const gap = translatedSegments[i + 1].start - seg.end;
+        if (gap > 0.5) {
+          // Add SSML-style pause (ElevenLabs supports this via <break> in some models)
+          fullText += "... ";
+        }
+      }
+    }
+    // Add trailing pause if text is short relative to video
+    if (videoDuration > 3 && fullText.length < videoDuration * 15) {
+      fullText += " ... ... ";
+    }
+    log(dubId, `Generating TTS (${fullText.length} chars, video=${videoDuration}s)`);
 
     const audioBuffer = await ai.textToSpeech(fullText, voiceId);
     log(dubId, `TTS done: ${(audioBuffer.byteLength / 1024).toFixed(0)}KB audio`);

@@ -634,7 +634,11 @@ export default function ProjectDetailPage({
       )}
 
       {/* Continue dubbing — show language selector inline */}
-      {(project.status === "ready" || project.status === "error" || (project.status === "done" && !isProcessing)) && (
+      {(project.status === "ready" || project.status === "error" || (
+        project.status === "done" && !isProcessing &&
+        profile && profile.credits_remaining > 0 &&
+        dubs.filter(d => d.status === "done").length < PLAN_LIMITS[profile.plan].maxLanguages
+      )) && (
         <Card className="mt-6">
           <CardContent className="py-5">
             {!showLanguageSelect ? (
