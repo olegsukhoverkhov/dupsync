@@ -50,6 +50,21 @@ export async function POST(request: Request) {
     );
   }
 
+  // Check for duplicate project name
+  const { data: existing } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("title", title)
+    .limit(1);
+
+  if (existing && existing.length > 0) {
+    return NextResponse.json(
+      { error: `A project named "${title}" already exists. Please choose a different name.` },
+      { status: 409 }
+    );
+  }
+
   // Create project
   const { data: project, error } = await supabase
     .from("projects")

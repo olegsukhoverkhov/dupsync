@@ -36,6 +36,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { AlertModal } from "@/components/ui/modal";
+import { LanguageSelector } from "@/components/project/language-selector";
+import { PLAN_LIMITS } from "@/lib/supabase/constants";
+import type { Profile } from "@/lib/supabase/types";
 
 const STATUS_LABELS: Record<DubStatus, string> = {
   pending: "Waiting...",
@@ -83,6 +86,13 @@ export default function ProjectDetailPage({
         setDubs(dubsData as Dub[]);
       }
 
+      // Load profile for plan limits
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: prof } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+        if (prof) setProfile(prof as Profile);
+      }
+
       setLoading(false);
     }
 
@@ -97,6 +107,10 @@ export default function ProjectDetailPage({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [retryLoading, setRetryLoading] = useState(false);
   const [dubError, setDubError] = useState<string | null>(null);
+  const [showLanguageSelect, setShowLanguageSelect] = useState(false);
+  const [newLanguages, setNewLanguages] = useState<string[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [startingDub, setStartingDub] = useState(false);
 
   const handleDelete = useCallback(async () => {
     const supabase = createClient();
@@ -138,6 +152,30 @@ export default function ProjectDetailPage({
       setDubError("Failed to restart dubbing");
     } finally {
       setRetryLoading(false);
+    }
+  }
+
+  async function handleStartNewDubs() {
+    if (!project || newLanguages.length === 0) return;
+    setStartingDub(true);
+    setDubError(null);
+    try {
+      const res = await fetch("/api/dub", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId: project.id, languages: newLanguages }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setDubError(data.error || "Failed to start dubbing");
+      } else {
+        setShowLanguageSelect(false);
+        setNewLanguages([]);
+      }
+    } catch {
+      setDubError("Failed to start dubbing");
+    } finally {
+      setStartingDub(false);
     }
   }
 
@@ -439,17 +477,62 @@ export default function ProjectDetailPage({
         </Card>
       )}
 
-      {/* Continue dubbing for ready projects with no dubs */}
-      {project.status === "ready" && dubs.length === 0 && (
+      {/* Continue dubbing — show language selector inline */}
+      {(project.status === "ready" || project.status === "done") && !isProcessing && (
         <Card className="mt-6">
-          <CardContent className="py-5 text-center">
-            <p className="text-sm text-slate-400">Transcription is ready. Select languages to start dubbing.</p>
-            <Link
-              href={`/projects/new?continue=${project.id}`}
-              className="mt-3 inline-flex items-center gap-2 gradient-button rounded-xl px-5 py-2.5 text-sm font-semibold"
-            >
-              Continue Dubbing <ArrowUpRight className="h-4 w-4" />
-            </Link>
+          <CardContent className="py-5">
+            {!showLanguageSelect ? (
+              <div className="text-center">
+                <p className="text-sm text-slate-400">
+                  {dubs.length === 0
+                    ? "Transcription is ready. Select languages to start dubbing."
+                    : "Add more languages to this project."}
+                </p>
+                <button
+                  onClick={() => setShowLanguageSelect(true)}
+                  className="mt-3 inline-flex items-center gap-2 gradient-button rounded-xl px-5 py-2.5 text-sm font-semibold"
+                >
+                  {dubs.length === 0 ? "Start Dubbing" : "Add Languages"}
+                  <ArrowUpRight className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <div>
+                <h3 className="text-sm font-semibold text-white mb-4">Select target languages</h3>
+                <LanguageSelector
+                  selected={newLanguages}
+                  onChange={setNewLanguages}
+                  maxLanguages={profile ? PLAN_LIMITS[profile.plan].maxLanguages : 2}
+                  excludeLanguage={project.original_language}
+                />
+                {dubError && (
+                  <div className="mt-4 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2">
+                    <p className="text-xs text-red-400">{dubError}</p>
+                    {dubError.includes("Upgrade") && (
+                      <Link href="/settings" className="inline-flex items-center gap-1 mt-1 text-xs text-pink-400 hover:text-pink-300 font-medium">
+                        Upgrade plan <ArrowUpRight className="h-3 w-3" />
+                      </Link>
+                    )}
+                  </div>
+                )}
+                <div className="flex gap-3 mt-4">
+                  <button
+                    onClick={() => { setShowLanguageSelect(false); setNewLanguages([]); setDubError(null); }}
+                    className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white hover:bg-white/10 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleStartNewDubs}
+                    disabled={newLanguages.length === 0 || startingDub}
+                    className="gradient-button rounded-xl px-4 py-2.5 text-sm font-semibold disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {startingDub ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+                    Start Dubbing ({newLanguages.length})
+                  </button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
