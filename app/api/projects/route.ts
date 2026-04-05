@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { runTranscription } from "@/lib/pipeline";
 
@@ -82,14 +81,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Run transcription after response is sent — keeps function alive on Vercel
-  after(async () => {
-    try {
-      await runTranscription(project.id);
-    } catch (err) {
-      console.error("Transcription background task failed:", err);
-    }
-  });
+  // Run transcription synchronously — client polls for status
+  // Using after() was unreliable on some Vercel deployments
+  try {
+    await runTranscription(project.id);
+  } catch (err) {
+    console.error("Transcription failed:", err);
+    // Project status already set to "error" by pipeline
+  }
 
-  return NextResponse.json(project, { status: 201 });
+  // Re-fetch project with updated status
+  const { data: updatedProject } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("id", project.id)
+    .single();
+
+  return NextResponse.json(updatedProject || project, { status: 201 });
 }

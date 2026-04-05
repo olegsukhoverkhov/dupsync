@@ -115,6 +115,23 @@ export default function NewProjectPage() {
       const proj = await res.json();
       setProject(proj);
 
+      // Transcription now runs synchronously — check if already done
+      if (proj.status === "ready" && proj.transcript) {
+        setTranscript(proj.transcript);
+        setDetectedLanguage(proj.original_language || "en");
+        setStep("confirm-language");
+        setLoading(false);
+        return;
+      }
+      if (proj.status === "error") {
+        setUploadedPath(null);
+        setUploadedFile(null);
+        setProject(null);
+        setLoading(false);
+        setAlertModal({ title: "Transcription Failed", message: "Could not transcribe the video. Please try again.", type: "error" });
+        return;
+      }
+
       // Poll for transcription completion
       const supabase = createClient();
       const pollInterval = setInterval(async () => {
@@ -134,6 +151,9 @@ export default function NewProjectPage() {
         } else if (data?.status === "error") {
           clearInterval(pollInterval);
           setLoading(false);
+          setUploadedPath(null);
+          setUploadedFile(null);
+          setProject(null);
           setAlertModal({ title: "Transcription Failed", message: "Could not transcribe the video. Please try again or use a different file.", type: "error" });
         }
       }, 3000);

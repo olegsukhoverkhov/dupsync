@@ -156,21 +156,16 @@ export async function runDubbing(dubId: string) {
     }
 
     // Generate TTS padded to exact video duration as WAV
-    // RULE: Never speed up audio — only slow down or keep normal speed
-    // Silence padding handles any extra time
+    // RULE: Always use natural/slow speed for dubbed speech
+    // Dubbed content should sound natural, not rushed
     const videoDuration = (project.duration_seconds as number) || 0;
     const fullText = translatedSegments.map((s) => s.text).join(". ");
-    const estimatedSpeechSec = fullText.length / 15;
 
-    // Only slow down if speech is shorter than video. Never accelerate.
-    let targetSpeed = 1.0;
-    if (videoDuration > 0 && estimatedSpeechSec < videoDuration) {
-      // Speech is shorter — slow down to fill more of the video
-      targetSpeed = Math.max(0.7, estimatedSpeechSec / videoDuration);
-    }
-    // If speech is longer than video — keep speed 1.0, WAV will trim to exact duration
+    // Always use 0.85x speed for natural-sounding dubbed speech
+    // This ensures audio never sounds rushed or accelerated
+    const targetSpeed = 0.85;
 
-    log(dubId, `TTS: ${fullText.length} chars, est=${estimatedSpeechSec.toFixed(1)}s, video=${videoDuration}s, speed=${targetSpeed.toFixed(2)}`);
+    log(dubId, `TTS: ${fullText.length} chars, video=${videoDuration}s, speed=${targetSpeed}`);
 
     const audioBuffer = await ai.textToSpeechPadded(fullText, voiceId, videoDuration, targetSpeed);
     log(dubId, `TTS done: ${(audioBuffer.byteLength / 1024).toFixed(0)}KB WAV`);
