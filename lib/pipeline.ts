@@ -35,7 +35,7 @@ export async function runTranscription(projectId: string) {
     const buffer = Buffer.from(await fileData.arrayBuffer());
 
     // Transcribe — use original filename extension for correct MIME type
-    const ext = project.original_video_url.split(".").pop() || "mp4";
+    const ext = (project.original_video_url.split(".").pop() || "mp4").toLowerCase();
     const { segments, language } = await ai.transcribe(buffer, `video.${ext}`);
 
     // Update project with transcript

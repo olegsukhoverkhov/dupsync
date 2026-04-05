@@ -9,21 +9,27 @@ function getAnthropic() {
   return _anthropic;
 }
 
-// Detect MIME type from filename extension
-function getMimeType(filename: string): string {
-  const ext = filename.split(".").pop()?.toLowerCase();
+// Whisper supported formats
+const WHISPER_FORMATS = new Set(["flac", "m4a", "mp3", "mp4", "mpeg", "mpga", "oga", "ogg", "wav", "webm"]);
+
+// Map unsupported formats to supported ones for Whisper
+function getWhisperFilename(filename: string): string {
+  const ext = filename.split(".").pop()?.toLowerCase() || "mp4";
+  // MOV, AVI, MKV → send as mp4 (Whisper accepts the audio track)
+  const whisperExt = WHISPER_FORMATS.has(ext) ? ext : "mp4";
+  return `audio.${whisperExt}`;
+}
+
+function getWhisperMimeType(filename: string): string {
+  const ext = filename.split(".").pop()?.toLowerCase() || "mp4";
   const mimeTypes: Record<string, string> = {
-    mp4: "video/mp4",
-    mov: "video/quicktime",
-    avi: "video/x-msvideo",
-    webm: "video/webm",
-    mkv: "video/x-matroska",
-    mp3: "audio/mpeg",
-    wav: "audio/wav",
-    m4a: "audio/mp4",
-    ogg: "audio/ogg",
+    mp4: "video/mp4", m4a: "audio/mp4", mp3: "audio/mpeg",
+    wav: "audio/wav", webm: "video/webm", ogg: "audio/ogg",
+    oga: "audio/ogg", flac: "audio/flac", mpeg: "video/mpeg",
+    mpga: "audio/mpeg",
   };
-  return mimeTypes[ext || ""] || "application/octet-stream";
+  // For unsupported formats (mov, avi, mkv), use mp4 mime type
+  return mimeTypes[ext] || "video/mp4";
 }
 
 // Whisper transcription via OpenAI API
@@ -31,12 +37,13 @@ export async function transcribe(
   audioBuffer: Buffer,
   filename: string
 ): Promise<{ segments: TranscriptSegment[]; language: string }> {
-  const mimeType = getMimeType(filename);
+  const whisperFilename = getWhisperFilename(filename);
+  const mimeType = getWhisperMimeType(whisperFilename);
   const formData = new FormData();
   formData.append(
     "file",
     new Blob([new Uint8Array(audioBuffer)], { type: mimeType }),
-    filename
+    whisperFilename
   );
   formData.append("model", "whisper-1");
   formData.append("response_format", "verbose_json");
