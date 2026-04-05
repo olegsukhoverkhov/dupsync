@@ -74,13 +74,29 @@ function DubInfoCard({ dub, plan }: { dub: Dub; plan: PlanType }) {
           <p className="text-white font-medium">{quality.audio}</p>
         </div>
       </div>
-      {quality.next && (
-        <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
-          <p className="text-xs text-slate-500">
-            Want {quality.next}? Upgrade to <span className="text-pink-400">{quality.nextPlan}</span>
-          </p>
-          <Link href="/settings" className="text-xs text-pink-400 hover:text-pink-300 font-medium flex items-center gap-1">
-            Upgrade <ArrowUpRight className="h-3 w-3" />
+      {plan !== "enterprise" && (
+        <div className="mt-3 pt-3 border-t border-white/5">
+          <p className="text-xs text-slate-500 mb-2">Upgrade for better quality:</p>
+          <div className="flex flex-wrap gap-2">
+            {plan === "free" && (
+              <>
+                <span className="text-xs rounded-md border border-white/10 bg-white/5 px-2 py-1 text-slate-400">Starter — 1080p + HD audio</span>
+                <span className="text-xs rounded-md border border-white/10 bg-white/5 px-2 py-1 text-slate-400">Pro — 4K + Studio audio</span>
+                <span className="text-xs rounded-md border border-white/10 bg-white/5 px-2 py-1 text-slate-400">Enterprise — Custom voices</span>
+              </>
+            )}
+            {plan === "starter" && (
+              <>
+                <span className="text-xs rounded-md border border-white/10 bg-white/5 px-2 py-1 text-slate-400">Pro — 4K + Studio audio</span>
+                <span className="text-xs rounded-md border border-white/10 bg-white/5 px-2 py-1 text-slate-400">Enterprise — Custom voices</span>
+              </>
+            )}
+            {plan === "pro" && (
+              <span className="text-xs rounded-md border border-white/10 bg-white/5 px-2 py-1 text-slate-400">Enterprise — Custom voices + Dedicated support</span>
+            )}
+          </div>
+          <Link href="/settings" className="mt-2 inline-flex items-center gap-1 text-xs text-pink-400 hover:text-pink-300 font-medium">
+            Upgrade Plan <ArrowUpRight className="h-3 w-3" />
           </Link>
         </div>
       )}
@@ -545,7 +561,11 @@ export default function ProjectDetailPage({
 
                     <div className="flex items-center gap-2">
                       {dub.status === "done" && (
-                        <span className="text-xs text-green-400">Done</span>
+                        <span className="text-xs text-green-400 flex items-center gap-2">
+                          {dub.dubbed_video_url?.includes("dubbed-video") ? "Video" : "Audio"}
+                          <span className="text-slate-600">|</span>
+                          Done
+                        </span>
                       )}
                       {dub.status === "error" && (
                         <span className="text-xs text-red-400">Failed</span>

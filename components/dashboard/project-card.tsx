@@ -23,8 +23,8 @@ export function ProjectCard({ project }: { project: ProjectWithDubs }) {
   const totalDubs = project.dubs.length;
 
   return (
-    <Link href={`/projects/${project.id}`}>
-      <div className="rounded-2xl border border-white/10 bg-slate-800/50 p-5 hover:bg-slate-800/80 hover:border-white/20 transition-all cursor-pointer">
+    <Link href={`/projects/${project.id}`} className="h-full">
+      <div className="h-full rounded-2xl border border-white/10 bg-slate-800/50 p-5 hover:bg-slate-800/80 hover:border-white/20 transition-all cursor-pointer flex flex-col">
         <div className="flex items-start justify-between mb-3">
           <h3 className="text-sm font-semibold text-white truncate pr-2">
             {project.title}

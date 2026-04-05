@@ -101,7 +101,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Credits are deducted per-dub in the pipeline after completion
+  // Pre-deduct credits immediately to prevent over-spending
+  if (planLimits.credits !== -1 && requiredCredits > 0) {
+    await supabase
+      .from("profiles")
+      .update({
+        credits_remaining: Math.max(0, typedProfile.credits_remaining - requiredCredits),
+      })
+      .eq("id", user.id);
+  }
 
   // Start dubbing pipelines after response is sent
   after(async () => {

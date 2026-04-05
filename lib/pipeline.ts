@@ -284,25 +284,7 @@ export async function runDubbing(dubId: string) {
 
     log(dubId, "Dubbing COMPLETE");
 
-    // Deduct credits: 1 second of video = 5 credits per dub
-    const durationSec = (project.duration_seconds as number) || 0;
-    if (durationSec > 0) {
-      const creditsToDeduct = durationSec * 5;
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("credits_remaining, plan")
-        .eq("id", project.user_id)
-        .single();
-
-      if (profileData && profileData.credits_remaining > 0) {
-        const newCredits = Math.max(0, Math.round((profileData.credits_remaining - creditsToDeduct) * 100) / 100);
-        await supabase
-          .from("profiles")
-          .update({ credits_remaining: newCredits })
-          .eq("id", project.user_id);
-        log(dubId, `Credits deducted: ${creditsToDeduct} (${durationSec}s × 5), remaining: ${newCredits}`);
-      }
-    }
+    // Credits already deducted in API route before pipeline starts
 
     // Check if all dubs for this project are done
     const { data: allDubs } = await supabase
