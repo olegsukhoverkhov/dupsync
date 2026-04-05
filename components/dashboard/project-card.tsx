@@ -49,7 +49,8 @@ export function ProjectCard({ project }: { project: ProjectWithDubs }) {
           )}
           {project.status === "done" && (
             <span className="text-slate-600">
-              {new Date(project.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+              {new Date(project.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}{" "}
+              {new Date(project.updated_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
             </span>
           )}
         </div>
