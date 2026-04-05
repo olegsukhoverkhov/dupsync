@@ -1,0 +1,181 @@
+"use client";
+
+import { useCallback, useState } from "react";
+import { Upload, File, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { createClient } from "@/lib/supabase/client";
+
+interface VideoUploadProps {
+  userId: string;
+  maxSizeMB: number;
+  onUploadComplete: (path: string, file: globalThis.File) => void;
+}
+
+export function VideoUpload({
+  userId,
+  maxSizeMB,
+  onUploadComplete,
+}: VideoUploadProps) {
+  const [file, setFile] = useState<globalThis.File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+
+  const handleFile = useCallback(
+    (f: globalThis.File) => {
+      setError(null);
+
+      if (f.size > maxSizeMB * 1024 * 1024) {
+        setError(`File too large. Max size is ${maxSizeMB}MB.`);
+        return;
+      }
+
+      const validTypes = [
+        "video/mp4",
+        "video/quicktime",
+        "video/x-msvideo",
+        "video/webm",
+        "video/x-matroska",
+      ];
+      if (!validTypes.includes(f.type)) {
+        setError("Unsupported format. Use MP4, MOV, AVI, WebM, or MKV.");
+        return;
+      }
+
+      setFile(f);
+    },
+    [maxSizeMB]
+  );
+
+  async function handleUpload() {
+    if (!file) return;
+
+    setUploading(true);
+    setProgress(0);
+    setError(null);
+
+    try {
+      const supabase = createClient();
+      const ext = file.name.split(".").pop();
+      const path = `${userId}/${crypto.randomUUID()}/original.${ext}`;
+
+      // Simulate progress since Supabase doesn't expose upload progress
+      const progressInterval = setInterval(() => {
+        setProgress((prev) => Math.min(prev + 10, 90));
+      }, 500);
+
+      const { error: uploadError } = await supabase.storage
+        .from("videos")
+        .upload(path, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      clearInterval(progressInterval);
+
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
+
+      setProgress(100);
+      onUploadComplete(path, file);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {!file ? (
+        <div
+          className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 transition-colors ${
+            dragActive
+              ? "border-primary bg-primary/5"
+              : "border-muted-foreground/25 hover:border-muted-foreground/50"
+          }`}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragActive(true);
+          }}
+          onDragLeave={() => setDragActive(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragActive(false);
+            const droppedFile = e.dataTransfer.files[0];
+            if (droppedFile) handleFile(droppedFile);
+          }}
+        >
+          <Upload className="h-10 w-10 text-muted-foreground/50" />
+          <p className="mt-4 text-sm font-medium">
+            Drag and drop your video here
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            MP4, MOV, AVI, WebM, MKV up to {maxSizeMB}MB
+          </p>
+          <label className="mt-4">
+            <Button variant="outline" size="sm" render={<span />}>
+              Choose File
+            </Button>
+            <input
+              type="file"
+              accept="video/*"
+              className="sr-only"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleFile(f);
+              }}
+            />
+          </label>
+        </div>
+      ) : (
+        <div className="rounded-xl border p-4">
+          <div className="flex items-center gap-3">
+            <File className="h-8 w-8 text-muted-foreground" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{file.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {(file.size / (1024 * 1024)).toFixed(1)} MB
+              </p>
+            </div>
+            {!uploading && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setFile(null);
+                  setProgress(0);
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+
+          {uploading && (
+            <div className="mt-3">
+              <Progress value={progress} />
+              <p className="mt-1 text-xs text-muted-foreground text-center">
+                Uploading... {progress}%
+              </p>
+            </div>
+          )}
+
+          {!uploading && progress === 0 && (
+            <Button className="mt-3 w-full" onClick={handleUpload}>
+              <Upload className="mr-2 h-4 w-4" />
+              Upload Video
+            </Button>
+          )}
+        </div>
+      )}
+
+      {error && (
+        <p className="text-sm text-destructive text-center">{error}</p>
+      )}
+    </div>
+  );
+}
