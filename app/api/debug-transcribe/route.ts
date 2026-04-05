@@ -64,34 +64,10 @@ export async function GET() {
             checks["mime_type"] = mimeType;
 
             try {
-              const formData = new FormData();
-              formData.append(
-                "file",
-                new Blob([new Uint8Array(buffer)], { type: mimeType }),
-                `video.${ext}`
-              );
-              formData.append("model", "whisper-1");
-              formData.append("response_format", "verbose_json");
-              formData.append("timestamp_granularities[]", "segment");
-
-              const response = await fetch(
-                "https://api.openai.com/v1/audio/transcriptions",
-                {
-                  method: "POST",
-                  headers: {
-                    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-                  },
-                  body: formData,
-                }
-              );
-
-              if (!response.ok) {
-                const errorBody = await response.text();
-                checks["whisper_api"] = `error ${response.status}: ${errorBody.slice(0, 500)}`;
-              } else {
-                const data = await response.json();
-                checks["whisper_api"] = `success, language: ${data.language}, segments: ${data.segments?.length || 0}`;
-              }
+              // Use the exact same code path as the pipeline
+              const { transcribe } = await import("@/lib/ai");
+              const result = await transcribe(Buffer.from(buffer), `video.${ext}`, "en");
+              checks["whisper_api"] = `success, language: ${result.language}, segments: ${result.segments.length}`;
             } catch (e) {
               checks["whisper_api"] = `exception: ${e instanceof Error ? e.message : String(e)}`;
             }
