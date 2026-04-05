@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { runTranscription } from "@/lib/pipeline";
 
+export const maxDuration = 60;
+
 export async function GET() {
   const supabase = await createClient();
 

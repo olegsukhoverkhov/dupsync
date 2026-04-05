@@ -9,15 +9,33 @@ function getAnthropic() {
   return _anthropic;
 }
 
-// Whisper transcription via OpenAI-compatible API
+// Detect MIME type from filename extension
+function getMimeType(filename: string): string {
+  const ext = filename.split(".").pop()?.toLowerCase();
+  const mimeTypes: Record<string, string> = {
+    mp4: "video/mp4",
+    mov: "video/quicktime",
+    avi: "video/x-msvideo",
+    webm: "video/webm",
+    mkv: "video/x-matroska",
+    mp3: "audio/mpeg",
+    wav: "audio/wav",
+    m4a: "audio/mp4",
+    ogg: "audio/ogg",
+  };
+  return mimeTypes[ext || ""] || "application/octet-stream";
+}
+
+// Whisper transcription via OpenAI API
 export async function transcribe(
   audioBuffer: Buffer,
   filename: string
 ): Promise<{ segments: TranscriptSegment[]; language: string }> {
+  const mimeType = getMimeType(filename);
   const formData = new FormData();
   formData.append(
     "file",
-    new Blob([new Uint8Array(audioBuffer)], { type: "audio/wav" }),
+    new Blob([new Uint8Array(audioBuffer)], { type: mimeType }),
     filename
   );
   formData.append("model", "whisper-1");
@@ -36,7 +54,9 @@ export async function transcribe(
   );
 
   if (!response.ok) {
-    throw new Error(`Whisper API error: ${response.statusText}`);
+    const errorBody = await response.text().catch(() => "");
+    console.error("Whisper API error:", response.status, errorBody);
+    throw new Error(`Whisper API error: ${response.status} ${response.statusText}`);
   }
 
   const data = await response.json();
