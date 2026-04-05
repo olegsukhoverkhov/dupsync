@@ -76,14 +76,14 @@ export async function runTranscription(projectId: string) {
 export async function runDubbing(dubId: string) {
   const supabase = await createServiceClient();
 
+  const { data: dub } = await supabase
+    .from("dubs")
+    .select("*, projects(*)")
+    .eq("id", dubId)
+    .single();
+
   try {
     log(dubId, "Starting dubbing pipeline");
-
-    const { data: dub } = await supabase
-      .from("dubs")
-      .select("*, projects(*)")
-      .eq("id", dubId)
-      .single();
 
     if (!dub) throw new Error("Dub not found");
 
@@ -300,5 +300,23 @@ export async function runDubbing(dubId: string) {
         error_message: errMsg,
       })
       .eq("id", dubId);
+
+    // Check if ALL dubs for this project have failed/completed
+    const projectId = dub?.project_id;
+    if (projectId) {
+      const { data: allDubs } = await supabase
+        .from("dubs")
+        .select("status")
+        .eq("project_id", projectId);
+      const allFinished = allDubs?.every((d) => ["done", "error"].includes(d.status));
+      if (allFinished) {
+        const anyDone = allDubs?.some((d) => d.status === "done");
+        await supabase
+          .from("projects")
+          .update({ status: anyDone ? "done" : "error" })
+          .eq("id", projectId);
+        log(dubId, `All dubs finished — project status: ${anyDone ? "done" : "error"}`);
+      }
+    }
   }
 }
