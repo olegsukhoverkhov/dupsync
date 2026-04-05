@@ -49,7 +49,7 @@ export const PLAN_LIMITS: Record<
   {
     name: string;
     price: number;
-    credits: number; // minutes per month, -1 = unlimited
+    credits: number; // credits per month (1sec video = 5 credits), -1 = unlimited
     maxFileSize: number; // MB
     maxLanguages: number;
     features: string[];
@@ -58,11 +58,11 @@ export const PLAN_LIMITS: Record<
   free: {
     name: "Free",
     price: 0,
-    credits: 5,
+    credits: 1500,
     maxFileSize: 100,
     maxLanguages: 2,
     features: [
-      "5 minutes/month",
+      "1,500 credits/month",
       "2 target languages",
       "100MB max file size",
       "720p output",
@@ -71,11 +71,11 @@ export const PLAN_LIMITS: Record<
   starter: {
     name: "Starter",
     price: 2900, // cents
-    credits: 60,
+    credits: 18000, // 60min × 60sec × 5
     maxFileSize: 500,
     maxLanguages: 10,
     features: [
-      "60 minutes/month",
+      "18,000 credits/month",
       "10 target languages",
       "500MB max file size",
       "1080p output",
@@ -85,11 +85,11 @@ export const PLAN_LIMITS: Record<
   pro: {
     name: "Pro",
     price: 7900,
-    credits: 300,
+    credits: 90000, // 300min × 60sec × 5
     maxFileSize: 2000,
     maxLanguages: 30,
     features: [
-      "300 minutes/month",
+      "90,000 credits/month",
       "All 30+ languages",
       "2GB max file size",
       "4K output",
@@ -104,7 +104,7 @@ export const PLAN_LIMITS: Record<
     maxFileSize: 5000,
     maxLanguages: 30,
     features: [
-      "Unlimited minutes",
+      "Unlimited credits",
       "All 30+ languages",
       "5GB max file size",
       "4K output",

@@ -317,7 +317,8 @@ export default function NewProjectPage() {
               </select>
             </div>
 
-            {profile && (
+            {/* Video upload — hide after file is uploaded */}
+            {profile && !uploadedPath && (
               <VideoUpload
                 userId={profile.id}
                 maxSizeMB={planLimits.maxFileSize}
@@ -325,13 +326,21 @@ export default function NewProjectPage() {
               />
             )}
 
-            {/* Show retry button when file uploaded but project creation failed */}
+            {/* After upload succeeded but project creation failed (e.g. duplicate name) */}
             {uploadedPath && !loading && !project && (
-              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-center">
-                <p className="text-sm text-amber-400 mb-3">Video uploaded. Fix the project name above and try again.</p>
+              <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-8 w-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                    <Check className="h-4 w-4 text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">Video uploaded successfully</p>
+                    <p className="text-xs text-slate-400">{uploadedFile?.name} ({((uploadedFile?.size || 0) / 1024 / 1024).toFixed(1)} MB)</p>
+                  </div>
+                </div>
                 <button
                   onClick={() => createProject()}
-                  className="gradient-button inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold"
+                  className="w-full gradient-button inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold"
                 >
                   Create Project
                 </button>

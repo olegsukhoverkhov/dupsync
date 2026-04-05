@@ -65,17 +65,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
-  const durationMinutes = (project.duration_seconds || 0) / 60;
-  const requiredCredits = durationMinutes * languages.length;
+  // 1 second of video = 5 credits per language
+  const durationSec = project.duration_seconds || 0;
+  const requiredCredits = durationSec * 5 * languages.length;
 
   if (
     planLimits.credits !== -1 &&
     typedProfile.credits_remaining < requiredCredits
   ) {
-    const remaining = Math.floor(typedProfile.credits_remaining * 60);
-    const needed = Math.ceil(requiredCredits * 60);
     return NextResponse.json(
-      { error: `Insufficient credits. You need ${needed}s but have ${remaining}s remaining. Upgrade your plan for more credits.` },
+      { error: `Insufficient credits. You need ${requiredCredits} credits but have ${Math.floor(typedProfile.credits_remaining)} remaining. Upgrade your plan for more credits.` },
       { status: 403 }
     );
   }
