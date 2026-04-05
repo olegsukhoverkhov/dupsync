@@ -73,9 +73,9 @@ export default function CreditsPage() {
   const planLimits = PLAN_LIMITS[profile.plan];
   const creditsRemaining = Number(profile.credits_remaining) || 0;
   const totalCredits = planLimits.credits === -1 ? Infinity : planLimits.credits;
-  const usedCredits = totalCredits === Infinity ? 0 : totalCredits - creditsRemaining;
-  const usagePercent = totalCredits === Infinity ? 0 : Math.round((usedCredits / totalCredits) * 100);
-  const totalSpend = usage.reduce((sum, u) => sum + Number(u.credits_used), 0);
+  const usedCredits = totalCredits === Infinity ? 0 : Math.max(0, totalCredits - creditsRemaining);
+  const usagePercent = totalCredits === Infinity ? 0 : Math.min(100, Math.round((usedCredits / totalCredits) * 100));
+  const totalSpend = usedCredits; // Total spend = credits used from plan
 
   // Group usage by day
   const dayGroups: DayGroup[] = [];

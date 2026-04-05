@@ -156,12 +156,19 @@ export async function runDubbing(dubId: string) {
     }
 
     // Generate TTS padded to exact video duration as WAV
+    // RULE: Never speed up audio — only slow down or keep normal speed
+    // Silence padding handles any extra time
     const videoDuration = (project.duration_seconds as number) || 0;
     const fullText = translatedSegments.map((s) => s.text).join(". ");
     const estimatedSpeechSec = fullText.length / 15;
-    const targetSpeed = videoDuration > 0
-      ? Math.max(0.5, Math.min(2.0, estimatedSpeechSec / videoDuration))
-      : 1.0;
+
+    // Only slow down if speech is shorter than video. Never accelerate.
+    let targetSpeed = 1.0;
+    if (videoDuration > 0 && estimatedSpeechSec < videoDuration) {
+      // Speech is shorter — slow down to fill more of the video
+      targetSpeed = Math.max(0.7, estimatedSpeechSec / videoDuration);
+    }
+    // If speech is longer than video — keep speed 1.0, WAV will trim to exact duration
 
     log(dubId, `TTS: ${fullText.length} chars, est=${estimatedSpeechSec.toFixed(1)}s, video=${videoDuration}s, speed=${targetSpeed.toFixed(2)}`);
 

@@ -7,43 +7,36 @@ import { Progress } from "@/components/ui/progress";
 import { createClient } from "@/lib/supabase/client";
 
 // Extract audio track from video using Web Audio API
+// Fails gracefully on mobile/unsupported browsers
 async function extractAudioFromVideo(videoFile: globalThis.File): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const video = document.createElement("video");
-    video.muted = true;
-    video.src = URL.createObjectURL(videoFile);
+  // Check if AudioContext is available (not on all mobile browsers)
+  if (typeof AudioContext === "undefined" && typeof (window as unknown as Record<string, unknown>).webkitAudioContext === "undefined") {
+    throw new Error("AudioContext not supported");
+  }
 
-    video.onloadedmetadata = async () => {
-      try {
-        const audioContext = new AudioContext({ sampleRate: 16000 });
-        const arrayBuffer = await videoFile.arrayBuffer();
-        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+  // Don't try on files > 50MB (mobile memory limits)
+  if (videoFile.size > 50 * 1024 * 1024) {
+    throw new Error("File too large for audio extraction");
+  }
 
-        // Take first 30 seconds max for voice sample
-        const duration = Math.min(audioBuffer.duration, 30);
-        const sampleRate = audioBuffer.sampleRate;
-        const numFrames = Math.floor(duration * sampleRate);
-        const channelData = audioBuffer.getChannelData(0);
-        const samples = channelData.slice(0, numFrames);
+  const AC = AudioContext || (window as unknown as Record<string, { new(opts?: { sampleRate: number }): AudioContext }>).webkitAudioContext;
+  const audioContext = new AC({ sampleRate: 16000 });
 
-        // Encode as WAV
-        const wavBuffer = encodeWav(samples, sampleRate);
-        const blob = new Blob([wavBuffer], { type: "audio/wav" });
+  try {
+    const arrayBuffer = await videoFile.arrayBuffer();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-        URL.revokeObjectURL(video.src);
-        audioContext.close();
-        resolve(blob);
-      } catch (err) {
-        URL.revokeObjectURL(video.src);
-        reject(err);
-      }
-    };
+    const duration = Math.min(audioBuffer.duration, 30);
+    const sampleRate = audioBuffer.sampleRate;
+    const numFrames = Math.floor(duration * sampleRate);
+    const channelData = audioBuffer.getChannelData(0);
+    const samples = channelData.slice(0, numFrames);
 
-    video.onerror = () => {
-      URL.revokeObjectURL(video.src);
-      reject(new Error("Failed to load video"));
-    };
-  });
+    const wavBuffer = encodeWav(samples, sampleRate);
+    return new Blob([wavBuffer], { type: "audio/wav" });
+  } finally {
+    audioContext.close();
+  }
 }
 
 function encodeWav(samples: Float32Array, sampleRate: number): ArrayBuffer {
