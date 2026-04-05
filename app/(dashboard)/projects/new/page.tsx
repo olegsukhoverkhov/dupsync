@@ -261,7 +261,7 @@ export default function NewProjectPage() {
                 {i + 1}
               </div>
               <span
-                className={`text-sm ${isActive ? "font-medium" : "text-muted-foreground"}`}
+                className={`text-sm hidden sm:inline ${isActive ? "font-medium" : "text-muted-foreground"}`}
               >
                 {label}
               </span>

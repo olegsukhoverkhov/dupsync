@@ -358,7 +358,7 @@ export default function ProjectDetailPage({
         </Button>
       </div>
 
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold">{project.title}</h1>
           <p className="text-sm text-muted-foreground">
@@ -379,11 +379,12 @@ export default function ProjectDetailPage({
       </div>
 
       {/* Language tabs */}
-      <div className="flex gap-2 flex-wrap mb-6">
+      <div className="flex gap-2 overflow-x-auto flex-nowrap pb-2 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible sm:pb-0">
         <Button
           variant={activeTab === "original" ? "default" : "outline"}
           size="sm"
           onClick={() => setActiveTab("original")}
+          className="shrink-0"
         >
           Original
         </Button>
@@ -393,7 +394,7 @@ export default function ProjectDetailPage({
             variant={activeTab === dub.target_language ? "default" : "outline"}
             size="sm"
             onClick={() => setActiveTab(dub.target_language)}
-            className="gap-2"
+            className="gap-2 shrink-0"
           >
             {LANGUAGE_MAP[dub.target_language] || dub.target_language}
             {dub.status === "done" && (

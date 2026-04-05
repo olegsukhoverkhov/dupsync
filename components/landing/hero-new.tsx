@@ -65,7 +65,7 @@ export function HeroNew() {
             </div>
 
             {/* Trust metrics */}
-            <div className="mt-12 flex items-center gap-8 text-sm text-slate-500">
+            <div className="mt-12 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 text-sm text-slate-500">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 <span><strong className="text-slate-300">2,000+</strong> creators</span>

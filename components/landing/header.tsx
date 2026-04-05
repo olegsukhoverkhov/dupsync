@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Languages } from "lucide-react";
+import { Languages, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { LanguageSwitcher } from "./language-switcher";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -14,10 +15,19 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Close mobile menu on resize to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 640) setMobileMenuOpen(false);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
+        scrolled || mobileMenuOpen
           ? "glass border-b border-white/5"
           : "bg-transparent"
       }`}
@@ -46,7 +56,8 @@ export function Header() {
             </Link>
           </nav>
 
-          <div className="flex items-center gap-3">
+          {/* Desktop actions */}
+          <div className="hidden sm:flex items-center gap-3">
             <LanguageSwitcher current="en" />
             <Link
               href="/login"
@@ -61,7 +72,57 @@ export function Header() {
               Get Started
             </Link>
           </div>
+
+          {/* Mobile hamburger button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="flex sm:hidden h-11 w-11 items-center justify-center rounded-lg text-white hover:bg-white/10 transition-colors"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          >
+            {mobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </button>
         </div>
+
+        {/* Mobile slide-down menu */}
+        {mobileMenuOpen && (
+          <div className="sm:hidden border-t border-white/5 py-4 space-y-1">
+            <Link
+              href="#demo"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block rounded-xl px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 transition-colors"
+            >
+              Demo
+            </Link>
+            <Link
+              href="#pricing"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block rounded-xl px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 transition-colors"
+            >
+              Pricing
+            </Link>
+            <div className="px-4 py-3">
+              <LanguageSwitcher current="en" />
+            </div>
+            <Link
+              href="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block rounded-xl px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 transition-colors"
+            >
+              Log In
+            </Link>
+            <Link
+              href="/signup"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block gradient-button rounded-xl mx-4 px-4 py-3 text-sm font-medium text-center"
+            >
+              Get Started
+            </Link>
+          </div>
+        )}
       </div>
     </header>
   );
