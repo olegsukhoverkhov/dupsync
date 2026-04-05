@@ -52,12 +52,21 @@ export default function CreditsPage() {
             .limit(100),
         ]);
 
-        if (profileRes.data) setProfile(profileRes.data as Profile);
+        if (profileRes.data) {
+          const p = profileRes.data as Profile;
+          p.credits_remaining = Number(p.credits_remaining) || 0;
+          setProfile(p);
+        }
         if (usageRes.data) setUsage(usageRes.data as UsageRecord[]);
       }
       setLoading(false);
     }
     loadData();
+
+    // Refresh on page focus (user comes back from dubbing)
+    const onFocus = () => loadData();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
   }, []);
 
   if (loading) {
