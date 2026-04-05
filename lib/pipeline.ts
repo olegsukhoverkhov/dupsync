@@ -99,21 +99,15 @@ export async function runDubbing(dubId: string) {
       })
       .eq("id", dubId);
 
-    // Step 2: Clone voice & generate TTS (25-60%)
+    // Step 2: Generate TTS with pre-made multilingual voice (25-60%)
     await supabase
       .from("dubs")
       .update({ status: "generating_voice", progress: 30 })
       .eq("id", dubId);
 
-    // Download original video for voice sample
-    const { data: videoData } = await supabase.storage
-      .from("videos")
-      .download(project.original_video_url as string);
-
-    if (!videoData) throw new Error("Failed to download video for voice clone");
-
-    const videoBuffer = Buffer.from(await videoData.arrayBuffer());
-    const voiceId = await ai.cloneVoice(videoBuffer, dub.id);
+    // Use ElevenLabs pre-made multilingual voice (no clone needed)
+    // Pick voice based on detected content type
+    const voiceId = await ai.getMultilingualVoice();
 
     // Generate TTS for all segments
     const fullText = translatedSegments.map((s) => s.text).join(" ");

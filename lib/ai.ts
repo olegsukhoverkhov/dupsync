@@ -125,7 +125,33 @@ ${text}`,
     .filter((s): s is TranscriptSegment => s !== null);
 }
 
-// ElevenLabs voice cloning
+// Get a pre-made ElevenLabs multilingual voice
+export async function getMultilingualVoice(): Promise<string> {
+  // Use "Laura" — ElevenLabs pre-made multilingual female voice
+  // Fallback list of known pre-made voice IDs that support multilingual
+  const PREMADE_VOICES = [
+    "FGY2WhTYpPnrIDTdsKH5", // Laura
+    "EXAVITQu4vr4xnSDxMaL", // Sarah
+    "XrExE9yKIg1WjnnlVkGX", // Matilda
+  ];
+
+  // Try to verify the first voice exists
+  for (const id of PREMADE_VOICES) {
+    try {
+      const res = await fetch(`https://api.elevenlabs.io/v1/voices/${id}`, {
+        headers: { "xi-api-key": process.env.ELEVENLABS_API_KEY! },
+      });
+      if (res.ok) return id;
+    } catch {
+      continue;
+    }
+  }
+
+  // Fallback to first
+  return PREMADE_VOICES[0];
+}
+
+// ElevenLabs voice cloning (requires audio file, not video)
 export async function cloneVoice(
   audioBuffer: Buffer,
   name: string

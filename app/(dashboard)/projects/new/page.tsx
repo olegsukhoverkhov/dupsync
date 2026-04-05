@@ -52,7 +52,7 @@ export default function NewProjectPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [transcript, setTranscript] = useState<TranscriptSegment[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
-  const [sourceLanguage, setSourceLanguage] = useState("auto");
+  const [sourceLanguage, setSourceLanguage] = useState("en");
   const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
   const [correctedLanguage, setCorrectedLanguage] = useState<string>("");
   const [loading, setLoading] = useState(false);
