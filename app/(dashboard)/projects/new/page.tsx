@@ -18,10 +18,31 @@ import { LanguageSelector } from "@/components/project/language-selector";
 import { createClient } from "@/lib/supabase/client";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { Profile, TranscriptSegment, Project } from "@/lib/supabase/types";
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Check, AlertTriangle, Globe } from "lucide-react";
 import { ProcessingIndicator } from "@/components/ui/processing-indicator";
+import { LANGUAGE_MAP } from "@/lib/supabase/constants";
 
-type Step = "upload" | "transcript" | "languages" | "processing";
+type Step = "upload" | "confirm-language" | "transcript" | "languages" | "processing";
+
+const SOURCE_LANGUAGES = [
+  { code: "en", name: "English" },
+  { code: "es", name: "Spanish" },
+  { code: "fr", name: "French" },
+  { code: "de", name: "German" },
+  { code: "pt", name: "Portuguese" },
+  { code: "ja", name: "Japanese" },
+  { code: "ko", name: "Korean" },
+  { code: "zh", name: "Chinese" },
+  { code: "hi", name: "Hindi" },
+  { code: "ar", name: "Arabic" },
+  { code: "it", name: "Italian" },
+  { code: "tr", name: "Turkish" },
+  { code: "uk", name: "Ukrainian" },
+  { code: "ru", name: "Russian" },
+  { code: "nl", name: "Dutch" },
+  { code: "sv", name: "Swedish" },
+  { code: "pl", name: "Polish" },
+];
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -32,6 +53,8 @@ export default function NewProjectPage() {
   const [transcript, setTranscript] = useState<TranscriptSegment[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [sourceLanguage, setSourceLanguage] = useState("auto");
+  const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
+  const [correctedLanguage, setCorrectedLanguage] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -85,7 +108,8 @@ export default function NewProjectPage() {
           clearInterval(pollInterval);
           setTranscript(data.transcript as TranscriptSegment[]);
           setProject(data as Project);
-          setStep("transcript");
+          setDetectedLanguage(data.original_language || "en");
+          setStep("confirm-language");
           setLoading(false);
         } else if (data?.status === "error") {
           clearInterval(pollInterval);
@@ -96,6 +120,55 @@ export default function NewProjectPage() {
     } catch {
       setLoading(false);
       alert("Failed to create project");
+    }
+  }
+
+  async function handleRetranscribe(lang: string) {
+    if (!project) return;
+    setLoading(true);
+    setStep("upload"); // show processing indicator
+
+    try {
+      const supabase = createClient();
+      // Update project language and reset status
+      await supabase
+        .from("projects")
+        .update({ original_language: lang, status: "transcribing", transcript: null })
+        .eq("id", project.id);
+
+      // Trigger re-transcription
+      await fetch("/api/projects/retranscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId: project.id, language: lang }),
+      });
+
+      // Poll again
+      const pollInterval = setInterval(async () => {
+        const { data } = await supabase
+          .from("projects")
+          .select("*")
+          .eq("id", project.id)
+          .single();
+
+        if (data?.status === "ready" && data.transcript) {
+          clearInterval(pollInterval);
+          setTranscript(data.transcript as TranscriptSegment[]);
+          setProject(data as Project);
+          setDetectedLanguage(data.original_language || lang);
+          setStep("confirm-language");
+          setLoading(false);
+        } else if (data?.status === "error") {
+          clearInterval(pollInterval);
+          setLoading(false);
+          alert("Transcription failed. Please try again.");
+          setStep("confirm-language");
+        }
+      }, 3000);
+    } catch {
+      setLoading(false);
+      alert("Re-transcription failed");
+      setStep("confirm-language");
     }
   }
 
@@ -239,6 +312,91 @@ export default function NewProjectPage() {
                 ]}
                 currentStep={2}
               />
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 1.5: Confirm detected language */}
+      {step === "confirm-language" && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center mb-6">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-500/10 border border-blue-500/20">
+                <Globe className="h-7 w-7 text-blue-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white">Language Detected</h3>
+              <p className="mt-2 text-sm text-slate-400">
+                We detected the original language as:
+              </p>
+              <p className="mt-2 text-2xl font-bold text-white">
+                {LANGUAGE_MAP[detectedLanguage || ""] || detectedLanguage || "Unknown"}
+              </p>
+            </div>
+
+            {/* Preview first few transcript lines */}
+            {transcript.length > 0 && (
+              <div className="mb-6 rounded-xl border border-white/10 bg-white/5 p-4 max-h-32 overflow-y-auto">
+                <p className="text-xs text-slate-500 mb-2">Transcript preview:</p>
+                <p className="text-sm text-slate-300 italic">
+                  &ldquo;{transcript.slice(0, 3).map(s => s.text).join(" ")}&rdquo;
+                </p>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={() => setStep("transcript")}
+                className="gradient-button inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold"
+              >
+                <Check className="h-4 w-4" />
+                Yes, this is correct
+              </button>
+              <button
+                onClick={() => setCorrectedLanguage(detectedLanguage || "")}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10 transition-colors cursor-pointer"
+              >
+                <AlertTriangle className="h-4 w-4 text-amber-400" />
+                No, wrong language
+              </button>
+            </div>
+
+            {/* Language correction selector */}
+            {correctedLanguage !== "" && (
+              <div className="mt-6 border-t border-white/10 pt-6">
+                <p className="text-sm text-slate-400 mb-3">Select the correct original language:</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+                  {SOURCE_LANGUAGES.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => setCorrectedLanguage(lang.code)}
+                      className={`rounded-xl border px-3 py-2.5 text-sm transition-all cursor-pointer ${
+                        correctedLanguage === lang.code
+                          ? "border-pink-500/50 bg-pink-500/10 text-white"
+                          : "border-white/10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      {lang.name}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => {
+                    if (correctedLanguage) {
+                      handleRetranscribe(correctedLanguage);
+                      setCorrectedLanguage("");
+                    }
+                  }}
+                  disabled={!correctedLanguage || loading}
+                  className="w-full gradient-button flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold disabled:opacity-50"
+                >
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>Re-transcribe with {SOURCE_LANGUAGES.find(l => l.code === correctedLanguage)?.name || correctedLanguage}</>
+                  )}
+                </button>
+              </div>
             )}
           </CardContent>
         </Card>
