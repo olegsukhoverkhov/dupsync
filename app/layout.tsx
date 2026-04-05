@@ -23,6 +23,11 @@ export const metadata: Metadata = {
     canonical: "/",
     languages: {
       "en": "https://dubsync.app/",
+      "es": "https://dubsync.app/es/",
+      "pt": "https://dubsync.app/pt/",
+      "de": "https://dubsync.app/de/",
+      "fr": "https://dubsync.app/fr/",
+      "ja": "https://dubsync.app/ja/",
       "x-default": "https://dubsync.app/",
     },
   },

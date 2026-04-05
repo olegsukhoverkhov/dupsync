@@ -1,0 +1,100 @@
+{
+  "meta": {
+    "title": "DubSync — KI-Videosynchronisation & Stimmklonen",
+    "description": "Synchronisieren Sie Videos in uber 30 Sprachen mit KI-Stimmklonen und Lippensynchronisation. Video hochladen, Studioqualitat in Minuten. Kostenlos starten."
+  },
+  "header": {
+    "demo": "Demo",
+    "pricing": "Preise",
+    "login": "Anmelden",
+    "getStarted": "Jetzt starten"
+  },
+  "hero": {
+    "badge": "Jetzt mit KI-Lippensynchronisation",
+    "title1": "KI-Videosynchronisation —",
+    "title2": "Stimmen klonen & Lippen synchronisieren in 30+ Sprachen",
+    "subtitle": "Laden Sie ein Video hoch. Die KI klont die Stimme des Sprechers, ubersetzt und synchronisiert die Lippen — vollautomatisch. Erreichen Sie die Welt in Minuten, nicht Wochen.",
+    "ctaPrimary": "Kostenlos starten",
+    "ctaSecondary": "Demo ansehen",
+    "creators": "Ersteller",
+    "minDubbed": "Min. synchronisiert",
+    "languages": "Sprachen"
+  },
+  "logoBar": {
+    "trusted": "Das Vertrauen von Creatorn und Teams weltweit"
+  },
+  "whatIs": {
+    "title": "Was ist KI-Videosynchronisation?",
+    "p1": "KI-Videosynchronisation ist der Prozess, bei dem das Audio eines Videos automatisch in eine andere Sprache ubersetzt und neu aufgenommen wird — mithilfe kunstlicher Intelligenz. Im Gegensatz zur traditionellen Synchronisation, die Sprecher und Studiozeit erfordert, nutzt die KI-Synchronisation Stimmklon-Technologie, um die Originalstimme des Sprechers in der Zielsprache nachzubilden — mit Beibehaltung von Tonfall, Emotion und Sprechstil.",
+    "p2": "DubSync kombiniert drei KI-Technologien: neuronale maschinelle Ubersetzung fur prazise Skriptkonvertierung, Stimmklonen zur Beibehaltung der Sprecheridentitat uber alle Sprachen hinweg, und Lippensynchronisation zur Anpassung der Mundbewegungen an das neue Audio. Das Ergebnis ist ein synchronisiertes Video, das in jeder Sprache naturlich aussieht und klingt."
+  },
+  "howItWorks": {
+    "title": "So funktioniert DubSync",
+    "subtitle": "DubSync nutzt KI, um den gesamten Synchronisations-Workflow zu automatisieren — von der Transkription uber das Stimmklonen bis zur Lippensynchronisation — in drei einfachen Schritten.",
+    "step1title": "Video hochladen",
+    "step1desc": "Laden Sie eine beliebige Videodatei hoch (MP4, MOV, AVI bis 5GB). DubSync transkribiert automatisch das Originalaudio und erkennt die Ausgangssprache.",
+    "step2title": "Die KI verarbeitet Ihr Video",
+    "step2desc": "Unsere KI ubersetzt das Transkript, klont die Stimme des Sprechers in der Zielsprache und erzeugt lippensynchrones Audio. Der gesamte Prozess dauert 2–5 Minuten fur ein typisches 10-Minuten-Video.",
+    "step3title": "Synchronisiertes Video herunterladen",
+    "step3desc": "Prufen Sie das Ergebnis, bearbeiten Sie die Ubersetzung bei Bedarf und laden Sie Ihr synchronisiertes Video in bis zu 4K-Qualitat herunter. Teilen Sie es sofort mit Ihrem globalen Publikum."
+  },
+  "demo": {
+    "title": "Sehen Sie es in Aktion",
+    "subtitle": "Drei Schritte. Mehr braucht es nicht, um ein globales Publikum zu erreichen.",
+    "upload": "Hochladen",
+    "processing": "KI-Verarbeitung",
+    "download": "Herunterladen"
+  },
+  "examples": {
+    "title": "Echte Ergebnisse",
+    "subtitle": "Sehen Sie, wie Creator DubSync nutzen, um globale Zielgruppen zu erreichen"
+  },
+  "features": {
+    "title": "Warum DubSync",
+    "subtitle": "Alles, was Sie brauchen, um Ihre Inhalte wirklich global zu machen",
+    "voiceCloning": "Stimmklonen",
+    "voiceCloningDesc": "Die KI klont die Originalstimme des Sprechers — Tonfall, Akzent, Emotion. Es klingt nach der Person, nicht nach einem Roboter.",
+    "lipSync": "Lippensynchronisation",
+    "lipSyncDesc": "Mundbewegungen werden automatisch an das synchronisierte Audio angepasst. Zuschauer merken nicht, dass es eine Synchronisation ist.",
+    "languages": "30+ Sprachen",
+    "languagesDesc": "Von Spanisch uber Japanisch bis Arabisch. Ein Video, unbegrenzte Reichweite rund um den Globus.",
+    "speed": "Blitzschnell",
+    "speedDesc": "Ein 10-Minuten-Video in unter 3 Minuten synchronisiert. Kein tagelangos Warten mehr auf manuelle Synchronisation.",
+    "quality": "Studioqualitat",
+    "qualityDesc": "Bis zu 4K-Ausgabe mit naturlich klingender Sprache. Professionelle Ergebnisse ohne Studio.",
+    "api": "API-Zugang",
+    "apiDesc": "Integrieren Sie DubSync in Ihren Workflow. Automatisieren Sie Synchronisation im grossen Massstab mit unserer REST API."
+  },
+  "testimonials": {
+    "title": "Von Creatorn geliebt",
+    "subtitle": "Schliessen Sie sich Tausenden von Creatorn an, die globale Zielgruppen erreichen"
+  },
+  "pricing": {
+    "title": "Einfache, transparente Preise",
+    "subtitle": "Kostenlos starten. Skalieren Sie mit Ihrem Wachstum. Keine versteckten Gebuhren.",
+    "monthly": "Monatlich",
+    "annual": "Jahrlich",
+    "annualDiscount": "-20%",
+    "perMonth": "/Monat",
+    "getStarted": "Jetzt starten",
+    "startTrial": "Kostenlos testen",
+    "mostPopular": "Beliebteste Option"
+  },
+  "faq": {
+    "title": "Haufig gestellte Fragen"
+  },
+  "cta": {
+    "title": "Bereit, die Welt zu erreichen?",
+    "subtitle": "Schliessen Sie sich 2,000+ Creatorn an, die mit KI-gestutzter Synchronisation neue Zielgruppen erreichen. Kostenlos starten — keine Kreditkarte erforderlich.",
+    "button": "Kostenlos starten",
+    "note": "Keine Kreditkarte · 5 Gratisminuten · Jederzeit kundbar"
+  },
+  "footer": {
+    "tagline": "KI-gestutzte Videosynchronisation und Lokalisierung fur Creator und Teams.",
+    "product": "Produkt",
+    "company": "Unternehmen",
+    "resources": "Ressourcen",
+    "legal": "Rechtliches",
+    "copyright": "DubSync. Alle Rechte vorbehalten."
+  }
+}

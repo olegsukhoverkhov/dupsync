@@ -1,0 +1,100 @@
+{
+  "meta": {
+    "title": "DubSync — Doublage Video IA & Clonage Vocal | 30+ Langues",
+    "description": "Doublez vos videos dans plus de 30 langues avec le clonage vocal et la synchronisation labiale IA. Qualite studio en quelques minutes. Essai gratuit."
+  },
+  "header": {
+    "demo": "Demo",
+    "pricing": "Tarifs",
+    "login": "Connexion",
+    "getStarted": "Commencer"
+  },
+  "hero": {
+    "badge": "Desormais avec synchronisation labiale IA",
+    "title1": "Doublage Video par IA —",
+    "title2": "Clonez les Voix & Synchronisez les Levres en 30+ Langues",
+    "subtitle": "Envoyez une video. L'IA clone la voix du locuteur, traduit et synchronise les levres — automatiquement. Atteignez le monde en minutes, pas en semaines.",
+    "ctaPrimary": "Commencer Gratuitement",
+    "ctaSecondary": "Voir la Demo",
+    "creators": "createurs",
+    "minDubbed": "min doublees",
+    "languages": "langues"
+  },
+  "logoBar": {
+    "trusted": "La confiance de createurs et equipes dans le monde entier"
+  },
+  "whatIs": {
+    "title": "Qu'est-ce que le doublage video par IA ?",
+    "p1": "Le doublage video par IA est le processus de traduction et de reenregistrement automatique de l'audio d'une video dans une autre langue a l'aide de l'intelligence artificielle. Contrairement au doublage traditionnel qui necessite des comediens de doublage et du temps en studio, le doublage IA utilise la technologie de clonage vocal pour reproduire la voix originale du locuteur dans la langue cible — en preservant son ton, son emotion et son style.",
+    "p2": "DubSync combine trois technologies d'IA : la traduction automatique neuronale pour une conversion precise du script, le clonage vocal pour conserver l'identite du locuteur dans toutes les langues, et la synchronisation labiale pour adapter les mouvements de la bouche au nouvel audio. Le resultat est une video doublee qui parait et sonne naturelle dans n'importe quelle langue."
+  },
+  "howItWorks": {
+    "title": "Comment fonctionne DubSync",
+    "subtitle": "DubSync utilise l'IA pour automatiser l'ensemble du processus de doublage — de la transcription au clonage vocal en passant par la synchronisation labiale — en trois etapes simples.",
+    "step1title": "Envoyez votre video",
+    "step1desc": "Envoyez n'importe quel fichier video (MP4, MOV, AVI jusqu'a 5 Go). DubSync transcrit automatiquement l'audio original et detecte la langue source.",
+    "step2title": "L'IA traite votre video",
+    "step2desc": "Notre IA traduit la transcription, clone la voix du locuteur dans la langue cible et genere un audio synchronise avec les mouvements labiaux. Le processus complet prend 2 a 5 minutes pour une video classique de 10 minutes.",
+    "step3title": "Telechargez votre video doublee",
+    "step3desc": "Verifiez le resultat, modifiez la traduction si necessaire et telechargez votre video doublee en qualite jusqu'a 4K. Partagez-la instantanement avec votre audience mondiale."
+  },
+  "demo": {
+    "title": "Voyez par vous-meme",
+    "subtitle": "Trois etapes. C'est tout ce qu'il faut pour toucher une audience mondiale.",
+    "upload": "Envoyer",
+    "processing": "Traitement IA",
+    "download": "Telecharger"
+  },
+  "examples": {
+    "title": "Des resultats concrets",
+    "subtitle": "Decouvrez comment les createurs utilisent DubSync pour toucher des audiences mondiales"
+  },
+  "features": {
+    "title": "Pourquoi DubSync",
+    "subtitle": "Tout ce dont vous avez besoin pour rendre votre contenu veritablement mondial",
+    "voiceCloning": "Clonage Vocal",
+    "voiceCloningDesc": "L'IA clone la voix originale du locuteur — ton, accent, emotion. Ca sonne comme la personne, pas comme un robot.",
+    "lipSync": "Synchronisation Labiale",
+    "lipSyncDesc": "Les mouvements de la bouche s'adaptent automatiquement a l'audio double. Vos spectateurs ne remarqueront pas que c'est un doublage.",
+    "languages": "30+ Langues",
+    "languagesDesc": "De l'espagnol au japonais en passant par l'arabe. Une video, une portee illimitee a travers le monde.",
+    "speed": "Ultra Rapide",
+    "speedDesc": "Une video de 10 minutes doublee en moins de 3 minutes. Fini les jours d'attente pour un doublage manuel.",
+    "quality": "Qualite Studio",
+    "qualityDesc": "Jusqu'a 4K en sortie avec une voix au son naturel. Des resultats professionnels sans studio.",
+    "api": "Acces API",
+    "apiDesc": "Integrez DubSync dans votre workflow. Automatisez le doublage a grande echelle avec notre REST API."
+  },
+  "testimonials": {
+    "title": "Adopte par les createurs",
+    "subtitle": "Rejoignez des milliers de createurs qui atteignent des audiences mondiales"
+  },
+  "pricing": {
+    "title": "Des tarifs simples et transparents",
+    "subtitle": "Commencez gratuitement. Evoluez a votre rythme. Aucun frais cache.",
+    "monthly": "Mensuel",
+    "annual": "Annuel",
+    "annualDiscount": "-20%",
+    "perMonth": "/mois",
+    "getStarted": "Commencer",
+    "startTrial": "Essai Gratuit",
+    "mostPopular": "Le Plus Populaire"
+  },
+  "faq": {
+    "title": "Questions frequentes"
+  },
+  "cta": {
+    "title": "Pret a conquérir le monde ?",
+    "subtitle": "Rejoignez 2,000+ createurs qui atteignent de nouvelles audiences grace au doublage par IA. Commencez gratuitement — sans carte bancaire.",
+    "button": "Commencer Gratuitement",
+    "note": "Sans carte bancaire · 5 minutes gratuites · Resiliable a tout moment"
+  },
+  "footer": {
+    "tagline": "Doublage et localisation video par IA pour les createurs et les equipes.",
+    "product": "Produit",
+    "company": "Entreprise",
+    "resources": "Ressources",
+    "legal": "Mentions legales",
+    "copyright": "DubSync. Tous droits reserves."
+  }
+}

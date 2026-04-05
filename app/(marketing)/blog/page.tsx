@@ -1,69 +1,56 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
+import { ALL_ARTICLES } from "@/components/blog/blog-post-layout";
+import { ArrowRight, Clock } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "DubSync Blog — AI Video Dubbing Insights & Guides",
   description:
-    "Expert articles on AI video dubbing, voice cloning, multilingual content strategy, and translation technology from the DubSync team.",
+    "Tutorials, comparisons, and guides on AI video dubbing, voice cloning, and video localization. Written by the DubSync team.",
 };
-
-const ARTICLES = [
-  {
-    slug: "what-is-ai-video-dubbing",
-    title: "What is AI Video Dubbing? A Complete Guide for 2026",
-    excerpt:
-      "Learn how AI video dubbing works, from automatic transcription to voice cloning and lip sync. Discover why creators and businesses are switching from traditional dubbing workflows.",
-    date: "April 5, 2026",
-    readingTime: "5 min read",
-  },
-  {
-    slug: "voice-cloning-video-translation",
-    title: "How Voice Cloning Works in Video Translation",
-    excerpt:
-      "Explore the technology behind voice cloning for video translation, including neural text-to-speech, speaker identity preservation, and the privacy safeguards that protect your voice data.",
-    date: "April 5, 2026",
-    readingTime: "4 min read",
-  },
-  {
-    slug: "ai-dubbing-vs-traditional",
-    title: "AI Dubbing vs Traditional Dubbing: Cost, Speed & Quality Compared",
-    excerpt:
-      "A side-by-side comparison of AI-powered dubbing and traditional dubbing studios. Learn which approach fits your budget, timeline, and quality requirements.",
-    date: "April 5, 2026",
-    readingTime: "4 min read",
-  },
-];
 
 export default function BlogPage() {
   return (
     <div className="landing-dark bg-[#0F172A] text-white min-h-screen">
       <Header />
       <main className="pt-24 pb-16">
-        <div className="mx-auto max-w-4xl px-6 lg:px-8">
-          <h1 className="text-4xl font-bold mb-4">DubSync Blog</h1>
-          <p className="text-zinc-300 text-lg mb-12">
-            Insights on AI dubbing, voice cloning, multilingual content
-            strategy, and product updates from the DubSync team.
-          </p>
+        <div className="mx-auto max-w-5xl px-6 lg:px-8">
+          <div className="mb-12">
+            <h1 className="text-3xl sm:text-4xl font-bold">
+              DubSync <span className="gradient-text">Blog</span>
+            </h1>
+            <p className="mt-3 text-slate-400">
+              Tutorials, comparisons, and guides on AI video dubbing
+            </p>
+          </div>
 
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {ARTICLES.map((article) => (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {ALL_ARTICLES.map((article) => (
               <Link
                 key={article.slug}
                 href={`/blog/${article.slug}`}
-                className="group rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:border-pink-500/40 hover:bg-white/[0.08]"
+                className="group rounded-2xl border border-white/10 bg-slate-800/40 p-6 hover:border-white/20 hover:bg-slate-800/60 transition-all"
               >
-                <p className="text-sm text-zinc-500 mb-3">
-                  {article.date} &middot; {article.readingTime}
-                </p>
-                <h2 className="text-lg font-semibold text-white mb-3 group-hover:text-pink-400 transition-colors">
+                <span className="inline-block rounded-md border border-pink-500/30 bg-pink-500/10 px-2 py-0.5 text-xs font-medium text-pink-400 mb-3">
+                  {article.category}
+                </span>
+                <h2 className="text-base font-semibold text-white group-hover:text-pink-400 transition-colors line-clamp-2">
                   {article.title}
                 </h2>
-                <p className="text-sm text-zinc-400 leading-relaxed">
+                <p className="mt-2 text-sm text-slate-500 line-clamp-2">
                   {article.excerpt}
                 </p>
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="flex items-center gap-1 text-xs text-slate-600">
+                    <Clock className="h-3 w-3" />
+                    {article.readingTime}
+                  </span>
+                  <span className="text-xs text-pink-400 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    Read <ArrowRight className="h-3 w-3" />
+                  </span>
+                </div>
               </Link>
             ))}
           </div>

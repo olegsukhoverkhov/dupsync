@@ -1,0 +1,100 @@
+{
+  "meta": {
+    "title": "DubSync — AI Video Dubbing & Voice Cloning | Dub Videos in 30+ Languages",
+    "description": "Dub videos into 30+ languages with AI voice cloning and lip sync. Upload a video, get studio-quality dubbing in minutes. Free plan available."
+  },
+  "header": {
+    "demo": "Demo",
+    "pricing": "Pricing",
+    "login": "Log In",
+    "getStarted": "Get Started"
+  },
+  "hero": {
+    "badge": "Now with AI lip-sync technology",
+    "title1": "AI Video Dubbing —",
+    "title2": "Clone Voices & Sync Lips in 30+ Languages",
+    "subtitle": "Upload a video. AI clones the speaker's voice, translates, and syncs lips — automatically. Go global in minutes, not weeks.",
+    "ctaPrimary": "Start Dubbing Free",
+    "ctaSecondary": "Watch Demo",
+    "creators": "creators",
+    "minDubbed": "min dubbed",
+    "languages": "languages"
+  },
+  "logoBar": {
+    "trusted": "Trusted by creators and teams worldwide"
+  },
+  "whatIs": {
+    "title": "What is AI video dubbing?",
+    "p1": "AI video dubbing is the process of automatically translating and re-recording a video's audio in another language using artificial intelligence. Unlike traditional dubbing that requires voice actors and studio time, AI dubbing uses voice cloning technology to replicate the original speaker's voice in the target language — preserving their tone, emotion, and speaking style.",
+    "p2": "DubSync combines three AI technologies: neural machine translation for accurate script conversion, voice cloning to maintain speaker identity across languages, and lip synchronization to match mouth movements with the new audio. The result is a dubbed video that looks and sounds natural in any language."
+  },
+  "howItWorks": {
+    "title": "How DubSync works",
+    "subtitle": "DubSync uses AI to automate the entire video dubbing workflow — from transcription to voice cloning to lip sync — in three simple steps.",
+    "step1title": "Upload your video",
+    "step1desc": "Upload any video file (MP4, MOV, AVI up to 5GB). DubSync automatically transcribes the original audio and detects the source language.",
+    "step2title": "AI processes your video",
+    "step2desc": "Our AI translates the transcript, clones the speaker's voice in the target language, and generates lip-synced audio that matches mouth movements. The entire process takes 2–5 minutes for a typical 10-minute video.",
+    "step3title": "Download your dubbed video",
+    "step3desc": "Review the result, make any edits to the translation, and download your dubbed video in up to 4K quality. Share it with your global audience instantly."
+  },
+  "demo": {
+    "title": "See it in action",
+    "subtitle": "Three steps. That's all it takes to reach a global audience.",
+    "upload": "Upload",
+    "processing": "AI Processing",
+    "download": "Download"
+  },
+  "examples": {
+    "title": "Real results",
+    "subtitle": "See how creators use DubSync to reach global audiences"
+  },
+  "features": {
+    "title": "Why DubSync",
+    "subtitle": "Everything you need to make your content truly global",
+    "voiceCloning": "Voice Cloning",
+    "voiceCloningDesc": "AI clones the original speaker's voice — tone, accent, emotion. It sounds like them, not a robot.",
+    "lipSync": "Lip Sync",
+    "lipSyncDesc": "Mouth movements automatically match the dubbed audio. Viewers won't notice it's a dub.",
+    "languages": "30+ Languages",
+    "languagesDesc": "From Spanish to Japanese to Arabic. One video, unlimited reach across the globe.",
+    "speed": "Lightning Fast",
+    "speedDesc": "A 10-minute video dubbed in under 3 minutes. No more waiting days for manual dubbing.",
+    "quality": "Studio Quality",
+    "qualityDesc": "Up to 4K output with natural-sounding speech. Professional results without the studio.",
+    "api": "API Access",
+    "apiDesc": "Integrate DubSync into your workflow. Automate dubbing at scale with our REST API."
+  },
+  "testimonials": {
+    "title": "Loved by creators",
+    "subtitle": "Join thousands of creators who are reaching global audiences"
+  },
+  "pricing": {
+    "title": "Simple, transparent pricing",
+    "subtitle": "Start free. Scale as you grow. No hidden fees.",
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "annualDiscount": "-20%",
+    "perMonth": "/month",
+    "getStarted": "Get Started",
+    "startTrial": "Start Free Trial",
+    "mostPopular": "Most Popular"
+  },
+  "faq": {
+    "title": "Frequently asked questions"
+  },
+  "cta": {
+    "title": "Ready to go global?",
+    "subtitle": "Join 2,000+ creators who are reaching new audiences with AI-powered dubbing. Start for free — no credit card required.",
+    "button": "Start Dubbing Free",
+    "note": "No credit card required · 5 free minutes · Cancel anytime"
+  },
+  "footer": {
+    "tagline": "AI-powered video dubbing and localization for creators and teams.",
+    "product": "Product",
+    "company": "Company",
+    "resources": "Resources",
+    "legal": "Legal",
+    "copyright": "DubSync. All rights reserved."
+  }
+}
