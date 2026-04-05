@@ -15,9 +15,11 @@ const WHISPER_FORMATS = new Set(["flac", "m4a", "mp3", "mp4", "mpeg", "mpga", "o
 // Map unsupported formats to supported ones for Whisper
 function getWhisperFilename(filename: string): string {
   const ext = filename.split(".").pop()?.toLowerCase() || "mp4";
-  // MOV, AVI, MKV → send as mp4 (Whisper accepts the audio track)
-  const whisperExt = WHISPER_FORMATS.has(ext) ? ext : "mp4";
-  return `audio.${whisperExt}`;
+  if (WHISPER_FORMATS.has(ext)) return `audio.${ext}`;
+  // MOV (iPhone) → try as m4a first (better compatibility with AAC audio)
+  if (ext === "mov") return "audio.m4a";
+  // AVI, MKV → send as mp4
+  return "audio.mp4";
 }
 
 function getWhisperMimeType(filename: string): string {
