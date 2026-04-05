@@ -40,6 +40,54 @@ import { LanguageSelector } from "@/components/project/language-selector";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { Profile } from "@/lib/supabase/types";
 
+// Inline video/audio player for completed dubs
+function DubInlinePlayer({ dub }: { dub: Dub }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!dub.dubbed_video_url) return;
+    const supabase = createClient();
+    supabase.storage.from("videos").createSignedUrl(dub.dubbed_video_url, 3600).then(({ data }) => {
+      if (data?.signedUrl) setUrl(data.signedUrl);
+    });
+  }, [dub.dubbed_video_url]);
+
+  if (!url) return <div className="h-12 bg-white/5 rounded-lg animate-pulse" />;
+
+  const isVideo = dub.dubbed_video_url?.includes("dubbed-video");
+  return (
+    <div className="rounded-xl overflow-hidden border border-white/10 bg-black mb-4">
+      {isVideo ? (
+        <video controls className="w-full max-h-64 object-contain" src={url} preload="metadata" />
+      ) : (
+        <div className="p-4">
+          <audio controls className="w-full" src={url} preload="metadata" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Original video player
+function OriginalVideoPlayer({ videoPath }: { videoPath: string | null }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!videoPath) return;
+    const supabase = createClient();
+    supabase.storage.from("videos").createSignedUrl(videoPath, 3600).then(({ data }) => {
+      if (data?.signedUrl) setUrl(data.signedUrl);
+    });
+  }, [videoPath]);
+
+  if (!videoPath) return null;
+  if (!url) return <div className="h-40 bg-white/5 rounded-xl animate-pulse" />;
+
+  return (
+    <div className="rounded-xl overflow-hidden border border-white/10 bg-black">
+      <video controls className="w-full max-h-64 object-contain" src={url} preload="metadata" />
+    </div>
+  );
+}
+
 const STATUS_LABELS: Record<DubStatus, string> = {
   pending: "Waiting...",
   translating: "Translating",
@@ -103,7 +151,6 @@ export default function ProjectDetailPage({
     return () => clearInterval(interval);
   }, [id]);
 
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [retryLoading, setRetryLoading] = useState(false);
   const [dubError, setDubError] = useState<string | null>(null);
@@ -177,15 +224,6 @@ export default function ProjectDetailPage({
     } finally {
       setStartingDub(false);
     }
-  }
-
-  async function handlePreview(dub: Dub) {
-    if (!dub.dubbed_video_url) return;
-    const supabase = createClient();
-    const { data } = await supabase.storage
-      .from("videos")
-      .createSignedUrl(dub.dubbed_video_url, 3600);
-    if (data?.signedUrl) setPreviewUrl(data.signedUrl);
   }
 
   async function handleDownload(dub: Dub) {
@@ -308,22 +346,24 @@ export default function ProjectDetailPage({
       {activeTab === "original" ? (
         <Card>
           <CardHeader>
-            <CardTitle>Original Transcript</CardTitle>
+            <CardTitle>Original</CardTitle>
             <CardDescription>
-              The original transcription of your video
+              Original video and transcription
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {project.transcript ? (
-              <TranscriptEditor
-                segments={project.transcript}
-                onChange={() => {}}
-                readOnly
-              />
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No transcript available
-              </p>
+            {/* Original video player */}
+            <OriginalVideoPlayer videoPath={project.original_video_url} />
+
+            {project.transcript && (
+              <div className="mt-6">
+                <p className="text-xs text-slate-500 mb-3 font-medium uppercase tracking-wider">Transcript</p>
+                <TranscriptEditor
+                  segments={project.transcript}
+                  onChange={() => {}}
+                  readOnly
+                />
+              </div>
             )}
           </CardContent>
         </Card>
@@ -341,26 +381,22 @@ export default function ProjectDetailPage({
                 </CardDescription>
               </div>
               {activeDub.status === "done" && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handlePreview(activeDub)}
-                    className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-1"
-                  >
-                    <Play className="h-3 w-3" />
-                    Preview
-                  </button>
-                  <button
-                    onClick={() => handleDownload(activeDub)}
-                    className="gradient-button rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1"
-                  >
-                    <Download className="h-3 w-3" />
-                    Download
-                  </button>
-                </div>
+                <button
+                  onClick={() => handleDownload(activeDub)}
+                  className="gradient-button rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1"
+                >
+                  <Download className="h-3 w-3" />
+                  Download
+                </button>
               )}
             </div>
           </CardHeader>
           <CardContent>
+            {/* Inline player for completed dubs */}
+            {activeDub.status === "done" && (
+              <DubInlinePlayer dub={activeDub} />
+            )}
+
             {!["done", "error"].includes(activeDub.status) && (
               <div className="mb-6">
                 <div className="flex justify-between text-sm mb-2">
@@ -372,19 +408,22 @@ export default function ProjectDetailPage({
             )}
 
             {activeDub.status === "error" && (
-              <div className="rounded-lg bg-red-50 p-4 mb-6">
-                <p className="text-sm text-red-800">
+              <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-4 mb-6">
+                <p className="text-sm text-red-400">
                   {activeDub.error_message || "An error occurred during dubbing"}
                 </p>
               </div>
             )}
 
             {activeDub.translated_transcript && (
-              <TranscriptEditor
-                segments={activeDub.translated_transcript}
-                onChange={() => {}}
-                readOnly
-              />
+              <div className="mt-6">
+                <p className="text-xs text-slate-500 mb-3 font-medium uppercase tracking-wider">Translation</p>
+                <TranscriptEditor
+                  segments={activeDub.translated_transcript}
+                  onChange={() => {}}
+                  readOnly
+                />
+              </div>
             )}
           </CardContent>
         </Card>
@@ -594,31 +633,6 @@ export default function ProjectDetailPage({
             )}
           </CardContent>
         </Card>
-      )}
-
-      {/* Audio/Video Preview */}
-      {previewUrl && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setPreviewUrl(null)} />
-          <div className="relative w-full max-w-lg rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-2xl">
-            <button
-              onClick={() => setPreviewUrl(null)}
-              className="absolute top-4 right-4 text-slate-500 hover:text-white cursor-pointer"
-            >
-              <X className="h-4 w-4" />
-            </button>
-            <h3 className="text-sm font-semibold text-white mb-4">Preview</h3>
-            {previewUrl.includes("dubbed-video") ? (
-              <video controls autoPlay className="w-full rounded-lg" src={previewUrl}>
-                Your browser does not support video playback.
-              </video>
-            ) : (
-              <audio controls autoPlay className="w-full" src={previewUrl}>
-                Your browser does not support audio playback.
-              </audio>
-            )}
-          </div>
-        </div>
       )}
 
       <ConfirmModal
