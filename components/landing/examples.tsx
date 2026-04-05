@@ -36,7 +36,7 @@ export function Examples() {
             Real <span className="gradient-text">results</span>
           </h2>
           <p className="mt-4 text-zinc-400 text-lg">
-            See how creators use DupSync to reach global audiences
+            See how creators use DubSync to reach global audiences
           </p>
         </div>
 

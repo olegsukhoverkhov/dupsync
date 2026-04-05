@@ -27,7 +27,7 @@ export function Header() {
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-pink-500 to-blue-600 flex items-center justify-center">
               <Languages className="h-4 w-4 text-white" />
             </div>
-            <span className="text-lg font-bold text-white">DupSync</span>
+            <span className="text-lg font-bold text-white">DubSync</span>
           </Link>
 
           <nav className="hidden sm:flex items-center gap-8">

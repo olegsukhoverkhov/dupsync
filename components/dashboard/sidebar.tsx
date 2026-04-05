@@ -36,7 +36,7 @@ export function Sidebar() {
     <aside className="flex h-full w-64 flex-col border-r bg-card">
       <div className="flex h-16 items-center gap-2 border-b px-6">
         <Languages className="h-6 w-6" />
-        <span className="text-xl font-bold">DupSync</span>
+        <span className="text-xl font-bold">DubSync</span>
       </div>
 
       <div className="p-4">

@@ -1,6 +1,8 @@
 import { Header } from "@/components/landing/header";
 import { HeroNew } from "@/components/landing/hero-new";
 import { LogoBar } from "@/components/landing/logo-bar";
+import { WhatIsDubbing } from "@/components/landing/what-is-dubbing";
+import { HowItWorks } from "@/components/landing/how-it-works";
 import { DemoSection } from "@/components/landing/demo-section";
 import { Examples } from "@/components/landing/examples";
 import { Features } from "@/components/landing/features";
@@ -18,6 +20,8 @@ export default function LandingPage() {
       <main>
         <HeroNew />
         <LogoBar />
+        <WhatIsDubbing />
+        <HowItWorks />
         <DemoSection />
         <Examples />
         <Features />

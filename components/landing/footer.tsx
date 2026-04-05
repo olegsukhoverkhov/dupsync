@@ -4,26 +4,24 @@ import { Languages } from "lucide-react";
 const LINKS = {
   Product: [
     { label: "Features", href: "#demo" },
-    { label: "Pricing", href: "#pricing" },
-    { label: "API", href: "#" },
-    { label: "Changelog", href: "#" },
+    { label: "Pricing", href: "/pricing" },
+    { label: "API", href: "/docs" },
+    { label: "Changelog", href: "/changelog" },
   ],
   Company: [
-    { label: "About", href: "#" },
-    { label: "Blog", href: "#" },
-    { label: "Careers", href: "#" },
-    { label: "Contact", href: "#" },
+    { label: "About", href: "/about" },
+    { label: "Blog", href: "/blog" },
+    { label: "Contact", href: "/contact" },
   ],
   Resources: [
-    { label: "Documentation", href: "#" },
-    { label: "Help Center", href: "#" },
-    { label: "Community", href: "#" },
-    { label: "Status", href: "#" },
+    { label: "Documentation", href: "/docs" },
+    { label: "Help Center", href: "/docs" },
+    { label: "Community", href: "https://discord.gg/dubsync" },
   ],
   Legal: [
-    { label: "Privacy", href: "#" },
-    { label: "Terms", href: "#" },
-    { label: "DPA", href: "#" },
+    { label: "Privacy", href: "/privacy" },
+    { label: "Terms", href: "/terms" },
+    { label: "DPA", href: "/privacy" },
   ],
 };
 
@@ -38,7 +36,7 @@ export function Footer() {
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-pink-500 to-blue-600 flex items-center justify-center">
                 <Languages className="h-4 w-4 text-white" />
               </div>
-              <span className="text-lg font-bold text-white">DupSync</span>
+              <span className="text-lg font-bold text-white">DubSync</span>
             </div>
             <p className="text-sm text-zinc-500 leading-relaxed">
               AI-powered video dubbing and localization for creators and teams.
@@ -67,7 +65,7 @@ export function Footer() {
 
         <div className="border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-zinc-600">
-            &copy; {new Date().getFullYear()} DupSync. All rights reserved.
+            &copy; {new Date().getFullYear()} DubSync. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             {["Twitter", "GitHub", "Discord"].map((social) => (

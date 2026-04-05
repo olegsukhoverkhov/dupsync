@@ -99,13 +99,13 @@ export async function cloneVoice(
   name: string
 ): Promise<string> {
   const formData = new FormData();
-  formData.append("name", `dupsync-${name}`);
+  formData.append("name", `dubsync-${name}`);
   formData.append(
     "files",
     new Blob([new Uint8Array(audioBuffer)], { type: "audio/wav" }),
     "sample.wav"
   );
-  formData.append("description", "Voice cloned by DupSync");
+  formData.append("description", "Voice cloned by DubSync");
 
   const response = await fetch("https://api.elevenlabs.io/v1/voices/add", {
     method: "POST",

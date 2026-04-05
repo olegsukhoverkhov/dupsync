@@ -29,7 +29,7 @@ const FEATURES = [
   {
     icon: Code,
     title: "API Access",
-    description: "Integrate DupSync into your workflow. Automate dubbing at scale with our REST API.",
+    description: "Integrate DubSync into your workflow. Automate dubbing at scale with our REST API.",
   },
 ];
 
@@ -39,7 +39,7 @@ export function Features() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold">
-            Why <span className="gradient-text">DupSync</span>
+            Why <span className="gradient-text">DubSync</span>
           </h2>
           <p className="mt-4 text-zinc-400 text-lg">
             Everything you need to make your content truly global

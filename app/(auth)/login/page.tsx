@@ -30,7 +30,7 @@ export default function LoginPage() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
             <Languages className="h-6 w-6 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl">Welcome to DupSync</CardTitle>
+          <CardTitle className="text-2xl">Welcome to DubSync</CardTitle>
           <CardDescription>
             Sign in to start dubbing your videos in 30+ languages
           </CardDescription>

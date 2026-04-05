@@ -6,27 +6,43 @@ import { ChevronDown } from "lucide-react";
 const FAQS = [
   {
     q: "How does voice cloning work?",
-    a: "Our AI analyzes the speaker's voice from the original video — capturing tone, pitch, accent, and speaking style. It then generates speech in the target language that sounds like the original speaker. No voice samples or recordings needed beyond the video itself.",
+    a: "DubSync uses AI to analyze the speaker's voice characteristics — pitch, tone, accent, and emotion — from the original video. It then generates new speech in the target language that preserves these characteristics, so the dubbed version sounds like the same person speaking a different language.",
   },
   {
     q: "What video formats are supported?",
-    a: "We support all major video formats including MP4, MOV, AVI, WebM, and MKV. Files can be up to 5GB depending on your plan. We process videos at their original resolution, up to 4K.",
+    a: "DubSync supports MP4, MOV, AVI, WebM, and MKV formats. The maximum file size depends on your plan: 100MB for Free, 500MB for Starter, 2GB for Pro, and 5GB for Enterprise.",
   },
   {
     q: "How long does dubbing take?",
-    a: "Most videos are dubbed in under 3 minutes per language. A 10-minute video typically takes about 2-3 minutes to process. You can dub into multiple languages simultaneously — they all process in parallel.",
+    a: "Most videos are processed in 2-5 minutes. A typical 10-minute video takes about 3 minutes to dub into one language. You can dub into multiple languages simultaneously — they all process in parallel.",
   },
   {
     q: "Is there a free plan?",
-    a: "Yes! Our free plan includes 5 minutes of dubbing per month in up to 2 languages. No credit card required. It's a great way to test the quality before upgrading.",
+    a: "Yes. DubSync offers a free plan with 5 minutes of dubbing per month, 2 target languages, and 720p output. No credit card is required to get started.",
   },
   {
     q: "How accurate is the lip sync?",
-    a: "Our lip-sync technology uses AI to match mouth movements to the dubbed audio. The result is natural-looking video where viewers typically can't tell it's been dubbed. Accuracy rates average 96-98%.",
+    a: "DubSync uses AI lip-sync technology to automatically adjust mouth movements to match the new audio. Our users report a 95-98% accuracy rate, making it nearly indistinguishable from native speech.",
   },
   {
     q: "Can I edit the translation before dubbing?",
-    a: "Absolutely. After transcription, you can review and edit both the original transcript and the translations. This gives you full control over the final output before generating the dubbed video.",
+    a: "Yes. After the AI generates the translation, you can review and edit the script before generating the final dubbed audio. This gives you full control over the accuracy and tone of the translation.",
+  },
+  {
+    q: "What languages does DubSync support?",
+    a: "DubSync supports over 30 languages including Spanish, French, German, Japanese, Korean, Chinese (Mandarin), Hindi, Arabic, Portuguese, Italian, Turkish, Indonesian, Russian, Polish, Dutch, Swedish, and more.",
+  },
+  {
+    q: "Can DubSync handle multiple speakers in one video?",
+    a: "Yes. DubSync automatically detects and separates multiple speakers, cloning each voice individually. This works great for interviews, panel discussions, podcasts, and multi-speaker presentations.",
+  },
+  {
+    q: "How much does AI video dubbing cost?",
+    a: "DubSync offers plans from free (5 min/month) to Enterprise ($199/month, unlimited). The Pro plan at $79/month includes 300 minutes with 4K output and API access — a fraction of traditional dubbing costs.",
+  },
+  {
+    q: "Is DubSync better than traditional dubbing?",
+    a: "For digital content, marketing videos, e-learning, and social media — yes. AI dubbing is 10-100x faster and more affordable. Traditional dubbing studios still excel for theatrical releases where maximum emotional nuance is required.",
   },
 ];
 
@@ -38,19 +54,23 @@ function FaqItem({ q, a }: { q: string; a: string }) {
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center justify-between w-full py-5 text-left"
+        aria-expanded={open}
       >
         <span className="text-base font-medium text-white pr-4">{q}</span>
         <ChevronDown
-          className={`h-5 w-5 text-zinc-500 shrink-0 transition-transform ${
+          className={`h-5 w-5 text-slate-500 shrink-0 transition-transform duration-200 ${
             open ? "rotate-180" : ""
           }`}
         />
       </button>
-      {open && (
-        <div className="pb-5 animate-fade-in">
-          <p className="text-sm text-zinc-400 leading-relaxed">{a}</p>
-        </div>
-      )}
+      {/* Always in DOM for SSR/SEO — CSS controls visibility */}
+      <div
+        className={`overflow-hidden transition-all duration-200 ${
+          open ? "max-h-96 pb-5" : "max-h-0"
+        }`}
+      >
+        <p className="text-sm text-slate-400 leading-relaxed">{a}</p>
+      </div>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { Star } from "lucide-react";
 
 const TESTIMONIALS = [
   {
-    quote: "DupSync doubled my international audience in two months. The voice cloning is so good that my Spanish viewers think I actually speak Spanish.",
+    quote: "DubSync doubled my international audience in two months. The voice cloning is so good that my Spanish viewers think I actually speak Spanish.",
     name: "Alex Rivera",
     role: "YouTube Creator",
     followers: "1.2M subscribers",
@@ -10,7 +10,7 @@ const TESTIMONIALS = [
     gradient: "from-blue-500 to-cyan-500",
   },
   {
-    quote: "We used to spend $5,000 per language for professional dubbing. DupSync does it in minutes for a fraction of the cost. The lip sync is incredible.",
+    quote: "We used to spend $5,000 per language for professional dubbing. DubSync does it in minutes for a fraction of the cost. The lip sync is incredible.",
     name: "Sarah Chen",
     role: "Head of Content",
     followers: "EduTech Pro",
@@ -18,7 +18,7 @@ const TESTIMONIALS = [
     gradient: "from-violet-500 to-pink-500",
   },
   {
-    quote: "Our product demos now reach 15 markets instead of 3. DupSync paid for itself in the first week. It's a no-brainer for any global team.",
+    quote: "Our product demos now reach 15 markets instead of 3. DubSync paid for itself in the first week. It's a no-brainer for any global team.",
     name: "Marcus Klein",
     role: "Marketing Director",
     followers: "ScaleUp Agency",
