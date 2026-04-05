@@ -53,7 +53,7 @@ export function Header() {
               Log In
             </Link>
             <Link
-              href="/login"
+              href="/signup"
               className="gradient-button rounded-lg px-4 py-2 text-sm font-medium"
             >
               Get Started

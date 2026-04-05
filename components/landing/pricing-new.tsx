@@ -90,7 +90,7 @@ export function PricingNew() {
                 </ul>
 
                 <Link
-                  href="/login"
+                  href="/signup"
                   className={`mt-6 flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all ${
                     popular
                       ? "gradient-button"

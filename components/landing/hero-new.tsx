@@ -52,7 +52,7 @@ export function HeroNew() {
 
             <div className="mt-10 flex flex-col sm:flex-row gap-4">
               <Link
-                href="/login"
+                href="/signup"
                 className="gradient-button inline-flex items-center justify-center gap-2 rounded-xl px-8 py-4 text-base font-semibold"
               >
                 Start Dubbing Free
