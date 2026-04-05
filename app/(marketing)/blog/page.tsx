@@ -4,6 +4,7 @@ import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { ALL_ARTICLES } from "@/components/blog/blog-post-layout";
 import { ArrowRight, Clock } from "lucide-react";
+import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 
 export const metadata: Metadata = {
   title: "DubSync Blog — AI Video Dubbing Insights & Guides",
@@ -57,6 +58,7 @@ export default function BlogPage() {
         </div>
       </main>
       <Footer />
+      <BreadcrumbSchema items={[{ name: "Blog", url: "https://dubsync.app/blog" }]} />
     </div>
   );
 }

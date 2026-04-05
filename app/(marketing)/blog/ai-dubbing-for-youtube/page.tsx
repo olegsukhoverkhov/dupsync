@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     description:
       "How YouTube creators use AI dubbing to reach viewers in 30+ languages, grow subscribers, and monetize international audiences.",
     url: "https://dubsync.app/blog/ai-dubbing-for-youtube",
+    images: ["/og-image.png"],
   },
   twitter: {
     card: "summary_large_image",

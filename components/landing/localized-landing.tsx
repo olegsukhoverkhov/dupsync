@@ -181,16 +181,54 @@ function FinalCTA({ dict }: { dict: Dictionary }) {
 }
 
 function Footer({ dict }: { dict: Dictionary }) {
+  const footerLinks = {
+    [dict.footer.product]: [
+      { label: "Features", href: "/#demo" },
+      { label: "Pricing", href: "/pricing" },
+      { label: "Changelog", href: "/changelog" },
+    ],
+    [dict.footer.company]: [
+      { label: "About", href: "/about" },
+      { label: "Blog", href: "/blog" },
+      { label: "Contact", href: "/contact" },
+    ],
+    [dict.footer.resources]: [
+      { label: "Documentation", href: "/docs" },
+    ],
+    [dict.footer.legal]: [
+      { label: "Privacy", href: "/privacy" },
+      { label: "Terms", href: "/terms" },
+    ],
+  };
+
   return (
     <footer className="border-t border-white/5 pt-16 pb-8">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-pink-500 to-blue-600 flex items-center justify-center">
-            <span className="text-white text-xs font-bold">D</span>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-8 mb-12">
+          <div className="col-span-2 sm:col-span-1">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-pink-500 to-blue-600 flex items-center justify-center">
+                <span className="text-white text-xs font-bold">D</span>
+              </div>
+              <span className="text-lg font-bold text-white">DubSync</span>
+            </div>
+            <p className="text-sm text-zinc-500 leading-relaxed">{dict.footer.tagline}</p>
           </div>
-          <span className="text-lg font-bold text-white">DubSync</span>
+          {Object.entries(footerLinks).map(([category, links]) => (
+            <div key={category}>
+              <h4 className="text-sm font-semibold text-white mb-4">{category}</h4>
+              <ul className="space-y-3">
+                {links.map((link) => (
+                  <li key={link.label}>
+                    <Link href={link.href} className="text-sm text-zinc-500 hover:text-white transition-colors">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
-        <p className="text-sm text-zinc-500 mb-8">{dict.footer.tagline}</p>
         <div className="border-t border-white/5 pt-8">
           <p className="text-xs text-zinc-600 text-center">&copy; {new Date().getFullYear()} {dict.footer.copyright}</p>
         </div>

@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     description:
       "We tested 8 AI dubbing platforms on the same video. See how DubSync, Rask AI, ElevenLabs, HeyGen, and others compare on price, quality, and features.",
     url: "https://dubsync.app/blog/best-ai-dubbing-tools",
+    images: ["/og-image.png"],
   },
   twitter: {
     card: "summary_large_image",

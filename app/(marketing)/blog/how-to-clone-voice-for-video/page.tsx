@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     description:
       "Learn how AI voice cloning works for video dubbing, how to get the best results, and how DubSync keeps your voice data private and secure.",
     url: "https://dubsync.app/blog/how-to-clone-voice-for-video",
+    images: ["/og-image.png"],
   },
   twitter: {
     card: "summary_large_image",

@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     description:
       "Learn how AI video dubbing works — from transcription to voice cloning and lip sync. Discover benefits, use cases, and why creators choose AI over traditional dubbing.",
     url: "https://dubsync.app/blog/what-is-ai-video-dubbing",
+    images: ["/og-image.png"],
   },
   twitter: {
     card: "summary_large_image",

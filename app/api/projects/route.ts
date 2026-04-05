@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { runTranscription } from "@/lib/pipeline";
 
@@ -65,8 +66,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Start transcription in background (fire and forget)
-  runTranscription(project.id).catch(console.error);
+  // Run transcription after response is sent — keeps function alive on Vercel
+  after(async () => {
+    try {
+      await runTranscription(project.id);
+    } catch (err) {
+      console.error("Transcription background task failed:", err);
+    }
+  });
 
   return NextResponse.json(project, { status: 201 });
 }

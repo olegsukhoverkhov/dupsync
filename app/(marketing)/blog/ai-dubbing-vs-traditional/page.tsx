@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     description:
       "Compare AI dubbing and traditional dubbing on cost, speed, and quality. Learn when to use each approach and why most creators are switching to AI.",
     url: "https://dubsync.app/blog/ai-dubbing-vs-traditional",
+    images: ["/og-image.png"],
   },
   twitter: {
     card: "summary_large_image",

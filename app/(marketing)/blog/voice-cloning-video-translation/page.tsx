@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     description:
       "How voice cloning technology preserves speaker identity across languages. Learn about neural TTS, quality benchmarks, and privacy safeguards.",
     url: "https://dubsync.app/blog/voice-cloning-video-translation",
+    images: ["/og-image.png"],
   },
   twitter: {
     card: "summary_large_image",

@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     description:
       "Step-by-step tutorial: upload your YouTube video, choose languages, and get dubbed versions ready to publish. No editing skills required.",
     url: "https://dubsync.app/blog/how-to-dub-youtube-video",
+    images: ["/og-image.png"],
   },
   twitter: {
     card: "summary_large_image",

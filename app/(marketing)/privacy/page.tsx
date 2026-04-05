@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
+import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 
 export const metadata: Metadata = {
   title: "Privacy Policy — DubSync",
@@ -149,6 +150,7 @@ export default function PrivacyPage() {
         </div>
       </main>
       <Footer />
+      <BreadcrumbSchema items={[{ name: "Privacy", url: "https://dubsync.app/privacy" }]} />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { PricingNew } from "@/components/landing/pricing-new";
+import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 
 export const metadata: Metadata = {
   title: "DubSync Pricing — AI Video Dubbing Plans from Free to Enterprise",
@@ -74,6 +75,7 @@ export default function PricingPage() {
         </div>
       </main>
       <Footer />
+      <BreadcrumbSchema items={[{ name: "Pricing", url: "https://dubsync.app/pricing" }]} />
     </div>
   );
 }

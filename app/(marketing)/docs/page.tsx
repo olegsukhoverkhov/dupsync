@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
+import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 
 export const metadata: Metadata = {
   title: "Documentation — DubSync API",
@@ -138,6 +139,7 @@ export default function DocsPage() {
         </div>
       </main>
       <Footer />
+      <BreadcrumbSchema items={[{ name: "Documentation", url: "https://dubsync.app/docs" }]} />
     </div>
   );
 }

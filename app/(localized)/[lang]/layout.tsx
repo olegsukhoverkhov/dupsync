@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LOCALES, isValidLocale, getDictionary, LOCALE_INFO } from "@/lib/i18n/dictionaries";
 import { notFound } from "next/navigation";
+import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 
 export async function generateStaticParams() {
   return LOCALES.filter((l) => l !== "en").map((lang) => ({ lang }));
@@ -55,6 +56,7 @@ export default async function LocalizedLayout({
         }}
       />
       {children}
+      <BreadcrumbSchema items={[{ name: LOCALE_INFO[lang].nativeName, url: `https://dubsync.app/${lang}/` }]} />
     </div>
   );
 }
