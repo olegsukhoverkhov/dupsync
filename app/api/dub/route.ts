@@ -42,7 +42,23 @@ export async function POST(request: Request) {
   }
 
   const typedProfile = profile as Profile;
+  // Ensure credits_remaining is a number (DB returns string for numeric type)
+  typedProfile.credits_remaining = Number(typedProfile.credits_remaining) || 0;
   const planLimits = PLAN_LIMITS[typedProfile.plan];
+
+  // Check concurrent project limit
+  const { data: activeProjects } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("user_id", user.id)
+    .in("status", ["dubbing", "transcribing"]);
+
+  if (activeProjects && activeProjects.length >= planLimits.maxProjects) {
+    return NextResponse.json(
+      { error: `Your ${planLimits.name} plan allows max ${planLimits.maxProjects} concurrent project(s). Wait for current projects to finish or upgrade your plan.` },
+      { status: 403 }
+    );
+  }
 
   if (languages.length > planLimits.maxLanguages) {
     return NextResponse.json(

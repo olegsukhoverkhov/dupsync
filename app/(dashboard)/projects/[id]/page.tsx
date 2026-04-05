@@ -560,12 +560,17 @@ export default function ProjectDetailPage({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {dub.status === "done" && (
+                      {dub.status === "done" && profile && (
                         <span className="text-xs text-green-400 flex items-center gap-2">
                           {dub.dubbed_video_url?.includes("dubbed-video") ? "Video" : "Audio"}
                           <span className="text-slate-600">|</span>
+                          {(() => { const q: Record<string, string> = { free: "720p", starter: "1080p", pro: "4K", enterprise: "4K" }; return q[profile.plan] || "720p"; })()}
+                          <span className="text-slate-600">|</span>
                           Done
                         </span>
+                      )}
+                      {dub.status === "done" && !profile && (
+                        <span className="text-xs text-green-400">Done</span>
                       )}
                       {dub.status === "error" && (
                         <span className="text-xs text-red-400">Failed</span>

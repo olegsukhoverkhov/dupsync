@@ -36,7 +36,7 @@ export function ProjectCard({ project }: { project: ProjectWithDubs }) {
           </span>
         </div>
 
-        <div className="flex items-center gap-4 text-xs text-slate-500">
+        <div className="flex items-center gap-4 text-xs text-slate-500 flex-wrap">
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
             {formatDuration(project.duration_seconds)}
@@ -47,10 +47,9 @@ export function ProjectCard({ project }: { project: ProjectWithDubs }) {
               {doneDubs}/{totalDubs} languages
             </span>
           )}
-          {totalDubs > 0 && project.duration_seconds && (
-            <span className="flex items-center gap-1">
-              <CreditCard className="h-3 w-3" />
-              {formatDuration(project.duration_seconds * totalDubs)} total
+          {project.status === "done" && (
+            <span className="text-slate-600">
+              {new Date(project.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
             </span>
           )}
         </div>

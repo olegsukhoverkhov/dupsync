@@ -52,6 +52,7 @@ export const PLAN_LIMITS: Record<
     credits: number; // credits per month (1sec video = 5 credits), -1 = unlimited
     maxFileSize: number; // MB
     maxLanguages: number;
+    maxProjects: number; // concurrent projects in dubbing
     features: string[];
   }
 > = {
@@ -61,8 +62,10 @@ export const PLAN_LIMITS: Record<
     credits: 1500,
     maxFileSize: 100,
     maxLanguages: 2,
+    maxProjects: 1,
     features: [
       "1,500 credits/month",
+      "1 project at a time",
       "2 target languages",
       "100MB max file size",
       "720p output",
@@ -70,12 +73,14 @@ export const PLAN_LIMITS: Record<
   },
   starter: {
     name: "Starter",
-    price: 2900, // cents
-    credits: 18000, // 60min × 60sec × 5
+    price: 2900,
+    credits: 18000,
     maxFileSize: 500,
     maxLanguages: 10,
+    maxProjects: 3,
     features: [
       "18,000 credits/month",
+      "3 concurrent projects",
       "10 target languages",
       "500MB max file size",
       "1080p output",
@@ -85,11 +90,13 @@ export const PLAN_LIMITS: Record<
   pro: {
     name: "Pro",
     price: 7900,
-    credits: 90000, // 300min × 60sec × 5
+    credits: 90000,
     maxFileSize: 2000,
     maxLanguages: 30,
+    maxProjects: 10,
     features: [
       "90,000 credits/month",
+      "10 concurrent projects",
       "All 30+ languages",
       "2GB max file size",
       "4K output",
@@ -103,8 +110,10 @@ export const PLAN_LIMITS: Record<
     credits: -1,
     maxFileSize: 5000,
     maxLanguages: 30,
+    maxProjects: 50,
     features: [
       "Unlimited credits",
+      "50 concurrent projects",
       "All 30+ languages",
       "5GB max file size",
       "4K output",
