@@ -27,24 +27,43 @@ export async function runTranscription(projectId: string) {
       throw new Error("No video URL found");
     }
 
-    console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Downloading video: ${project.original_video_url}`);
-
-    const { data: fileData, error: downloadError } = await supabase.storage
-      .from("videos")
-      .download(project.original_video_url);
-
-    if (downloadError || !fileData) {
-      throw new Error(`Failed to download video: ${downloadError?.message}`);
-    }
-
-    const buffer = Buffer.from(await fileData.arrayBuffer());
-    console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Video size: ${(buffer.byteLength / 1024 / 1024).toFixed(2)}MB`);
-
     const ext = (project.original_video_url.split(".").pop() || "mp4").toLowerCase();
     const languageHint = project.original_language !== "auto" ? project.original_language : undefined;
 
-    console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Calling Whisper API (ext=${ext}, lang=${languageHint || "auto"})`);
-    const { segments, language } = await ai.transcribe(buffer, `video.${ext}`, languageHint);
+    // Try voice-sample.wav first (extracted by client, works for all formats)
+    const videoDir = project.original_video_url.split("/").slice(0, -1).join("/");
+    const voiceSamplePath = `${videoDir}/voice-sample.wav`;
+
+    let buffer: Buffer;
+    let transcribeFilename: string;
+
+    const { data: wavData, error: wavErr } = await supabase.storage
+      .from("videos")
+      .download(voiceSamplePath);
+
+    if (wavData && !wavErr) {
+      // Use extracted WAV (works for iPhone MOV, any format)
+      buffer = Buffer.from(await wavData.arrayBuffer());
+      transcribeFilename = "audio.wav";
+      console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Using voice-sample.wav: ${(buffer.byteLength / 1024).toFixed(0)}KB`);
+    } else {
+      // Fallback to original video file
+      console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] No WAV sample, using video: ${project.original_video_url}`);
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from("videos")
+        .download(project.original_video_url);
+
+      if (downloadError || !fileData) {
+        throw new Error(`Failed to download video: ${downloadError?.message}`);
+      }
+
+      buffer = Buffer.from(await fileData.arrayBuffer());
+      transcribeFilename = `video.${ext}`;
+      console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Video size: ${(buffer.byteLength / 1024 / 1024).toFixed(2)}MB`);
+    }
+
+    console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Calling Whisper API (file=${transcribeFilename}, lang=${languageHint || "auto"})`);
+    const { segments, language } = await ai.transcribe(buffer, transcribeFilename, languageHint);
 
     console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Transcription done: ${segments.length} segments, language=${language}`);
 
