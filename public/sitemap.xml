@@ -126,4 +126,50 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+  <!-- Localized blog listings -->
+  <url><loc>https://dubsync.app/es/blog</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/pt/blog</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/de/blog</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/fr/blog</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/ja/blog</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <!-- ES blog articles -->
+  <url><loc>https://dubsync.app/es/blog/best-ai-dubbing-tools</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/es/blog/what-is-ai-video-dubbing</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/es/blog/how-to-dub-youtube-video</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/es/blog/ai-dubbing-vs-traditional</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/es/blog/ai-dubbing-for-youtube</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/es/blog/voice-cloning-video-translation</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/es/blog/how-to-clone-voice-for-video</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <!-- PT blog articles -->
+  <url><loc>https://dubsync.app/pt/blog/best-ai-dubbing-tools</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/pt/blog/what-is-ai-video-dubbing</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/pt/blog/how-to-dub-youtube-video</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/pt/blog/ai-dubbing-vs-traditional</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/pt/blog/ai-dubbing-for-youtube</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/pt/blog/voice-cloning-video-translation</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/pt/blog/how-to-clone-voice-for-video</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <!-- DE blog articles -->
+  <url><loc>https://dubsync.app/de/blog/best-ai-dubbing-tools</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/de/blog/what-is-ai-video-dubbing</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/de/blog/how-to-dub-youtube-video</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/de/blog/ai-dubbing-vs-traditional</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/de/blog/ai-dubbing-for-youtube</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/de/blog/voice-cloning-video-translation</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/de/blog/how-to-clone-voice-for-video</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <!-- FR blog articles -->
+  <url><loc>https://dubsync.app/fr/blog/best-ai-dubbing-tools</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/fr/blog/what-is-ai-video-dubbing</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/fr/blog/how-to-dub-youtube-video</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/fr/blog/ai-dubbing-vs-traditional</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/fr/blog/ai-dubbing-for-youtube</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/fr/blog/voice-cloning-video-translation</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/fr/blog/how-to-clone-voice-for-video</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <!-- JA blog articles -->
+  <url><loc>https://dubsync.app/ja/blog/best-ai-dubbing-tools</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/ja/blog/what-is-ai-video-dubbing</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/ja/blog/how-to-dub-youtube-video</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/ja/blog/ai-dubbing-vs-traditional</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/ja/blog/ai-dubbing-for-youtube</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/ja/blog/voice-cloning-video-translation</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/ja/blog/how-to-clone-voice-for-video</loc><lastmod>2026-04-05</lastmod><priority>0.6</priority></url>
 </urlset>
