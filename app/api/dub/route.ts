@@ -4,7 +4,7 @@ import { runDubbing } from "@/lib/pipeline";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { Profile } from "@/lib/supabase/types";
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export async function POST(request: Request) {
   const supabase = await createClient();

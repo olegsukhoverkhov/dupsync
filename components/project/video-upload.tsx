@@ -93,6 +93,7 @@ export function VideoUpload({
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const handleFile = useCallback(
     (f: globalThis.File) => {
@@ -116,6 +117,9 @@ export function VideoUpload({
       }
 
       setFile(f);
+      // Create preview URL
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(URL.createObjectURL(f));
     },
     [maxSizeMB]
   );
@@ -224,7 +228,19 @@ export function VideoUpload({
           </label>
         </div>
       ) : (
-        <div className="rounded-xl border p-4">
+        <div className="rounded-xl border border-white/10 overflow-hidden">
+          {/* Video preview */}
+          {previewUrl && (
+            <div className="bg-black">
+              <video
+                src={previewUrl}
+                controls
+                className="w-full max-h-48 object-contain"
+                preload="metadata"
+              />
+            </div>
+          )}
+          <div className="p-4">
           <div className="flex items-center gap-3">
             <File className="h-8 w-8 text-muted-foreground" />
             <div className="flex-1 min-w-0">
@@ -240,6 +256,7 @@ export function VideoUpload({
                 onClick={() => {
                   setFile(null);
                   setProgress(0);
+                  if (previewUrl) { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }
                 }}
               >
                 <X className="h-4 w-4" />
@@ -271,6 +288,7 @@ export function VideoUpload({
               Upload Video
             </Button>
           )}
+          </div>
         </div>
       )}
 

@@ -163,7 +163,8 @@ export default function ProjectDetailPage({
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${project?.title || "dubbed"}-${dub.target_language}.mp3`;
+      const ext = dub.dubbed_video_url?.includes("dubbed-video") ? "mp4" : "mp3";
+      a.download = `${project?.title || "dubbed"}-${dub.target_language}.${ext}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -465,9 +466,15 @@ export default function ProjectDetailPage({
               <X className="h-4 w-4" />
             </button>
             <h3 className="text-sm font-semibold text-white mb-4">Preview</h3>
-            <audio controls autoPlay className="w-full" src={previewUrl}>
-              Your browser does not support audio playback.
-            </audio>
+            {previewUrl.includes("dubbed-video") ? (
+              <video controls autoPlay className="w-full rounded-lg" src={previewUrl}>
+                Your browser does not support video playback.
+              </video>
+            ) : (
+              <audio controls autoPlay className="w-full" src={previewUrl}>
+                Your browser does not support audio playback.
+              </audio>
+            )}
           </div>
         </div>
       )}

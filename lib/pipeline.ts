@@ -179,26 +179,67 @@ export async function runDubbing(dubId: string) {
       .update({ progress: 80 })
       .eq("id", dubId);
 
-    // Step 3: Skip lip sync for now (Vercel timeout), mark as done with audio only
-    // Lip sync can be added later as async job or external worker
+    // Step 3: Lip sync via fal.ai (Vercel Pro = 300s timeout)
     await supabase
       .from("dubs")
-      .update({ status: "merging", progress: 90 })
+      .update({ status: "lip_syncing", progress: 82 })
       .eq("id", dubId);
 
-    log(dubId, "Creating signed URL for dubbed audio");
-
-    const { data: audioSignedUrl } = await supabase.storage
+    const { data: videoSignedUrl } = await supabase.storage
       .from("videos")
-      .createSignedUrl(audioPath, 86400); // 24h
+      .createSignedUrl(project.original_video_url as string, 3600);
 
-    // Mark as done — dubbed_video_url stores the audio path for now
+    const { data: audioSignedUrlData } = await supabase.storage
+      .from("videos")
+      .createSignedUrl(audioPath, 3600);
+
+    let finalOutputPath = audioPath; // fallback to audio-only
+
+    if (videoSignedUrl?.signedUrl && audioSignedUrlData?.signedUrl) {
+      try {
+        log(dubId, "Starting lip sync via fal.ai...");
+        const syncedVideoUrl = await ai.lipSync(
+          videoSignedUrl.signedUrl,
+          audioSignedUrlData.signedUrl
+        );
+
+        log(dubId, `Lip sync done, downloading result...`);
+
+        await supabase
+          .from("dubs")
+          .update({ status: "merging", progress: 92 })
+          .eq("id", dubId);
+
+        // Download synced video and upload to storage
+        const syncedResponse = await fetch(syncedVideoUrl);
+        const syncedBuffer = Buffer.from(await syncedResponse.arrayBuffer());
+
+        const videoOutputPath = `${project.user_id}/${project.id}/${dub.id}/dubbed-video.mp4`;
+        const { error: videoUploadErr } = await supabase.storage
+          .from("videos")
+          .upload(videoOutputPath, syncedBuffer, { contentType: "video/mp4", upsert: true });
+
+        if (!videoUploadErr) {
+          finalOutputPath = videoOutputPath;
+          log(dubId, `Video uploaded: ${(syncedBuffer.byteLength / 1024 / 1024).toFixed(2)}MB`);
+        } else {
+          log(dubId, `Video upload failed: ${videoUploadErr.message}, keeping audio-only`);
+        }
+      } catch (lipSyncErr) {
+        log(dubId, `Lip sync failed: ${lipSyncErr instanceof Error ? lipSyncErr.message : "unknown"}, keeping audio-only`);
+        // Continue with audio-only output
+      }
+    } else {
+      log(dubId, "Could not create signed URLs for lip sync, keeping audio-only");
+    }
+
+    // Mark as done
     await supabase
       .from("dubs")
       .update({
         status: "done",
         progress: 100,
-        dubbed_video_url: audioPath,
+        dubbed_video_url: finalOutputPath,
       })
       .eq("id", dubId);
 
