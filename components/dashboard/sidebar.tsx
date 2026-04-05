@@ -1,19 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
-  FolderOpen,
   Settings,
   CreditCard,
   Languages,
   LogOut,
   Plus,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const navigation = [
@@ -22,7 +19,7 @@ const navigation = [
   { name: "Credits", href: "/credits", icon: CreditCard },
 ];
 
-export function Sidebar() {
+export function DashboardSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -33,19 +30,29 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="flex h-full w-64 flex-col border-r bg-card">
-      <div className="flex h-16 items-center gap-2 border-b px-6">
-        <Languages className="h-6 w-6" />
-        <span className="text-xl font-bold">DubSync</span>
+    <aside className="flex h-full w-64 flex-col border-r border-white/5 bg-slate-900/50">
+      {/* Logo */}
+      <div className="flex h-16 items-center gap-2 border-b border-white/5 px-6">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-pink-500 to-blue-600 flex items-center justify-center">
+            <Languages className="h-4 w-4 text-white" />
+          </div>
+          <span className="text-lg font-bold text-white">DubSync</span>
+        </Link>
       </div>
 
+      {/* New Project button */}
       <div className="p-4">
-        <Button className="w-full" render={<Link href="/projects/new" />}>
-          <Plus className="mr-2 h-4 w-4" />
+        <Link
+          href="/projects/new"
+          className="gradient-button flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold w-full"
+        >
+          <Plus className="h-4 w-4" />
           New Project
-        </Button>
+        </Link>
       </div>
 
+      {/* Navigation */}
       <nav className="flex-1 px-3">
         <ul className="space-y-1">
           {navigation.map((item) => {
@@ -55,10 +62,10 @@ export function Sidebar() {
                 <Link
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
                     isActive
-                      ? "bg-accent text-accent-foreground font-medium"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      ? "bg-white/10 text-white font-medium"
+                      : "text-slate-400 hover:bg-white/5 hover:text-white"
                   )}
                 >
                   <item.icon className="h-4 w-4" />
@@ -70,10 +77,11 @@ export function Sidebar() {
         </ul>
       </nav>
 
-      <div className="border-t p-3">
+      {/* Sign out */}
+      <div className="border-t border-white/5 p-3">
         <button
           onClick={handleSignOut}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
         >
           <LogOut className="h-4 w-4" />
           Sign Out
