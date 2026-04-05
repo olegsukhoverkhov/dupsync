@@ -93,7 +93,7 @@ export default function CreditsPage() {
                 <p className="text-2xl font-bold">
                   {profile.credits_remaining === -1
                     ? "∞"
-                    : `${profile.credits_remaining} min`}
+                    : `${Math.floor(Number(profile.credits_remaining))} credits`}
                 </p>
               </div>
             </div>
@@ -109,7 +109,7 @@ export default function CreditsPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Used</p>
                 <p className="text-2xl font-bold">
-                  {totalCredits === Infinity ? "0" : `${usedCredits} min`}
+                  {totalCredits === Infinity ? "0" : `${Math.floor(Number(usedCredits))} credits`}
                 </p>
               </div>
             </div>
@@ -139,8 +139,8 @@ export default function CreditsPage() {
           </CardHeader>
           <CardContent>
             <div className="flex justify-between text-sm mb-2">
-              <span>{usedCredits} min used</span>
-              <span>{totalCredits} min total</span>
+              <span>{Math.floor(Number(usedCredits))} credits used</span>
+              <span>{totalCredits.toLocaleString()} credits total</span>
             </div>
             <Progress value={usagePercent} />
           </CardContent>
@@ -184,7 +184,7 @@ export default function CreditsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right text-sm">
-                      {tx.credits > 0 ? `+${tx.credits} min` : "-"}
+                      {tx.credits > 0 ? `+${tx.credits} credits` : "-"}
                     </TableCell>
                     <TableCell className="text-right text-sm">
                       {tx.amount > 0 ? `$${(tx.amount / 100).toFixed(2)}` : "-"}

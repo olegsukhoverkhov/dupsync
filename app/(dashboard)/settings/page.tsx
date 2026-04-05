@@ -133,7 +133,7 @@ export default function SettingsPage() {
               <p className="font-medium">
                 {profile.credits_remaining === -1
                   ? "Unlimited"
-                  : `${profile.credits_remaining} min remaining`}
+                  : `${Math.floor(Number(profile.credits_remaining))} credits remaining`}
               </p>
             </div>
             <div>
