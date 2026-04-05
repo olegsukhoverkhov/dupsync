@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Languages, ArrowRight, Loader2, Mail, Lock, User, AlertCircle } from "lucide-react";
+import { Languages, ArrowRight, Loader2, Mail, Lock, User, AlertCircle, CheckCircle, MailOpen } from "lucide-react";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
@@ -13,6 +13,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [registered, setRegistered] = useState(false);
   const [error, setError] = useState<string | null>(
     searchParams.get("error") === "auth_failed"
       ? "Authentication failed. Please try again."
@@ -50,7 +51,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         });
 
         if (error) throw error;
-        setMessage("Check your email to confirm your account.");
+        setRegistered(true);
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -86,7 +87,42 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           </Link>
         </div>
 
+        {/* Email confirmation screen */}
+        {registered && (
+          <div className="rounded-2xl border border-white/10 bg-slate-900/80 backdrop-blur-sm p-8 text-center">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10 border border-green-500/20">
+              <MailOpen className="h-8 w-8 text-green-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-white">Check your email</h1>
+            <p className="mt-3 text-sm text-slate-400 leading-relaxed">
+              We&apos;ve sent a confirmation link to<br />
+              <span className="text-white font-medium">{email}</span>
+            </p>
+            <p className="mt-4 text-sm text-slate-500">
+              Click the link in the email to activate your account and start dubbing videos.
+            </p>
+            <div className="mt-8 space-y-3">
+              <Link
+                href="/login"
+                className="block w-full gradient-button rounded-xl px-4 py-3.5 text-sm font-semibold text-center"
+              >
+                Go to Sign In
+              </Link>
+              <button
+                onClick={() => { setRegistered(false); setEmail(""); setPassword(""); setFullName(""); }}
+                className="block w-full text-sm text-slate-500 hover:text-slate-300 transition-colors py-2"
+              >
+                Use a different email
+              </button>
+            </div>
+            <p className="mt-6 text-xs text-slate-600">
+              Didn&apos;t receive the email? Check your spam folder.
+            </p>
+          </div>
+        )}
+
         {/* Card */}
+        {!registered && (
         <div className="rounded-2xl border border-white/10 bg-slate-900/80 backdrop-blur-sm p-8">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-white">
@@ -229,14 +265,17 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             )}
           </p>
         </div>
+        )}
 
         {/* Footer */}
+        {!registered && (
         <p className="mt-6 text-center text-xs text-slate-600">
           By continuing, you agree to DubSync&apos;s{" "}
           <Link href="/terms" className="text-slate-500 hover:text-slate-400 underline">Terms</Link>{" "}
           and{" "}
           <Link href="/privacy" className="text-slate-500 hover:text-slate-400 underline">Privacy Policy</Link>
         </p>
+        )}
       </div>
     </div>
   );
