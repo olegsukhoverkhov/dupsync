@@ -6,6 +6,22 @@ export const metadata: Metadata = {
   title: "Best AI Dubbing Tools in 2026: Honest Comparison",
   description:
     "We tested 8 AI dubbing platforms on the same video. See how DubSync, Rask AI, ElevenLabs, HeyGen, and others compare on price, quality, and features.",
+  alternates: {
+    canonical: "https://dubsync.app/blog/best-ai-dubbing-tools",
+  },
+  openGraph: {
+    type: "article",
+    title: "Best AI Dubbing Tools in 2026: Honest Comparison",
+    description:
+      "We tested 8 AI dubbing platforms on the same video. See how DubSync, Rask AI, ElevenLabs, HeyGen, and others compare on price, quality, and features.",
+    url: "https://dubsync.app/blog/best-ai-dubbing-tools",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Best AI Dubbing Tools in 2026: Honest Comparison",
+    description:
+      "We tested 8 AI dubbing platforms on the same video. See how DubSync, Rask AI, ElevenLabs, HeyGen, and others compare on price, quality, and features.",
+  },
 };
 
 export default function BestAiDubbingToolsPage() {

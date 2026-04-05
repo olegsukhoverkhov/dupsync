@@ -6,6 +6,22 @@ export const metadata: Metadata = {
   title: "Voice Cloning in Video Translation Explained",
   description:
     "How voice cloning technology preserves speaker identity across languages. Learn about neural TTS, quality benchmarks, and privacy safeguards.",
+  alternates: {
+    canonical: "https://dubsync.app/blog/voice-cloning-video-translation",
+  },
+  openGraph: {
+    type: "article",
+    title: "Voice Cloning in Video Translation Explained",
+    description:
+      "How voice cloning technology preserves speaker identity across languages. Learn about neural TTS, quality benchmarks, and privacy safeguards.",
+    url: "https://dubsync.app/blog/voice-cloning-video-translation",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Voice Cloning in Video Translation Explained",
+    description:
+      "How voice cloning technology preserves speaker identity across languages. Learn about neural TTS, quality benchmarks, and privacy safeguards.",
+  },
 };
 
 export default function VoiceCloningVideoTranslationPage() {

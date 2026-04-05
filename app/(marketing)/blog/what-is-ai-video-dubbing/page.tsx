@@ -6,6 +6,22 @@ export const metadata: Metadata = {
   title: "What is AI Video Dubbing? Complete Guide 2026",
   description:
     "Learn how AI video dubbing works — from transcription to voice cloning and lip sync. Discover benefits, use cases, and why creators choose AI over traditional dubbing.",
+  alternates: {
+    canonical: "https://dubsync.app/blog/what-is-ai-video-dubbing",
+  },
+  openGraph: {
+    type: "article",
+    title: "What is AI Video Dubbing? Complete Guide 2026",
+    description:
+      "Learn how AI video dubbing works — from transcription to voice cloning and lip sync. Discover benefits, use cases, and why creators choose AI over traditional dubbing.",
+    url: "https://dubsync.app/blog/what-is-ai-video-dubbing",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "What is AI Video Dubbing? Complete Guide 2026",
+    description:
+      "Learn how AI video dubbing works — from transcription to voice cloning and lip sync. Discover benefits, use cases, and why creators choose AI over traditional dubbing.",
+  },
 };
 
 export default function WhatIsAiVideoDubbingPage() {

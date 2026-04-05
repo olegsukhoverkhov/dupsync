@@ -6,6 +6,22 @@ export const metadata: Metadata = {
   title: "AI Dubbing vs Traditional Dubbing Compared",
   description:
     "Compare AI dubbing and traditional dubbing on cost, speed, and quality. Learn when to use each approach and why most creators are switching to AI.",
+  alternates: {
+    canonical: "https://dubsync.app/blog/ai-dubbing-vs-traditional",
+  },
+  openGraph: {
+    type: "article",
+    title: "AI Dubbing vs Traditional Dubbing Compared",
+    description:
+      "Compare AI dubbing and traditional dubbing on cost, speed, and quality. Learn when to use each approach and why most creators are switching to AI.",
+    url: "https://dubsync.app/blog/ai-dubbing-vs-traditional",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AI Dubbing vs Traditional Dubbing Compared",
+    description:
+      "Compare AI dubbing and traditional dubbing on cost, speed, and quality. Learn when to use each approach and why most creators are switching to AI.",
+  },
 };
 
 export default function AiDubbingVsTraditionalPage() {

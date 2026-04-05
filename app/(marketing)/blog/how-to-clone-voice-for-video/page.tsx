@@ -6,6 +6,22 @@ export const metadata: Metadata = {
   title: "How to Clone Your Voice for Video Translation",
   description:
     "Learn how AI voice cloning works for video dubbing, how to get the best results, and how DubSync keeps your voice data private and secure.",
+  alternates: {
+    canonical: "https://dubsync.app/blog/how-to-clone-voice-for-video",
+  },
+  openGraph: {
+    type: "article",
+    title: "How to Clone Your Voice for Video Translation",
+    description:
+      "Learn how AI voice cloning works for video dubbing, how to get the best results, and how DubSync keeps your voice data private and secure.",
+    url: "https://dubsync.app/blog/how-to-clone-voice-for-video",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "How to Clone Your Voice for Video Translation",
+    description:
+      "Learn how AI voice cloning works for video dubbing, how to get the best results, and how DubSync keeps your voice data private and secure.",
+  },
 };
 
 export default function HowToCloneVoiceForVideoPage() {

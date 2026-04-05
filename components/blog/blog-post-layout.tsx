@@ -5,6 +5,7 @@ import { AuthorCardInline, AuthorCardFull } from "./author-card";
 import { CTABlock } from "./cta-block";
 import { RelatedArticles } from "./related-articles";
 import { ArticleSchema } from "./article-schema";
+import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 import { ArrowLeft } from "lucide-react";
 
 export const ALL_ARTICLES = [
@@ -121,6 +122,12 @@ export function BlogPostLayout({
         description={article.excerpt}
         slug={slug}
         datePublished="2026-04-05"
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "Blog", url: "https://dubsync.app/blog" },
+          { name: article.title, url: `https://dubsync.app/blog/${slug}` },
+        ]}
       />
     </div>
   );

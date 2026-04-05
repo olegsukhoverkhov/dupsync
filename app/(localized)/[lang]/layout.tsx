@@ -49,6 +49,11 @@ export default async function LocalizedLayout({
 
   return (
     <div className="landing-dark bg-[#0F172A] text-white min-h-screen" lang={lang}>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `document.documentElement.lang="${lang}"`,
+        }}
+      />
       {children}
     </div>
   );

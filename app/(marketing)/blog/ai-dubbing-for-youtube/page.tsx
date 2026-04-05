@@ -6,6 +6,22 @@ export const metadata: Metadata = {
   title: "AI Dubbing for YouTube: Grow Your Global Audience",
   description:
     "How YouTube creators use AI dubbing to reach viewers in 30+ languages, grow subscribers, and monetize international audiences.",
+  alternates: {
+    canonical: "https://dubsync.app/blog/ai-dubbing-for-youtube",
+  },
+  openGraph: {
+    type: "article",
+    title: "AI Dubbing for YouTube: Grow Your Global Audience",
+    description:
+      "How YouTube creators use AI dubbing to reach viewers in 30+ languages, grow subscribers, and monetize international audiences.",
+    url: "https://dubsync.app/blog/ai-dubbing-for-youtube",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AI Dubbing for YouTube: Grow Your Global Audience",
+    description:
+      "How YouTube creators use AI dubbing to reach viewers in 30+ languages, grow subscribers, and monetize international audiences.",
+  },
 };
 
 export default function AiDubbingForYoutubePage() {

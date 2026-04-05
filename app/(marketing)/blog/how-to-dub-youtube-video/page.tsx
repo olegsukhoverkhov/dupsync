@@ -6,6 +6,22 @@ export const metadata: Metadata = {
   title: "How to Dub a YouTube Video in 5 Minutes",
   description:
     "Step-by-step tutorial: upload your YouTube video, choose languages, and get dubbed versions ready to publish. No editing skills required.",
+  alternates: {
+    canonical: "https://dubsync.app/blog/how-to-dub-youtube-video",
+  },
+  openGraph: {
+    type: "article",
+    title: "How to Dub a YouTube Video in 5 Minutes",
+    description:
+      "Step-by-step tutorial: upload your YouTube video, choose languages, and get dubbed versions ready to publish. No editing skills required.",
+    url: "https://dubsync.app/blog/how-to-dub-youtube-video",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "How to Dub a YouTube Video in 5 Minutes",
+    description:
+      "Step-by-step tutorial: upload your YouTube video, choose languages, and get dubbed versions ready to publish. No editing skills required.",
+  },
 };
 
 export default function HowToDubYoutubeVideoPage() {
