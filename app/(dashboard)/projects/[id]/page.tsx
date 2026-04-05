@@ -243,19 +243,21 @@ export default function ProjectDetailPage({
     setRetryLoading(true);
     setDubError(null);
 
-    // Get failed/pending dub languages
-    const failedDubs = dubs.filter((d) => d.status === "error" || d.status === "pending");
+    const failedDubs = dubs.filter((d) => d.status === "error");
     if (failedDubs.length === 0) return;
 
     const languages = failedDubs.map((d) => d.target_language);
 
-    // Delete failed dubs first
+    // Delete failed dubs
     const supabase = createClient();
     for (const dub of failedDubs) {
       await supabase.from("dubs").delete().eq("id", dub.id);
     }
 
-    // Re-create dubs
+    // Remove failed dubs from local state immediately
+    setDubs((prev) => prev.filter((d) => d.status !== "error"));
+
+    // Re-create dubs with same languages
     try {
       const res = await fetch("/api/dub", {
         method: "POST",
@@ -668,11 +670,21 @@ export default function ProjectDetailPage({
       )}
 
       {/* Continue dubbing — show language selector inline */}
-      {(project.status === "ready" || project.status === "error" || (
-        project.status === "done" && !isProcessing &&
-        profile && profile.credits_remaining > 0 &&
-        dubs.filter(d => d.status === "done").length < PLAN_LIMITS[profile.plan].maxLanguages
-      )) && (
+      {(() => {
+        const doneLangs = dubs.filter(d => d.status === "done").length;
+        const maxLangs = profile ? PLAN_LIMITS[profile.plan].maxLanguages : 2;
+        const hasCredits = profile ? Number(profile.credits_remaining) > 0 : false;
+        const canAddNewLanguages = doneLangs < maxLangs && hasCredits;
+        const hasNoDubs = dubs.length === 0;
+
+        // Show if: ready (first time), OR can add new languages on done projects
+        const shouldShow = (
+          (project.status === "ready" && hasNoDubs) ||
+          (project.status === "done" && !isProcessing && canAddNewLanguages) ||
+          (project.status === "error" && hasNoDubs && hasCredits)
+        );
+        return shouldShow;
+      })() && (
         <Card className="mt-6">
           <CardContent className="py-5">
             {!showLanguageSelect ? (
