@@ -31,6 +31,7 @@ export default function NewProjectPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [transcript, setTranscript] = useState<TranscriptSegment[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [sourceLanguage, setSourceLanguage] = useState("auto");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -62,6 +63,7 @@ export default function NewProjectPage() {
         body: JSON.stringify({
           title: title || file.name.replace(/\.[^.]+$/, ""),
           videoPath: path,
+          language: sourceLanguage,
         }),
       });
 
@@ -189,6 +191,32 @@ export default function NewProjectPage() {
                 onChange={(e) => setTitle(e.target.value)}
                 className="mt-1"
               />
+            </div>
+
+            <div>
+              <Label htmlFor="language">Source Language</Label>
+              <select
+                id="language"
+                value={sourceLanguage}
+                onChange={(e) => setSourceLanguage(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-pink-500/50 focus:outline-none focus:ring-1 focus:ring-pink-500/50"
+              >
+                <option value="auto">Auto-detect</option>
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="pt">Portuguese</option>
+                <option value="ja">Japanese</option>
+                <option value="ko">Korean</option>
+                <option value="zh">Chinese</option>
+                <option value="hi">Hindi</option>
+                <option value="ar">Arabic</option>
+                <option value="it">Italian</option>
+                <option value="tr">Turkish</option>
+                <option value="uk">Ukrainian</option>
+                <option value="ru">Russian</option>
+              </select>
             </div>
 
             {profile && (

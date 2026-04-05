@@ -1,8 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { runDubbing } from "@/lib/pipeline";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { Profile } from "@/lib/supabase/types";
+
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -108,10 +110,16 @@ export async function POST(request: Request) {
       .eq("id", user.id);
   }
 
-  // Start dubbing pipelines in background
-  for (const dub of dubs || []) {
-    runDubbing(dub.id).catch(console.error);
-  }
+  // Start dubbing pipelines after response is sent
+  after(async () => {
+    for (const dub of dubs || []) {
+      try {
+        await runDubbing(dub.id);
+      } catch (err) {
+        console.error(`Dubbing failed for ${dub.id}:`, err);
+      }
+    }
+  });
 
   return NextResponse.json(dubs, { status: 201 });
 }

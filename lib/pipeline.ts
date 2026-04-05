@@ -36,7 +36,8 @@ export async function runTranscription(projectId: string) {
 
     // Transcribe — use original filename extension for correct MIME type
     const ext = (project.original_video_url.split(".").pop() || "mp4").toLowerCase();
-    const { segments, language } = await ai.transcribe(buffer, `video.${ext}`);
+    const languageHint = project.original_language !== "auto" ? project.original_language : undefined;
+    const { segments, language } = await ai.transcribe(buffer, `video.${ext}`, languageHint);
 
     // Update project with transcript
     await supabase

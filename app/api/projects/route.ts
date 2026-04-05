@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { title, videoPath } = body;
+  const { title, videoPath, language } = body;
 
   if (!title || !videoPath) {
     return NextResponse.json(
@@ -57,6 +57,7 @@ export async function POST(request: Request) {
       user_id: user.id,
       title,
       original_video_url: videoPath,
+      original_language: language || "auto",
       status: "transcribing",
     })
     .select()

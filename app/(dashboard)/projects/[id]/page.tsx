@@ -27,6 +27,7 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
+  Trash2,
 } from "lucide-react";
 
 const STATUS_LABELS: Record<DubStatus, string> = {
@@ -152,7 +153,22 @@ export default function ProjectDetailPage({
             {LANGUAGE_MAP[project.original_language] || project.original_language}
           </p>
         </div>
-        <Badge variant="outline">{project.status}</Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline">{project.status}</Badge>
+          <button
+            onClick={async () => {
+              if (!confirm("Are you sure you want to delete this project?")) return;
+              const supabase = createClient();
+              await supabase.from("dubs").delete().eq("project_id", id);
+              await supabase.from("projects").delete().eq("id", id);
+              router.push("/dashboard");
+            }}
+            className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer"
+          >
+            <Trash2 className="h-3 w-3 inline mr-1" />
+            Delete
+          </button>
+        </div>
       </div>
 
       {/* Language tabs */}

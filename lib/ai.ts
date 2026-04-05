@@ -35,7 +35,8 @@ function getWhisperMimeType(filename: string): string {
 // Whisper transcription via OpenAI API
 export async function transcribe(
   audioBuffer: Buffer,
-  filename: string
+  filename: string,
+  languageHint?: string
 ): Promise<{ segments: TranscriptSegment[]; language: string }> {
   const whisperFilename = getWhisperFilename(filename);
   const mimeType = getWhisperMimeType(whisperFilename);
@@ -48,6 +49,10 @@ export async function transcribe(
   formData.append("model", "whisper-1");
   formData.append("response_format", "verbose_json");
   formData.append("timestamp_granularities[]", "segment");
+  // If language hint provided, tell Whisper explicitly (ISO 639-1 code)
+  if (languageHint && languageHint !== "auto") {
+    formData.append("language", languageHint);
+  }
 
   const response = await fetch(
     "https://api.openai.com/v1/audio/transcriptions",
