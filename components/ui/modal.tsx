@@ -58,14 +58,19 @@ interface AlertModalProps {
   title: string;
   message: string;
   type?: "error" | "success" | "info";
+  actionHref?: string;
+  actionLabel?: string;
 }
 
-export function AlertModal({ open, onClose, title, message, type = "info" }: AlertModalProps) {
+export function AlertModal({ open, onClose, title, message, type = "info", actionHref, actionLabel }: AlertModalProps) {
   const colors = {
     error: "text-red-400 bg-red-500/10 border-red-500/20",
     success: "text-green-400 bg-green-500/10 border-green-500/20",
     info: "text-blue-400 bg-blue-500/10 border-blue-500/20",
   };
+
+  // Auto-detect upgrade CTA from message
+  const showUpgrade = !actionHref && (message.includes("Upgrade") || message.includes("Insufficient credits"));
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -77,12 +82,26 @@ export function AlertModal({ open, onClose, title, message, type = "info" }: Ale
         </div>
         <h3 className="text-lg font-semibold text-white">{title}</h3>
         <p className="mt-2 text-sm text-slate-400">{message}</p>
-        <button
-          onClick={onClose}
-          className="mt-6 w-full gradient-button rounded-xl px-4 py-3 text-sm font-semibold"
-        >
-          OK
-        </button>
+        <div className="mt-6 space-y-2">
+          {(showUpgrade || actionHref) && (
+            <a
+              href={actionHref || "/settings"}
+              className="block w-full gradient-button rounded-xl px-4 py-3 text-sm font-semibold text-center"
+            >
+              {actionLabel || "Upgrade Plan"}
+            </a>
+          )}
+          <button
+            onClick={onClose}
+            className={`w-full rounded-xl px-4 py-3 text-sm font-semibold cursor-pointer ${
+              showUpgrade || actionHref
+                ? "border border-white/10 bg-white/5 text-white hover:bg-white/10"
+                : "gradient-button"
+            }`}
+          >
+            {showUpgrade || actionHref ? "Close" : "OK"}
+          </button>
+        </div>
       </div>
     </Modal>
   );

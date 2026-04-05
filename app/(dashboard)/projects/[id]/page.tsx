@@ -31,7 +31,11 @@ import {
   Trash2,
   Play,
   X,
+  RefreshCw,
+  ArrowUpRight,
 } from "lucide-react";
+import Link from "next/link";
+import { AlertModal } from "@/components/ui/modal";
 
 const STATUS_LABELS: Record<DubStatus, string> = {
   pending: "Waiting...",
@@ -91,6 +95,8 @@ export default function ProjectDetailPage({
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [retryLoading, setRetryLoading] = useState(false);
+  const [dubError, setDubError] = useState<string | null>(null);
 
   const handleDelete = useCallback(async () => {
     const supabase = createClient();
@@ -98,6 +104,42 @@ export default function ProjectDetailPage({
     await supabase.from("projects").delete().eq("id", id);
     router.push("/dashboard");
   }, [id, router]);
+
+  async function handleRetryDubs() {
+    if (!project) return;
+    setRetryLoading(true);
+    setDubError(null);
+
+    // Get failed/pending dub languages
+    const failedDubs = dubs.filter((d) => d.status === "error" || d.status === "pending");
+    if (failedDubs.length === 0) return;
+
+    const languages = failedDubs.map((d) => d.target_language);
+
+    // Delete failed dubs first
+    const supabase = createClient();
+    for (const dub of failedDubs) {
+      await supabase.from("dubs").delete().eq("id", dub.id);
+    }
+
+    // Re-create dubs
+    try {
+      const res = await fetch("/api/dub", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId: project.id, languages }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setDubError(data.error || "Failed to restart dubbing");
+      }
+    } catch {
+      setDubError("Failed to restart dubbing");
+    } finally {
+      setRetryLoading(false);
+    }
+  }
 
   async function handlePreview(dub: Dub) {
     if (!dub.dubbed_video_url) return;
@@ -350,6 +392,63 @@ export default function ProjectDetailPage({
                 ))}
               </div>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Retry failed dubs + error with upgrade CTA */}
+      {!isProcessing && dubs.some((d) => d.status === "error") && (
+        <Card className="mt-6">
+          <CardContent className="py-5">
+            <div className="flex items-start gap-4">
+              <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                <AlertCircle className="h-5 w-5 text-amber-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-white">
+                  {dubs.filter((d) => d.status === "error").length} dub(s) failed
+                </p>
+                <p className="text-xs text-slate-400 mt-1">
+                  {dubs.find((d) => d.status === "error")?.error_message || "An error occurred during dubbing"}
+                </p>
+                {dubError && (
+                  <div className="mt-3 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2">
+                    <p className="text-xs text-red-400">{dubError}</p>
+                    {dubError.includes("Insufficient credits") || dubError.includes("Upgrade") ? (
+                      <Link
+                        href="/settings"
+                        className="inline-flex items-center gap-1 mt-2 text-xs text-pink-400 hover:text-pink-300 font-medium"
+                      >
+                        Upgrade your plan <ArrowUpRight className="h-3 w-3" />
+                      </Link>
+                    ) : null}
+                  </div>
+                )}
+                <button
+                  onClick={handleRetryDubs}
+                  disabled={retryLoading}
+                  className="mt-3 inline-flex items-center gap-2 gradient-button rounded-lg px-4 py-2 text-xs font-semibold disabled:opacity-50"
+                >
+                  {retryLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+                  Retry Failed Dubs
+                </button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Continue dubbing for ready projects with no dubs */}
+      {project.status === "ready" && dubs.length === 0 && (
+        <Card className="mt-6">
+          <CardContent className="py-5 text-center">
+            <p className="text-sm text-slate-400">Transcription is ready. Select languages to start dubbing.</p>
+            <Link
+              href={`/projects/new?continue=${project.id}`}
+              className="mt-3 inline-flex items-center gap-2 gradient-button rounded-xl px-5 py-2.5 text-sm font-semibold"
+            >
+              Continue Dubbing <ArrowUpRight className="h-4 w-4" />
+            </Link>
           </CardContent>
         </Card>
       )}

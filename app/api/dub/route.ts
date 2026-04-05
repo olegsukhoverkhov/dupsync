@@ -65,15 +65,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
-  const durationMinutes = Math.ceil((project.duration_seconds || 0) / 60);
+  const durationMinutes = (project.duration_seconds || 0) / 60;
   const requiredCredits = durationMinutes * languages.length;
 
   if (
     planLimits.credits !== -1 &&
     typedProfile.credits_remaining < requiredCredits
   ) {
+    const remaining = Math.floor(typedProfile.credits_remaining * 60);
+    const needed = Math.ceil(requiredCredits * 60);
     return NextResponse.json(
-      { error: "Insufficient credits" },
+      { error: `Insufficient credits. You need ${needed}s but have ${remaining}s remaining. Upgrade your plan for more credits.` },
       { status: 403 }
     );
   }
@@ -100,15 +102,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Deduct credits
-  if (planLimits.credits !== -1) {
-    await supabase
-      .from("profiles")
-      .update({
-        credits_remaining: typedProfile.credits_remaining - requiredCredits,
-      })
-      .eq("id", user.id);
-  }
+  // Credits are deducted per-dub in the pipeline after completion
 
   // Start dubbing pipelines after response is sent
   after(async () => {
