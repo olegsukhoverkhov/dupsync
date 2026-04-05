@@ -390,47 +390,106 @@ export default function ProjectDetailPage({
         </Card>
       ) : null}
 
-      {/* Overall progress when processing */}
-      {isProcessing && (
+      {/* Overall progress — per-language status list */}
+      {dubs.length > 0 && (
         <Card className="mt-6">
           <CardContent className="py-4">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-white font-medium">
-                  Dubbing in progress
+            <div className="flex items-center justify-between text-sm mb-4">
+              <span className="text-white font-medium">
+                {isProcessing ? "Dubbing in progress" : `${dubs.filter((d) => d.status === "done").length}/${dubs.length} languages completed`}
+              </span>
+              {isProcessing && (
+                <span className="text-slate-500 text-xs">
+                  {Math.round(dubs.reduce((sum, d) => sum + d.progress, 0) / dubs.length)}% overall
                 </span>
-                <span className="text-slate-400">
-                  {dubs.filter((d) => d.status === "done").length}/{dubs.length} languages done
-                </span>
-              </div>
-              <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+              )}
+            </div>
+
+            {/* Per-language list */}
+            <div className="space-y-2">
+              {dubs.map((dub) => {
+                const langName = LANGUAGE_MAP[dub.target_language] || dub.target_language;
+                const isActive = !["done", "error"].includes(dub.status) && dub.progress > 0;
+                const isPending = dub.status === "pending" && dub.progress === 0;
+
+                return (
+                  <div
+                    key={dub.id}
+                    className={`flex items-center justify-between rounded-xl px-4 py-3 border ${
+                      dub.status === "done"
+                        ? "border-green-500/20 bg-green-500/5"
+                        : dub.status === "error"
+                          ? "border-red-500/20 bg-red-500/5"
+                          : isActive
+                            ? "border-pink-500/20 bg-pink-500/5"
+                            : "border-white/5 bg-white/[0.02]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {/* Status icon */}
+                      {dub.status === "done" && (
+                        <CheckCircle className="h-4 w-4 text-green-400" />
+                      )}
+                      {dub.status === "error" && (
+                        <AlertCircle className="h-4 w-4 text-red-400" />
+                      )}
+                      {isActive && (
+                        <div className="h-4 w-4 flex items-center justify-center">
+                          <div className="h-2 w-2 rounded-full bg-pink-400 animate-pulse" />
+                        </div>
+                      )}
+                      {isPending && (
+                        <div className="h-4 w-4 flex items-center justify-center">
+                          <div className="h-2 w-2 rounded-full bg-slate-600" />
+                        </div>
+                      )}
+
+                      <span className={`text-sm font-medium ${
+                        dub.status === "done" ? "text-green-400" :
+                        dub.status === "error" ? "text-red-400" :
+                        isActive ? "text-white" : "text-slate-500"
+                      }`}>
+                        {langName}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {dub.status === "done" && (
+                        <span className="text-xs text-green-400">Done</span>
+                      )}
+                      {dub.status === "error" && (
+                        <span className="text-xs text-red-400">Failed</span>
+                      )}
+                      {isActive && (
+                        <span className="text-xs text-pink-400 flex items-center gap-1">
+                          {STATUS_LABELS[dub.status]} {dub.progress}%
+                          <span className="inline-flex gap-0.5">
+                            <span className="h-1 w-1 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+                            <span className="h-1 w-1 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+                            <span className="h-1 w-1 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+                          </span>
+                        </span>
+                      )}
+                      {isPending && (
+                        <span className="text-xs text-slate-600">Waiting</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Overall progress bar */}
+            {isProcessing && (
+              <div className="mt-4 h-1.5 bg-white/5 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-pink-500 to-violet-500 transition-all duration-500"
                   style={{
-                    width: `${dubs.length > 0 ? dubs.reduce((sum, d) => sum + d.progress, 0) / dubs.length : 0}%`,
+                    width: `${dubs.reduce((sum, d) => sum + d.progress, 0) / dubs.length}%`,
                   }}
                 />
               </div>
-              <div className="flex flex-wrap gap-2">
-                {dubs.map((dub) => (
-                  <span
-                    key={dub.id}
-                    className={`inline-flex items-center gap-1 text-xs rounded-md px-2 py-1 ${
-                      dub.status === "done"
-                        ? "bg-green-500/10 text-green-400 border border-green-500/20"
-                        : dub.status === "error"
-                          ? "bg-red-500/10 text-red-400 border border-red-500/20"
-                          : "bg-white/5 text-slate-400 border border-white/10"
-                    }`}
-                  >
-                    {dub.target_language}
-                    {dub.status === "done" && " ✓"}
-                    {dub.status === "error" && " ✗"}
-                    {!["done", "error"].includes(dub.status) && ` ${dub.progress}%`}
-                  </span>
-                ))}
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -478,7 +537,7 @@ export default function ProjectDetailPage({
       )}
 
       {/* Continue dubbing — show language selector inline */}
-      {(project.status === "ready" || project.status === "done" || project.status === "error" || project.status === "dubbing") && !isProcessing && (
+      {(project.status === "ready" || project.status === "error" || (project.status === "done" && !isProcessing)) && (
         <Card className="mt-6">
           <CardContent className="py-5">
             {!showLanguageSelect ? (
