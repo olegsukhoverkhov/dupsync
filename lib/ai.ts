@@ -201,6 +201,18 @@ export async function textToSpeech(
   text: string,
   voiceId: string
 ): Promise<Buffer> {
+  return textToSpeechWithSpeed(text, voiceId, 1.0);
+}
+
+// ElevenLabs TTS with adjustable speed (0.5 - 2.0)
+export async function textToSpeechWithSpeed(
+  text: string,
+  voiceId: string,
+  speed: number
+): Promise<Buffer> {
+  const clampedSpeed = Math.max(0.5, Math.min(2.0, speed));
+  console.log(`[TTS] Generating: ${text.length} chars, voice=${voiceId}, speed=${clampedSpeed.toFixed(2)}`);
+
   const response = await fetch(
     `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
     {
@@ -215,14 +227,16 @@ export async function textToSpeech(
         voice_settings: {
           stability: 0.5,
           similarity_boost: 0.75,
-          speed: 0.85, // slightly slower to better match video duration
+          speed: clampedSpeed,
         },
       }),
     }
   );
 
   if (!response.ok) {
-    throw new Error(`ElevenLabs TTS error: ${response.statusText}`);
+    const errBody = await response.text().catch(() => "");
+    console.error(`[TTS] Error ${response.status}: ${errBody.slice(0, 200)}`);
+    throw new Error(`ElevenLabs TTS error: ${response.status} ${response.statusText}`);
   }
 
   return Buffer.from(await response.arrayBuffer());
