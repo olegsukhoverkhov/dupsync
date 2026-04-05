@@ -20,6 +20,7 @@ import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { Profile, TranscriptSegment, Project } from "@/lib/supabase/types";
 import { ArrowLeft, ArrowRight, Loader2, Check, AlertTriangle, Globe } from "lucide-react";
 import { ProcessingIndicator } from "@/components/ui/processing-indicator";
+import { AlertModal } from "@/components/ui/modal";
 import { LANGUAGE_MAP } from "@/lib/supabase/constants";
 
 type Step = "upload" | "confirm-language" | "transcript" | "languages" | "processing";
@@ -56,6 +57,7 @@ export default function NewProjectPage() {
   const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
   const [correctedLanguage, setCorrectedLanguage] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [alertModal, setAlertModal] = useState<{ title: string; message: string; type: "error" | "success" | "info" } | null>(null);
 
   useEffect(() => {
     async function loadProfile() {
@@ -114,12 +116,12 @@ export default function NewProjectPage() {
         } else if (data?.status === "error") {
           clearInterval(pollInterval);
           setLoading(false);
-          alert("Transcription failed. Please try again.");
+          setAlertModal({ title: "Transcription Failed", message: "Could not transcribe the video. Please try again or use a different file.", type: "error" });
         }
       }, 3000);
     } catch {
       setLoading(false);
-      alert("Failed to create project");
+      setAlertModal({ title: "Error", message: "Failed to create project. Please try again.", type: "error" });
     }
   }
 
@@ -161,13 +163,13 @@ export default function NewProjectPage() {
         } else if (data?.status === "error") {
           clearInterval(pollInterval);
           setLoading(false);
-          alert("Transcription failed. Please try again.");
+          setAlertModal({ title: "Transcription Failed", message: "Could not transcribe the video. Please try again or use a different file.", type: "error" });
           setStep("confirm-language");
         }
       }, 3000);
     } catch {
       setLoading(false);
-      alert("Re-transcription failed");
+      setAlertModal({ title: "Error", message: "Re-transcription failed. Please try again.", type: "error" });
       setStep("confirm-language");
     }
   }
@@ -196,7 +198,7 @@ export default function NewProjectPage() {
       router.push(`/projects/${project.id}`);
     } catch (err) {
       setLoading(false);
-      alert(err instanceof Error ? err.message : "Failed to start dubbing");
+      setAlertModal({ title: "Dubbing Error", message: err instanceof Error ? err.message : "Failed to start dubbing", type: "error" });
       setStep("languages");
     }
   }
@@ -477,6 +479,16 @@ export default function NewProjectPage() {
             />
           </CardContent>
         </Card>
+      )}
+      {/* Alert Modal */}
+      {alertModal && (
+        <AlertModal
+          open={true}
+          onClose={() => setAlertModal(null)}
+          title={alertModal.title}
+          message={alertModal.message}
+          type={alertModal.type}
+        />
       )}
     </div>
   );

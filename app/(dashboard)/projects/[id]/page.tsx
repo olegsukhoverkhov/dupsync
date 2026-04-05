@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { ConfirmModal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -131,6 +132,14 @@ export default function ProjectDetailPage({
   const isProcessing = dubs.some(
     (d) => !["done", "error"].includes(d.status)
   );
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const handleDelete = useCallback(async () => {
+    const supabase = createClient();
+    await supabase.from("dubs").delete().eq("project_id", id);
+    await supabase.from("projects").delete().eq("id", id);
+    router.push("/dashboard");
+  }, [id, router]);
 
   return (
     <div>
@@ -156,13 +165,7 @@ export default function ProjectDetailPage({
         <div className="flex items-center gap-2">
           <Badge variant="outline">{project.status}</Badge>
           <button
-            onClick={async () => {
-              if (!confirm("Are you sure you want to delete this project?")) return;
-              const supabase = createClient();
-              await supabase.from("dubs").delete().eq("project_id", id);
-              await supabase.from("projects").delete().eq("id", id);
-              router.push("/dashboard");
-            }}
+            onClick={() => setShowDeleteModal(true)}
             className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer"
           >
             <Trash2 className="h-3 w-3 inline mr-1" />
@@ -317,6 +320,16 @@ export default function ProjectDetailPage({
           </CardContent>
         </Card>
       )}
+
+      <ConfirmModal
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        title="Delete Project"
+        message="Are you sure you want to delete this project? This will remove all dubs and cannot be undone."
+        confirmLabel="Delete Project"
+        destructive
+      />
     </div>
   );
 }

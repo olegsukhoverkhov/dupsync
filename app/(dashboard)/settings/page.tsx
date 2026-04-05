@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AlertModal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,6 +22,7 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [billingLoading, setBillingLoading] = useState(false);
+  const [alertModal, setAlertModal] = useState<{ title: string; message: string; type: "error" | "info" } | null>(null);
 
   useEffect(() => {
     async function loadProfile() {
@@ -55,7 +57,7 @@ export default function SettingsPage() {
         window.location.href = data.url;
       }
     } catch {
-      alert("Failed to open billing portal");
+      setAlertModal({ title: "Error", message: "Failed to open billing portal. Please try again.", type: "error" });
     } finally {
       setBillingLoading(false);
     }
@@ -182,6 +184,16 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {alertModal && (
+        <AlertModal
+          open={true}
+          onClose={() => setAlertModal(null)}
+          title={alertModal.title}
+          message={alertModal.message}
+          type={alertModal.type}
+        />
+      )}
     </div>
   );
 }
