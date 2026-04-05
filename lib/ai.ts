@@ -151,19 +151,32 @@ export async function getMultilingualVoice(): Promise<string> {
   return PREMADE_VOICES[0];
 }
 
-// ElevenLabs voice cloning (requires audio file, not video)
+// ElevenLabs voice cloning — accepts mp3, mp4, wav, m4a, webm
 export async function cloneVoice(
-  audioBuffer: Buffer,
-  name: string
+  fileBuffer: Buffer,
+  name: string,
+  fileExt: string = "mp4"
 ): Promise<string> {
+  const ext = fileExt.toLowerCase();
+  const mimeMap: Record<string, string> = {
+    mp4: "video/mp4", mp3: "audio/mpeg", wav: "audio/wav",
+    m4a: "audio/mp4", webm: "video/webm", mov: "video/mp4",
+    avi: "video/mp4", mkv: "video/mp4",
+  };
+  const mimeType = mimeMap[ext] || "video/mp4";
+  // ElevenLabs accepts mp4, so send unsupported formats as mp4
+  const fileName = `sample.${WHISPER_FORMATS.has(ext) ? ext : "mp4"}`;
+
   const formData = new FormData();
-  formData.append("name", `dubsync-${name}`);
+  formData.append("name", `dubsync-${name.slice(0, 8)}`);
   formData.append(
     "files",
-    new Blob([new Uint8Array(audioBuffer)], { type: "audio/wav" }),
-    "sample.wav"
+    new Blob([new Uint8Array(fileBuffer)], { type: mimeType }),
+    fileName
   );
   formData.append("description", "Voice cloned by DubSync");
+
+  console.log(`[VOICE_CLONE] Uploading ${(fileBuffer.byteLength / 1024 / 1024).toFixed(2)}MB as ${fileName} (${mimeType})`);
 
   const response = await fetch("https://api.elevenlabs.io/v1/voices/add", {
     method: "POST",
@@ -174,7 +187,9 @@ export async function cloneVoice(
   });
 
   if (!response.ok) {
-    throw new Error(`ElevenLabs clone error: ${response.statusText}`);
+    const errBody = await response.text().catch(() => "");
+    console.error(`[VOICE_CLONE] Error ${response.status}: ${errBody}`);
+    throw new Error(`ElevenLabs clone error: ${response.status} ${response.statusText}`);
   }
 
   const data = await response.json();

@@ -111,15 +111,32 @@ export async function runDubbing(dubId: string) {
       .update({ translated_transcript: translatedSegments, progress: 30 })
       .eq("id", dubId);
 
-    // Step 2: Generate TTS (30-80%)
+    // Step 2: Clone voice or fallback to pre-made (30-80%)
     await supabase
       .from("dubs")
       .update({ status: "generating_voice", progress: 35 })
       .eq("id", dubId);
 
-    log(dubId, "Getting multilingual voice");
-    const voiceId = await ai.getMultilingualVoice();
-    log(dubId, `Using voice: ${voiceId}`);
+    let voiceId: string;
+    try {
+      log(dubId, "Attempting voice clone from video...");
+      const { data: videoData } = await supabase.storage
+        .from("videos")
+        .download(project.original_video_url as string);
+
+      if (videoData) {
+        const videoBuffer = Buffer.from(await videoData.arrayBuffer());
+        const ext = ((project.original_video_url as string).split(".").pop() || "mp4").toLowerCase();
+        voiceId = await ai.cloneVoice(videoBuffer, dub.id, ext);
+        log(dubId, `Voice cloned: ${voiceId}`);
+      } else {
+        throw new Error("Failed to download video");
+      }
+    } catch (cloneErr) {
+      log(dubId, `Clone failed: ${cloneErr instanceof Error ? cloneErr.message : "unknown"}, using pre-made voice`);
+      voiceId = await ai.getMultilingualVoice();
+      log(dubId, `Using pre-made voice: ${voiceId}`);
+    }
 
     const fullText = translatedSegments.map((s) => s.text).join(" ");
     log(dubId, `Generating TTS (${fullText.length} chars)`);

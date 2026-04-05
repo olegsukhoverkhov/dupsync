@@ -90,6 +90,14 @@ export default function ProjectDetailPage({
   }, [id]);
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const handleDelete = useCallback(async () => {
+    const supabase = createClient();
+    await supabase.from("dubs").delete().eq("project_id", id);
+    await supabase.from("projects").delete().eq("id", id);
+    router.push("/dashboard");
+  }, [id, router]);
 
   async function handlePreview(dub: Dub) {
     if (!dub.dubbed_video_url) return;
@@ -148,14 +156,6 @@ export default function ProjectDetailPage({
   const isProcessing = dubs.some(
     (d) => !["done", "error"].includes(d.status)
   );
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  const handleDelete = useCallback(async () => {
-    const supabase = createClient();
-    await supabase.from("dubs").delete().eq("project_id", id);
-    await supabase.from("projects").delete().eq("id", id);
-    router.push("/dashboard");
-  }, [id, router]);
 
   return (
     <div>
