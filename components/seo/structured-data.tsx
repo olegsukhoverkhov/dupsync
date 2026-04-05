@@ -151,10 +151,6 @@ export function StructuredData() {
     name: "DubSync",
     url: "https://dubsync.app",
     logo: "https://dubsync.app/logo.png",
-    sameAs: [
-      "https://twitter.com/dubsync",
-      "https://github.com/dubsync",
-    ],
     description:
       "AI-powered video dubbing and localization platform for creators and teams.",
   };

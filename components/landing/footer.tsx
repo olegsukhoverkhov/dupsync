@@ -5,7 +5,6 @@ const LINKS = {
   Product: [
     { label: "Features", href: "#demo" },
     { label: "Pricing", href: "/pricing" },
-    { label: "API", href: "/docs" },
     { label: "Changelog", href: "/changelog" },
   ],
   Company: [
@@ -15,13 +14,10 @@ const LINKS = {
   ],
   Resources: [
     { label: "Documentation", href: "/docs" },
-    { label: "Help Center", href: "/docs" },
-    { label: "Community", href: "https://discord.gg/dubsync" },
   ],
   Legal: [
     { label: "Privacy", href: "/privacy" },
     { label: "Terms", href: "/terms" },
-    { label: "DPA", href: "/privacy" },
   ],
 };
 
@@ -63,21 +59,10 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-zinc-600">
+        <div className="border-t border-white/5 pt-8">
+          <p className="text-xs text-zinc-600 text-center">
             &copy; {new Date().getFullYear()} DubSync. All rights reserved.
           </p>
-          <div className="flex items-center gap-4">
-            {["Twitter", "GitHub", "Discord"].map((social) => (
-              <Link
-                key={social}
-                href="#"
-                className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
-              >
-                {social}
-              </Link>
-            ))}
-          </div>
         </div>
       </div>
     </footer>

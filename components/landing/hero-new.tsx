@@ -40,9 +40,7 @@ export function HeroNew() {
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-              AI Video Dubbing —
-              <br />
-              <span className="gradient-text">Clone Voices & Sync Lips in 30+ Languages</span>
+              AI Video Dubbing — <span className="gradient-text">Clone Voices & Sync Lips in 30+ Languages</span>
             </h1>
 
             <p className="mt-6 text-lg sm:text-xl text-slate-400 max-w-lg leading-relaxed">

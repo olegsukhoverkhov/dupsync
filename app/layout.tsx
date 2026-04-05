@@ -21,6 +21,10 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://dubsync.app"),
   alternates: {
     canonical: "/",
+    languages: {
+      "en": "https://dubsync.app/",
+      "x-default": "https://dubsync.app/",
+    },
   },
   openGraph: {
     type: "website",
