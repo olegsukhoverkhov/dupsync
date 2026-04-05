@@ -2,17 +2,21 @@ import { createServiceClient } from "./supabase/server";
 import * as ai from "./ai";
 import { LANGUAGE_MAP } from "./supabase/constants";
 
+function log(dubId: string, msg: string) {
+  console.log(`[DUB:${dubId.slice(0, 8)}] ${msg}`);
+}
+
 export async function runTranscription(projectId: string) {
   const supabase = await createServiceClient();
 
   try {
-    // Update status
+    console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Starting transcription`);
+
     await supabase
       .from("projects")
       .update({ status: "transcribing" })
       .eq("id", projectId);
 
-    // Get project
     const { data: project } = await supabase
       .from("projects")
       .select("*")
@@ -23,7 +27,8 @@ export async function runTranscription(projectId: string) {
       throw new Error("No video URL found");
     }
 
-    // Download video from Supabase Storage
+    console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Downloading video: ${project.original_video_url}`);
+
     const { data: fileData, error: downloadError } = await supabase.storage
       .from("videos")
       .download(project.original_video_url);
@@ -33,13 +38,16 @@ export async function runTranscription(projectId: string) {
     }
 
     const buffer = Buffer.from(await fileData.arrayBuffer());
+    console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Video size: ${(buffer.byteLength / 1024 / 1024).toFixed(2)}MB`);
 
-    // Transcribe — use original filename extension for correct MIME type
     const ext = (project.original_video_url.split(".").pop() || "mp4").toLowerCase();
     const languageHint = project.original_language !== "auto" ? project.original_language : undefined;
+
+    console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Calling Whisper API (ext=${ext}, lang=${languageHint || "auto"})`);
     const { segments, language } = await ai.transcribe(buffer, `video.${ext}`, languageHint);
 
-    // Update project with transcript
+    console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Transcription done: ${segments.length} segments, language=${language}`);
+
     await supabase
       .from("projects")
       .update({
@@ -49,12 +57,10 @@ export async function runTranscription(projectId: string) {
       })
       .eq("id", projectId);
   } catch (error) {
-    console.error("Transcription failed:", error);
+    console.error(`[TRANSCRIBE:${projectId.slice(0, 8)}] FAILED:`, error);
     await supabase
       .from("projects")
-      .update({
-        status: "error",
-      })
+      .update({ status: "error" })
       .eq("id", projectId);
   }
 }
@@ -63,7 +69,8 @@ export async function runDubbing(dubId: string) {
   const supabase = await createServiceClient();
 
   try {
-    // Get dub with project
+    log(dubId, "Starting dubbing pipeline");
+
     const { data: dub } = await supabase
       .from("dubs")
       .select("*, projects(*)")
@@ -79,97 +86,81 @@ export async function runDubbing(dubId: string) {
     const sourceLang = LANGUAGE_MAP[project.original_language as string] || "English";
     const targetLang = LANGUAGE_MAP[dub.target_language] || dub.target_language;
 
-    // Step 1: Translate (0-25%)
+    log(dubId, `Translating ${sourceLang} → ${targetLang} (${transcript.length} segments)`);
+
+    // Step 1: Translate (0-30%)
     await supabase
       .from("dubs")
       .update({ status: "translating", progress: 10 })
       .eq("id", dubId);
 
-    const translatedSegments = await ai.translate(
-      transcript,
-      sourceLang,
-      targetLang
-    );
+    const translatedSegments = await ai.translate(transcript, sourceLang, targetLang);
+
+    log(dubId, `Translation done: ${translatedSegments.length} segments`);
 
     await supabase
       .from("dubs")
-      .update({
-        translated_transcript: translatedSegments,
-        progress: 25,
-      })
+      .update({ translated_transcript: translatedSegments, progress: 30 })
       .eq("id", dubId);
 
-    // Step 2: Generate TTS with pre-made multilingual voice (25-60%)
+    // Step 2: Generate TTS (30-80%)
     await supabase
       .from("dubs")
-      .update({ status: "generating_voice", progress: 30 })
+      .update({ status: "generating_voice", progress: 35 })
       .eq("id", dubId);
 
-    // Use ElevenLabs pre-made multilingual voice (no clone needed)
-    // Pick voice based on detected content type
+    log(dubId, "Getting multilingual voice");
     const voiceId = await ai.getMultilingualVoice();
+    log(dubId, `Using voice: ${voiceId}`);
 
-    // Generate TTS for all segments
     const fullText = translatedSegments.map((s) => s.text).join(" ");
+    log(dubId, `Generating TTS (${fullText.length} chars)`);
+
     const audioBuffer = await ai.textToSpeech(fullText, voiceId);
+    log(dubId, `TTS done: ${(audioBuffer.byteLength / 1024).toFixed(0)}KB audio`);
 
-    // Upload generated audio
+    // Upload dubbed audio
     const audioPath = `${project.user_id}/${project.id}/${dub.id}/dubbed-audio.mp3`;
-    await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from("videos")
-      .upload(audioPath, audioBuffer, { contentType: "audio/mpeg" });
+      .upload(audioPath, audioBuffer, { contentType: "audio/mpeg", upsert: true });
+
+    if (uploadError) {
+      log(dubId, `Audio upload error: ${uploadError.message}`);
+      throw new Error(`Audio upload failed: ${uploadError.message}`);
+    }
+
+    log(dubId, "Audio uploaded successfully");
 
     await supabase
       .from("dubs")
-      .update({ progress: 60 })
+      .update({ progress: 80 })
       .eq("id", dubId);
 
-    // Step 3: Lip sync (60-90%)
+    // Step 3: Skip lip sync for now (Vercel timeout), mark as done with audio only
+    // Lip sync can be added later as async job or external worker
     await supabase
       .from("dubs")
-      .update({ status: "lip_syncing", progress: 65 })
+      .update({ status: "merging", progress: 90 })
       .eq("id", dubId);
 
-    const { data: videoSignedUrl } = await supabase.storage
-      .from("videos")
-      .createSignedUrl(project.original_video_url as string, 3600);
+    log(dubId, "Creating signed URL for dubbed audio");
 
     const { data: audioSignedUrl } = await supabase.storage
       .from("videos")
-      .createSignedUrl(audioPath, 3600);
+      .createSignedUrl(audioPath, 86400); // 24h
 
-    if (!videoSignedUrl?.signedUrl || !audioSignedUrl?.signedUrl) {
-      throw new Error("Failed to create signed URLs");
-    }
-
-    const syncedVideoUrl = await ai.lipSync(
-      videoSignedUrl.signedUrl,
-      audioSignedUrl.signedUrl
-    );
-
-    await supabase
-      .from("dubs")
-      .update({ progress: 90, status: "merging" })
-      .eq("id", dubId);
-
-    // Step 4: Download synced video and upload to storage (90-100%)
-    const syncedResponse = await fetch(syncedVideoUrl);
-    const syncedBuffer = Buffer.from(await syncedResponse.arrayBuffer());
-
-    const outputPath = `${project.user_id}/${project.id}/${dub.id}/dubbed-video.mp4`;
-    await supabase.storage
-      .from("videos")
-      .upload(outputPath, syncedBuffer, { contentType: "video/mp4" });
-
-    // Mark as done
+    // Mark as done — dubbed_video_url stores the audio path for now
     await supabase
       .from("dubs")
       .update({
         status: "done",
         progress: 100,
-        dubbed_video_url: outputPath,
+        dubbed_video_url: audioPath,
       })
       .eq("id", dubId);
+
+    log(dubId, "Dubbing COMPLETE");
 
     // Check if all dubs for this project are done
     const { data: allDubs } = await supabase
@@ -183,14 +174,17 @@ export async function runDubbing(dubId: string) {
         .from("projects")
         .update({ status: "done" })
         .eq("id", project.id);
+      log(dubId, "All dubs done — project marked as done");
     }
   } catch (error) {
-    console.error("Dubbing failed:", error);
+    const errMsg = error instanceof Error ? error.message : "Unknown error";
+    log(dubId, `FAILED: ${errMsg}`);
+    console.error(`[DUB:${dubId.slice(0, 8)}] Full error:`, error);
     await supabase
       .from("dubs")
       .update({
         status: "error",
-        error_message: error instanceof Error ? error.message : "Unknown error",
+        error_message: errMsg,
       })
       .eq("id", dubId);
   }

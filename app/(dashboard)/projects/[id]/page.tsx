@@ -290,7 +290,7 @@ export default function ProjectDetailPage({
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-pink-500 to-violet-500 transition-all duration-500"
                   style={{
-                    width: `${dubs.length > 0 ? (dubs.filter((d) => d.status === "done").length / dubs.length) * 100 : 0}%`,
+                    width: `${dubs.length > 0 ? dubs.reduce((sum, d) => sum + d.progress, 0) / dubs.length : 0}%`,
                   }}
                 />
               </div>
