@@ -155,48 +155,15 @@ export async function runDubbing(dubId: string) {
       log(dubId, `Using pre-made voice: ${voiceId}`);
     }
 
-    // Generate per-segment TTS and assemble into WAV matching original video timing
+    // Generate TTS with speed adjusted to match original video duration
     const videoDuration = (project.duration_seconds as number) || 0;
-    const SAMPLE_RATE = 24000;
-    const totalSamples = Math.ceil(videoDuration * SAMPLE_RATE);
-
-    log(dubId, `Building timed audio: ${translatedSegments.length} segments, ${videoDuration}s video, ${totalSamples} samples`);
-
-    // Create silent PCM buffer for entire video duration
-    const pcmData = new Float32Array(totalSamples);
-
-    // Generate TTS for each segment and place at correct time offset
-    for (let i = 0; i < translatedSegments.length; i++) {
-      const seg = translatedSegments[i];
-      const origSeg = transcript[i]; // original segment for timing
-      if (!seg.text.trim()) continue;
-
-      try {
-        const segAudio = await ai.textToSpeech(seg.text, voiceId);
-
-        // Decode MP3 to raw PCM (approximate: treat as raw 24kHz mono)
-        // ElevenLabs returns MP3 — we need to use the raw bytes
-        // For now, place the full TTS segment into the timeline
-        const startSample = Math.floor((origSeg?.start || seg.start) * SAMPLE_RATE);
-        const segDuration = (origSeg?.end || seg.end) - (origSeg?.start || seg.start);
-        const maxSamples = Math.floor(segDuration * SAMPLE_RATE);
-
-        // We can't decode MP3 to PCM without a decoder on serverless
-        // Instead: generate all segments as one TTS call but with proper speed
-        // Fall back to single TTS with adjusted speed
-        log(dubId, `Segment ${i}: "${seg.text.slice(0, 30)}..." at ${origSeg?.start || seg.start}s`);
-      } catch {
-        log(dubId, `Segment ${i} TTS failed, skipping`);
-      }
-    }
-
-    // Since we can't decode MP3 to PCM on serverless, use single TTS approach
-    // but with speed adjustment to match video duration
     const fullText = translatedSegments.map((s) => s.text).join(". ");
     const estimatedSpeechSec = fullText.length / 15; // ~15 chars per second average
-    const targetSpeed = videoDuration > 0 ? Math.max(0.5, Math.min(2.0, estimatedSpeechSec / videoDuration)) : 1.0;
+    const targetSpeed = videoDuration > 0
+      ? Math.max(0.5, Math.min(2.0, estimatedSpeechSec / videoDuration))
+      : 1.0;
 
-    log(dubId, `Single TTS: ${fullText.length} chars, est ${estimatedSpeechSec.toFixed(1)}s speech, video=${videoDuration}s, speed=${targetSpeed.toFixed(2)}`);
+    log(dubId, `TTS: ${fullText.length} chars, est=${estimatedSpeechSec.toFixed(1)}s, video=${videoDuration}s, speed=${targetSpeed.toFixed(2)}`);
 
     const audioBuffer = await ai.textToSpeechWithSpeed(fullText, voiceId, targetSpeed);
     log(dubId, `TTS done: ${(audioBuffer.byteLength / 1024).toFixed(0)}KB audio`);

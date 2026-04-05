@@ -227,8 +227,8 @@ export async function textToSpeechWithSpeed(
         voice_settings: {
           stability: 0.5,
           similarity_boost: 0.75,
-          speed: clampedSpeed,
         },
+        speed: clampedSpeed,
       }),
     }
   );
