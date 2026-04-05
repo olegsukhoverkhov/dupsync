@@ -119,18 +119,35 @@ export async function runDubbing(dubId: string) {
 
     let voiceId: string;
     try {
-      log(dubId, "Attempting voice clone from video...");
-      const { data: videoData } = await supabase.storage
-        .from("videos")
-        .download(project.original_video_url as string);
+      // Try to use extracted voice sample (uploaded by client)
+      const videoDir = (project.original_video_url as string).split("/").slice(0, -1).join("/");
+      const voiceSamplePath = `${videoDir}/voice-sample.wav`;
 
-      if (videoData) {
-        const videoBuffer = Buffer.from(await videoData.arrayBuffer());
-        const ext = ((project.original_video_url as string).split(".").pop() || "mp4").toLowerCase();
-        voiceId = await ai.cloneVoice(videoBuffer, dub.id, ext);
-        log(dubId, `Voice cloned: ${voiceId}`);
+      log(dubId, `Looking for voice sample at: ${voiceSamplePath}`);
+      const { data: audioData, error: audioErr } = await supabase.storage
+        .from("videos")
+        .download(voiceSamplePath);
+
+      if (audioData && !audioErr) {
+        const audioBuffer = Buffer.from(await audioData.arrayBuffer());
+        log(dubId, `Voice sample found: ${(audioBuffer.byteLength / 1024).toFixed(0)}KB`);
+        voiceId = await ai.cloneVoice(audioBuffer, dub.id, "wav");
+        log(dubId, `Voice cloned successfully: ${voiceId}`);
       } else {
-        throw new Error("Failed to download video");
+        log(dubId, `No voice sample found (${audioErr?.message}), trying video file...`);
+        // Fallback: try with video file directly
+        const { data: videoData } = await supabase.storage
+          .from("videos")
+          .download(project.original_video_url as string);
+
+        if (videoData) {
+          const videoBuffer = Buffer.from(await videoData.arrayBuffer());
+          const ext = ((project.original_video_url as string).split(".").pop() || "mp4").toLowerCase();
+          voiceId = await ai.cloneVoice(videoBuffer, dub.id, ext);
+          log(dubId, `Voice cloned from video: ${voiceId}`);
+        } else {
+          throw new Error("No audio source available");
+        }
       }
     } catch (cloneErr) {
       log(dubId, `Clone failed: ${cloneErr instanceof Error ? cloneErr.message : "unknown"}, using pre-made voice`);

@@ -6,6 +6,77 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { createClient } from "@/lib/supabase/client";
 
+// Extract audio track from video using Web Audio API
+async function extractAudioFromVideo(videoFile: globalThis.File): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement("video");
+    video.muted = true;
+    video.src = URL.createObjectURL(videoFile);
+
+    video.onloadedmetadata = async () => {
+      try {
+        const audioContext = new AudioContext({ sampleRate: 16000 });
+        const arrayBuffer = await videoFile.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+        // Take first 30 seconds max for voice sample
+        const duration = Math.min(audioBuffer.duration, 30);
+        const sampleRate = audioBuffer.sampleRate;
+        const numFrames = Math.floor(duration * sampleRate);
+        const channelData = audioBuffer.getChannelData(0);
+        const samples = channelData.slice(0, numFrames);
+
+        // Encode as WAV
+        const wavBuffer = encodeWav(samples, sampleRate);
+        const blob = new Blob([wavBuffer], { type: "audio/wav" });
+
+        URL.revokeObjectURL(video.src);
+        audioContext.close();
+        resolve(blob);
+      } catch (err) {
+        URL.revokeObjectURL(video.src);
+        reject(err);
+      }
+    };
+
+    video.onerror = () => {
+      URL.revokeObjectURL(video.src);
+      reject(new Error("Failed to load video"));
+    };
+  });
+}
+
+function encodeWav(samples: Float32Array, sampleRate: number): ArrayBuffer {
+  const buffer = new ArrayBuffer(44 + samples.length * 2);
+  const view = new DataView(buffer);
+
+  // WAV header
+  const writeString = (offset: number, str: string) => {
+    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+  };
+  writeString(0, "RIFF");
+  view.setUint32(4, 36 + samples.length * 2, true);
+  writeString(8, "WAVE");
+  writeString(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, 1, true); // mono
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, "data");
+  view.setUint32(40, samples.length * 2, true);
+
+  // PCM data
+  for (let i = 0; i < samples.length; i++) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+  }
+
+  return buffer;
+}
+
 interface VideoUploadProps {
   userId: string;
   maxSizeMB: number;
@@ -58,29 +129,50 @@ export function VideoUpload({
 
     try {
       const supabase = createClient();
-      const ext = file.name.split(".").pop();
-      const path = `${userId}/${crypto.randomUUID()}/original.${ext}`;
+      const projectDir = `${userId}/${crypto.randomUUID()}`;
+      const ext = file.name.split(".").pop() || "mp4";
+      const videoPath = `${projectDir}/original.${ext}`;
 
-      // Simulate progress since Supabase doesn't expose upload progress
+      // Step 1: Upload video (0-50%)
       const progressInterval = setInterval(() => {
-        setProgress((prev) => Math.min(prev + 10, 90));
+        setProgress((prev) => Math.min(prev + 5, 45));
       }, 500);
 
       const { error: uploadError } = await supabase.storage
         .from("videos")
-        .upload(path, file, {
+        .upload(videoPath, file, {
           cacheControl: "3600",
           upsert: false,
         });
 
       clearInterval(progressInterval);
+      if (uploadError) throw new Error(uploadError.message);
+      setProgress(50);
 
-      if (uploadError) {
-        throw new Error(uploadError.message);
+      // Step 2: Extract audio from video in browser (50-90%)
+      try {
+        const audioBlob = await extractAudioFromVideo(file);
+        setProgress(75);
+
+        const audioPath = `${projectDir}/voice-sample.wav`;
+        const { error: audioUploadError } = await supabase.storage
+          .from("videos")
+          .upload(audioPath, audioBlob, {
+            contentType: "audio/wav",
+            upsert: false,
+          });
+
+        if (audioUploadError) {
+          console.warn("Audio extraction upload failed:", audioUploadError.message);
+        }
+        setProgress(90);
+      } catch (audioErr) {
+        console.warn("Audio extraction failed, will use pre-made voice:", audioErr);
+        setProgress(90);
       }
 
       setProgress(100);
-      onUploadComplete(path, file);
+      onUploadComplete(videoPath, file);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
