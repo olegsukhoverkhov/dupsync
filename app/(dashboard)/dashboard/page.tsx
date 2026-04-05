@@ -81,7 +81,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-xs text-slate-500">Remaining</p>
                 <p className="text-sm font-semibold text-white">
-                  {profile.credits_remaining === -1 ? "Unlimited" : `${profile.credits_remaining} min`}
+                  {profile.credits_remaining === -1 ? "Unlimited" : `${Math.floor(profile.credits_remaining)}m ${Math.round((profile.credits_remaining % 1) * 60)}s`}
                 </p>
               </div>
             </div>
@@ -93,7 +93,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <p className="text-xs text-slate-500">Used</p>
-                <p className="text-sm font-semibold text-white">{creditsUsed} min</p>
+                <p className="text-sm font-semibold text-white">{Math.floor(creditsUsed)}m {Math.round((creditsUsed % 1) * 60)}s</p>
               </div>
             </div>
           </div>

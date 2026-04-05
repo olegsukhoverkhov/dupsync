@@ -115,12 +115,17 @@ export default function ProjectDetailPage({
       .from("videos")
       .createSignedUrl(dub.dubbed_video_url, 3600);
     if (data?.signedUrl) {
+      // Fetch as blob to force download (signed URLs ignore download attribute)
+      const response = await fetch(data.signedUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = data.signedUrl;
+      a.href = url;
       a.download = `${project?.title || "dubbed"}-${dub.target_language}.mp3`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
   }
 

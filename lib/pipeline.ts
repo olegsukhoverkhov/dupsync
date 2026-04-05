@@ -187,21 +187,27 @@ export async function runDubbing(dubId: string) {
 
     log(dubId, "Dubbing COMPLETE");
 
-    // Deduct credits (1 credit = 1 minute of video)
-    const durationMinutes = Math.ceil((project.duration_seconds as number || 60) / 60);
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("credits_remaining, plan")
-      .eq("id", project.user_id)
-      .single();
-
-    if (profileData && profileData.credits_remaining !== -1) {
-      const newCredits = Math.max(0, profileData.credits_remaining - durationMinutes);
-      await supabase
+    // Deduct credits — credits_remaining is in seconds internally
+    // but displayed as minutes in the UI. We deduct exact seconds.
+    const durationSec = (project.duration_seconds as number) || 0;
+    if (durationSec > 0) {
+      // Use RPC or raw update to deduct atomically
+      const { data: profileData } = await supabase
         .from("profiles")
-        .update({ credits_remaining: newCredits })
-        .eq("id", project.user_id);
-      log(dubId, `Credits deducted: ${durationMinutes} min (remaining: ${newCredits})`);
+        .select("credits_remaining, plan")
+        .eq("id", project.user_id)
+        .single();
+
+      if (profileData && profileData.credits_remaining > 0) {
+        // credits_remaining is in minutes, deduct proportionally
+        const deductMinutes = durationSec / 60; // e.g. 5sec = 0.083 min
+        const newCredits = Math.max(0, Math.round((profileData.credits_remaining - deductMinutes) * 100) / 100);
+        await supabase
+          .from("profiles")
+          .update({ credits_remaining: newCredits })
+          .eq("id", project.user_id);
+        log(dubId, `Credits deducted: ${durationSec}s (${deductMinutes.toFixed(2)} min), remaining: ${newCredits} min`);
+      }
     }
 
     // Check if all dubs for this project are done

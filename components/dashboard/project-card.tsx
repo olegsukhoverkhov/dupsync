@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Video, Clock } from "lucide-react";
+import { Video, Clock, CreditCard } from "lucide-react";
 import type { ProjectWithDubs, ProjectStatus } from "@/lib/supabase/types";
 
 const STATUS_COLORS: Record<ProjectStatus, string> = {
@@ -45,6 +45,12 @@ export function ProjectCard({ project }: { project: ProjectWithDubs }) {
             <span className="flex items-center gap-1">
               <Video className="h-3 w-3" />
               {doneDubs}/{totalDubs} languages
+            </span>
+          )}
+          {totalDubs > 0 && project.duration_seconds && (
+            <span className="flex items-center gap-1">
+              <CreditCard className="h-3 w-3" />
+              {formatDuration(project.duration_seconds * totalDubs)} total
             </span>
           )}
         </div>
