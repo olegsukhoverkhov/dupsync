@@ -38,7 +38,55 @@ import Link from "next/link";
 import { AlertModal } from "@/components/ui/modal";
 import { LanguageSelector } from "@/components/project/language-selector";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
-import type { Profile } from "@/lib/supabase/types";
+import type { Profile, PlanType } from "@/lib/supabase/types";
+
+// Video info card showing quality details and upgrade CTA
+function DubInfoCard({ dub, plan }: { dub: Dub; plan: PlanType }) {
+  const langName = LANGUAGE_MAP[dub.target_language] || dub.target_language;
+  const isVideo = dub.dubbed_video_url?.includes("dubbed-video");
+  const planLimits = PLAN_LIMITS[plan];
+
+  const qualityMap: Record<string, { video: string; audio: string; next: string; nextPlan: string }> = {
+    free: { video: "720p", audio: "Standard", next: "1080p video + HD audio", nextPlan: "Starter ($29/mo)" },
+    starter: { video: "1080p", audio: "HD", next: "4K video + Studio audio", nextPlan: "Pro ($79/mo)" },
+    pro: { video: "4K", audio: "Studio", next: "Custom voice profiles", nextPlan: "Enterprise ($199/mo)" },
+    enterprise: { video: "4K", audio: "Studio", next: "", nextPlan: "" },
+  };
+  const quality = qualityMap[plan] || qualityMap.free;
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-slate-800/30 p-4 mt-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <div>
+          <p className="text-slate-500 mb-0.5">Language</p>
+          <p className="text-white font-medium">{langName}</p>
+        </div>
+        <div>
+          <p className="text-slate-500 mb-0.5">Output</p>
+          <p className="text-white font-medium">{isVideo ? "Video + Audio" : "Audio Only"}</p>
+        </div>
+        <div>
+          <p className="text-slate-500 mb-0.5">Video Quality</p>
+          <p className="text-white font-medium">{quality.video}</p>
+        </div>
+        <div>
+          <p className="text-slate-500 mb-0.5">Audio Quality</p>
+          <p className="text-white font-medium">{quality.audio}</p>
+        </div>
+      </div>
+      {quality.next && (
+        <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+          <p className="text-xs text-slate-500">
+            Want {quality.next}? Upgrade to <span className="text-pink-400">{quality.nextPlan}</span>
+          </p>
+          <Link href="/settings" className="text-xs text-pink-400 hover:text-pink-300 font-medium flex items-center gap-1">
+            Upgrade <ArrowUpRight className="h-3 w-3" />
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Inline video/audio player for completed dubs
 function DubInlinePlayer({ dub }: { dub: Dub }) {
@@ -392,9 +440,12 @@ export default function ProjectDetailPage({
             </div>
           </CardHeader>
           <CardContent>
-            {/* Inline player for completed dubs */}
+            {/* Inline player + info for completed dubs */}
             {activeDub.status === "done" && (
-              <DubInlinePlayer dub={activeDub} />
+              <>
+                <DubInlinePlayer dub={activeDub} />
+                {profile && <DubInfoCard dub={activeDub} plan={profile.plan} />}
+              </>
             )}
 
             {!["done", "error"].includes(activeDub.status) && (
@@ -500,17 +551,24 @@ export default function ProjectDetailPage({
                         <span className="text-xs text-red-400">Failed</span>
                       )}
                       {isActive && (
-                        <span className="text-xs text-pink-400 flex items-center gap-1">
+                        <span className="text-xs text-pink-400 flex items-center gap-1.5">
                           {STATUS_LABELS[dub.status]} {dub.progress}%
-                          <span className="inline-flex gap-0.5">
-                            <span className="h-1 w-1 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-                            <span className="h-1 w-1 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-                            <span className="h-1 w-1 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+                          <span className="inline-flex gap-[3px]">
+                            <span className="h-1.5 w-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: "0ms", animationDuration: "0.8s" }} />
+                            <span className="h-1.5 w-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: "200ms", animationDuration: "0.8s" }} />
+                            <span className="h-1.5 w-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: "400ms", animationDuration: "0.8s" }} />
                           </span>
                         </span>
                       )}
                       {isPending && (
-                        <span className="text-xs text-slate-600">Waiting</span>
+                        <span className="text-xs text-slate-500 flex items-center gap-1.5">
+                          Waiting
+                          <span className="inline-flex gap-[3px]">
+                            <span className="h-1 w-1 rounded-full bg-slate-500 animate-pulse" style={{ animationDelay: "0ms" }} />
+                            <span className="h-1 w-1 rounded-full bg-slate-500 animate-pulse" style={{ animationDelay: "300ms" }} />
+                            <span className="h-1 w-1 rounded-full bg-slate-500 animate-pulse" style={{ animationDelay: "600ms" }} />
+                          </span>
+                        </span>
                       )}
                     </div>
                   </div>

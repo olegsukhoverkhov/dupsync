@@ -79,9 +79,9 @@ export default function DashboardPage() {
                 <Clock className="h-4 w-4 text-green-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">Remaining</p>
+                <p className="text-xs text-slate-500">Credits Left</p>
                 <p className="text-sm font-semibold text-white">
-                  {profile.credits_remaining === -1 ? "Unlimited" : `${Math.floor(profile.credits_remaining)}m ${Math.round((profile.credits_remaining % 1) * 60)}s`}
+                  {profile.credits_remaining === -1 ? "Unlimited" : `${profile.credits_remaining.toFixed(1)} credits`}
                 </p>
               </div>
             </div>
@@ -92,8 +92,8 @@ export default function DashboardPage() {
                 <TrendingUp className="h-4 w-4 text-blue-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">Used</p>
-                <p className="text-sm font-semibold text-white">{Math.floor(creditsUsed)}m {Math.round((creditsUsed % 1) * 60)}s</p>
+                <p className="text-xs text-slate-500">Credits Used</p>
+                <p className="text-sm font-semibold text-white">{creditsUsed.toFixed(1)} credits</p>
               </div>
             </div>
           </div>

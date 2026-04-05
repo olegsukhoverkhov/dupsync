@@ -54,6 +54,8 @@ export default function NewProjectPage() {
   const [transcript, setTranscript] = useState<TranscriptSegment[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [sourceLanguage, setSourceLanguage] = useState("en");
+  const [uploadedPath, setUploadedPath] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
   const [correctedLanguage, setCorrectedLanguage] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -79,15 +81,28 @@ export default function NewProjectPage() {
 
   const planLimits = profile ? PLAN_LIMITS[profile.plan] : PLAN_LIMITS.free;
 
-  async function handleUploadComplete(path: string, file: File) {
+  function handleUploadComplete(path: string, file: File) {
+    setUploadedPath(path);
+    setUploadedFile(file);
+    if (!title) setTitle(file.name.replace(/\.[^.]+$/, ""));
+    // Auto-start project creation
+    createProject(path, file.name.replace(/\.[^.]+$/, ""));
+  }
+
+  async function createProject(path?: string, fallbackTitle?: string) {
+    const videoPath = path || uploadedPath;
+    const projectTitle = title || fallbackTitle || "Untitled";
+    if (!videoPath) return;
+
     setLoading(true);
+    setAlertModal(null);
     try {
       const res = await fetch("/api/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: title || file.name.replace(/\.[^.]+$/, ""),
-          videoPath: path,
+          title: projectTitle,
+          videoPath,
           language: sourceLanguage,
         }),
       });
@@ -124,7 +139,12 @@ export default function NewProjectPage() {
       }, 3000);
     } catch (err) {
       setLoading(false);
-      setAlertModal({ title: "Error", message: err instanceof Error ? err.message : "Failed to create project. Please try again.", type: "error" });
+      const msg = err instanceof Error ? err.message : "Failed to create project.";
+      setAlertModal({
+        title: msg.includes("already exists") ? "Duplicate Name" : "Error",
+        message: msg,
+        type: "error",
+      });
     }
   }
 
@@ -303,6 +323,19 @@ export default function NewProjectPage() {
                 maxSizeMB={planLimits.maxFileSize}
                 onUploadComplete={handleUploadComplete}
               />
+            )}
+
+            {/* Show retry button when file uploaded but project creation failed */}
+            {uploadedPath && !loading && !project && (
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-center">
+                <p className="text-sm text-amber-400 mb-3">Video uploaded. Fix the project name above and try again.</p>
+                <button
+                  onClick={() => createProject()}
+                  className="gradient-button inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold"
+                >
+                  Create Project
+                </button>
+              </div>
             )}
 
             {loading && (
