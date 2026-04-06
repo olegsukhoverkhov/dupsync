@@ -7,6 +7,20 @@ export const metadata: Metadata = {
   title: "Contact — DubSync",
   description:
     "Get in touch with the DubSync team. Support, sales, and partnership inquiries.",
+  alternates: { canonical: "https://dubsync.app/contact" },
+  openGraph: {
+    type: "website",
+    title: "Contact — DubSync",
+    description:
+      "Get in touch with the DubSync team. Support, sales, and partnership inquiries.",
+    url: "https://dubsync.app/contact",
+    images: ["/og-image.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Contact DubSync",
+    description: "Support, sales, and partnership inquiries.",
+  },
 };
 
 export default function ContactPage() {

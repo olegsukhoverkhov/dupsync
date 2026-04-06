@@ -7,6 +7,21 @@ export const metadata: Metadata = {
   title: "About DubSync — AI Video Dubbing for Every Creator",
   description:
     "DubSync makes video content accessible globally with AI voice cloning, lip sync, and translation in 30+ languages.",
+  alternates: { canonical: "https://dubsync.app/about" },
+  openGraph: {
+    type: "website",
+    title: "About DubSync — AI Video Dubbing for Every Creator",
+    description:
+      "DubSync makes video content accessible globally with AI voice cloning, lip sync, and translation in 30+ languages.",
+    url: "https://dubsync.app/about",
+    images: ["/og-image.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About DubSync — AI Video Dubbing for Every Creator",
+    description:
+      "Making video content accessible globally with AI voice cloning and lip sync.",
+  },
 };
 
 const STATS = [

@@ -8,6 +8,21 @@ export const metadata: Metadata = {
   title: "DubSync Pricing — AI Video Dubbing Plans from Free to Enterprise",
   description:
     "Choose the DubSync plan that fits your needs. Free, Starter, Pro, and Enterprise plans for AI video dubbing, voice cloning, and lip sync.",
+  alternates: { canonical: "https://dubsync.app/pricing" },
+  openGraph: {
+    type: "website",
+    title: "DubSync Pricing — AI Video Dubbing Plans from Free to Enterprise",
+    description:
+      "Choose the DubSync plan that fits your needs. Free, Starter, Pro, and Enterprise plans with lip sync included.",
+    url: "https://dubsync.app/pricing",
+    images: ["/og-image.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DubSync Pricing — AI Video Dubbing Plans",
+    description:
+      "AI dubbing plans from free to enterprise. Lip sync included in every credit.",
+  },
 };
 
 const PRICING_FAQS = [

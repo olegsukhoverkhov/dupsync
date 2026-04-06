@@ -1,11 +1,22 @@
 User-agent: *
 Allow: /
 Disallow: /login
+Disallow: /signup
 Disallow: /api/
-Disallow: /dashboard/
-Disallow: /projects/
+Disallow: /dashboard
+Disallow: /projects
 Disallow: /settings
 Disallow: /credits
 Disallow: /callback
+Disallow: /api-keys
 
 Sitemap: https://dubsync.app/sitemap.xml
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /

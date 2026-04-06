@@ -32,67 +32,6 @@ export const metadata: Metadata = {
 export default function AiDubbingPricingComparisonPage() {
   return (
     <BlogPostLayout slug="ai-dubbing-pricing-comparison-2026">
-      {/* Article Schema */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Article",
-            headline:
-              "AI Video Dubbing Pricing Comparison 2026: What Lip Sync Actually Costs",
-            description:
-              "Complete pricing comparison of AI video dubbing tools with lip sync",
-            image: "/og-image.png",
-            datePublished: "2026-04-07",
-            dateModified: "2026-04-07",
-            author: {
-              "@type": "Organization",
-              name: "DubSync",
-              url: "https://dubsync.app",
-            },
-            publisher: {
-              "@type": "Organization",
-              name: "DubSync",
-              url: "https://dubsync.app",
-            },
-            mainEntityOfPage:
-              "https://dubsync.app/blog/ai-dubbing-pricing-comparison-2026",
-          }),
-        }}
-      />
-
-      {/* BreadcrumbList Schema */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              {
-                "@type": "ListItem",
-                position: 1,
-                name: "Home",
-                item: "https://dubsync.app",
-              },
-              {
-                "@type": "ListItem",
-                position: 2,
-                name: "Blog",
-                item: "https://dubsync.app/blog",
-              },
-              {
-                "@type": "ListItem",
-                position: 3,
-                name: "AI Dubbing Pricing Comparison 2026",
-                item: "https://dubsync.app/blog/ai-dubbing-pricing-comparison-2026",
-              },
-            ],
-          }),
-        }}
-      />
-
       <h1>AI Video Dubbing Pricing Comparison 2026: What Lip Sync Actually Costs</h1>
 
       <p className="text-lg">

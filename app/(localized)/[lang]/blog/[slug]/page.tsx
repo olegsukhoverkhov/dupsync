@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { isValidLocale, LOCALES } from "@/lib/i18n/dictionaries";
@@ -64,7 +64,7 @@ export default async function LocalizedBlogPost({
   if (!isValidLocale(lang) || lang === "en") notFound();
 
   const article = await getArticleTranslation(lang, slug);
-  if (!article) notFound();
+  if (!article) redirect(`/${lang}/blog`);
 
   return (
     <div className="landing-dark bg-[#0F172A] text-white min-h-screen">

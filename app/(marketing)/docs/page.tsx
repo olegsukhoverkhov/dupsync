@@ -7,6 +7,21 @@ export const metadata: Metadata = {
   title: "Documentation — DubSync API",
   description:
     "DubSync API documentation. Endpoints, authentication, and code examples for integrating AI video dubbing into your app.",
+  alternates: { canonical: "https://dubsync.app/docs" },
+  openGraph: {
+    type: "website",
+    title: "Documentation — DubSync API",
+    description:
+      "DubSync API documentation. Endpoints, authentication, and code examples for AI video dubbing.",
+    url: "https://dubsync.app/docs",
+    images: ["/og-image.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DubSync API Documentation",
+    description:
+      "Endpoints, authentication, and code examples for integrating AI video dubbing.",
+  },
 };
 
 const ENDPOINTS = [

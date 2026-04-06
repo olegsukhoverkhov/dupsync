@@ -7,6 +7,20 @@ export const metadata: Metadata = {
   title: "Changelog — DubSync",
   description:
     "See what is new in DubSync. Product updates, new features, and improvements.",
+  alternates: { canonical: "https://dubsync.app/changelog" },
+  openGraph: {
+    type: "website",
+    title: "Changelog — DubSync",
+    description:
+      "See what is new in DubSync. Product updates, new features, and improvements.",
+    url: "https://dubsync.app/changelog",
+    images: ["/og-image.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DubSync Changelog",
+    description: "Product updates, new features, and improvements.",
+  },
 };
 
 export default function ChangelogPage() {
