@@ -245,6 +245,50 @@
   <url><loc>https://dubsync.app/de/blog/ai-dubbing-pricing-comparison-2026</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
   <url><loc>https://dubsync.app/fr/blog/ai-dubbing-pricing-comparison-2026</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
   <url><loc>https://dubsync.app/ja/blog/ai-dubbing-pricing-comparison-2026</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
+  <!-- Platform pages -->
+  <url><loc>https://dubsync.app/platforms</loc><lastmod>2026-04-06</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://dubsync.app/platforms/youtube</loc><lastmod>2026-04-06</lastmod><priority>0.8</priority></url>
+  <url><loc>https://dubsync.app/platforms/tiktok</loc><lastmod>2026-04-06</lastmod><priority>0.8</priority></url>
+  <url><loc>https://dubsync.app/platforms/instagram</loc><lastmod>2026-04-06</lastmod><priority>0.8</priority></url>
+  <url><loc>https://dubsync.app/platforms/facebook</loc><lastmod>2026-04-06</lastmod><priority>0.8</priority></url>
+  <url><loc>https://dubsync.app/platforms/elearning</loc><lastmod>2026-04-06</lastmod><priority>0.8</priority></url>
+  <url><loc>https://dubsync.app/platforms/podcasts</loc><lastmod>2026-04-06</lastmod><priority>0.8</priority></url>
+  <!-- Localized platform pages -->
+  <url><loc>https://dubsync.app/es/platforms</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/es/platforms/youtube</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/es/platforms/tiktok</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/es/platforms/instagram</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/es/platforms/facebook</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/es/platforms/elearning</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/es/platforms/podcasts</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/pt/platforms</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/pt/platforms/youtube</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/pt/platforms/tiktok</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/pt/platforms/instagram</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/pt/platforms/facebook</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/pt/platforms/elearning</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/pt/platforms/podcasts</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/de/platforms</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/de/platforms/youtube</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/de/platforms/tiktok</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/de/platforms/instagram</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/de/platforms/facebook</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/de/platforms/elearning</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/de/platforms/podcasts</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/fr/platforms</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/fr/platforms/youtube</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/fr/platforms/tiktok</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/fr/platforms/instagram</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/fr/platforms/facebook</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/fr/platforms/elearning</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/fr/platforms/podcasts</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/ja/platforms</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/ja/platforms/youtube</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/ja/platforms/tiktok</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/ja/platforms/instagram</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/ja/platforms/facebook</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/ja/platforms/elearning</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/ja/platforms/podcasts</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
   <!-- Localized pricing -->
   <url><loc>https://dubsync.app/es/pricing</loc><lastmod>2026-04-06</lastmod><priority>0.8</priority></url>
   <url><loc>https://dubsync.app/pt/pricing</loc><lastmod>2026-04-06</lastmod><priority>0.8</priority></url>

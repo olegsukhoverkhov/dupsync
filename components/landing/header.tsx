@@ -45,6 +45,7 @@ export function Header() {
             <Link href="/features" className="text-sm text-zinc-400 hover:text-white transition-colors">Features</Link>
             <Link href="#pricing" className="text-sm text-zinc-400 hover:text-white transition-colors">Pricing</Link>
             <Link href="/compare" className="text-sm text-zinc-400 hover:text-white transition-colors">Compare</Link>
+            <Link href="/platforms" className="text-sm text-zinc-400 hover:text-white transition-colors">Platforms</Link>
             <Link href="/blog" className="text-sm text-zinc-400 hover:text-white transition-colors">Blog</Link>
             <Link href="/about" className="text-sm text-zinc-400 hover:text-white transition-colors">About</Link>
           </nav>
@@ -86,6 +87,7 @@ export function Header() {
             <Link href="/features" onClick={() => setMobileMenuOpen(false)} className="block rounded-xl px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 transition-colors">Features</Link>
             <Link href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block rounded-xl px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 transition-colors">Pricing</Link>
             <Link href="/compare" onClick={() => setMobileMenuOpen(false)} className="block rounded-xl px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 transition-colors">Compare</Link>
+            <Link href="/platforms" onClick={() => setMobileMenuOpen(false)} className="block rounded-xl px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 transition-colors">Platforms</Link>
             <Link href="/blog" onClick={() => setMobileMenuOpen(false)} className="block rounded-xl px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 transition-colors">Blog</Link>
             <Link href="/about" onClick={() => setMobileMenuOpen(false)} className="block rounded-xl px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 transition-colors">About</Link>
             <div className="px-4 py-3">

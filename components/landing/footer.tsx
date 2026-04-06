@@ -6,6 +6,7 @@ const LINKS = {
     { label: "Features", href: "/features" },
     { label: "Pricing", href: "/pricing" },
     { label: "Compare", href: "/compare" },
+    { label: "Platforms", href: "/platforms" },
     { label: "Changelog", href: "/changelog" },
   ],
   Company: [

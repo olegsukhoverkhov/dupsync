@@ -72,6 +72,7 @@ function Header({ dict, lang }: { dict: Dictionary; lang: Locale }) {
     { label: d(dict, "header.features", "Features"), href: `/${lang}/features` },
     { label: d(dict, "header.pricing", dict.header.pricing ?? "Pricing"), href: `/${lang}/pricing` },
     { label: d(dict, "header.compare", "Compare"), href: `/${lang}/compare` },
+    { label: d(dict, "header.platforms", "Platforms"), href: `/${lang}/platforms` },
     { label: d(dict, "header.blog", "Blog"), href: `/${lang}/blog` },
     { label: d(dict, "header.about", "About"), href: "/about" },
   ];
@@ -1523,6 +1524,7 @@ function Footer({ dict, lang }: { dict: Dictionary; lang: Locale }) {
       { label: d(dict, "footer.features", "Features"), href: `/${lang}/features` },
       { label: d(dict, "footer.pricing", d(dict, "header.pricing", "Pricing")), href: `/${lang}/pricing` },
       { label: d(dict, "footer.compare", "Compare"), href: `/${lang}/compare` },
+      { label: d(dict, "footer.platforms", "Platforms"), href: `/${lang}/platforms` },
       { label: d(dict, "footer.changelog", "Changelog"), href: "/changelog" },
     ],
     [dict.footer.company]: [

@@ -10,6 +10,7 @@
     "getStarted": "Commencer",
     "features": "Fonctionnalités",
     "compare": "Comparer",
+    "platforms": "Plateformes",
     "blog": "Blog",
     "about": "À propos"
   },
@@ -207,6 +208,7 @@
     "features": "Fonctionnalités",
     "pricing": "Tarifs",
     "compare": "Comparer",
+    "platforms": "Plateformes",
     "changelog": "Journal des modifications",
     "about": "À propos",
     "blog": "Blog",
