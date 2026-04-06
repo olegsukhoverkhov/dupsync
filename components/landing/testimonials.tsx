@@ -86,17 +86,18 @@ function Avatar({ src, name, gradient }: { src: string; name: string; gradient: 
   const [imgError, setImgError] = useState(false);
   return (
     <div className={`relative h-10 w-10 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-xs font-bold text-white shrink-0 overflow-hidden`}>
-      {!imgError && (
+      {!imgError ? (
         <Image
           src={src}
           alt={name}
           width={40}
           height={40}
-          className="absolute inset-0 w-full h-full object-cover rounded-full"
+          className="absolute inset-0 w-full h-full object-cover rounded-full z-10"
           onError={() => setImgError(true)}
         />
+      ) : (
+        <span>{initials}</span>
       )}
-      <span className="relative z-0">{initials}</span>
     </div>
   );
 }

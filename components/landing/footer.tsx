@@ -59,7 +59,24 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="border-t border-white/5 pt-8">
+        {/* Trust badges */}
+        <div className="border-t border-white/5 pt-6 pb-4">
+          <div className="flex items-center justify-center gap-5 sm:gap-8 flex-wrap text-[11px] text-slate-500">
+            <span className="flex items-center gap-1">🔒 SSL Secured</span>
+            <span className="flex items-center gap-1">🛡️ PCI DSS</span>
+            <span className="flex items-center gap-1">🛡️ GDPR</span>
+            <span className="flex items-center gap-1">🛡️ SOC 2</span>
+            <span className="flex items-center gap-1.5">
+              💳
+              <span className="rounded bg-white/10 px-1 py-px text-[9px] font-bold text-blue-400">VISA</span>
+              <span className="rounded bg-white/10 px-1 py-px text-[9px] font-bold text-orange-400">MC</span>
+              <span className="rounded bg-white/10 px-1 py-px text-[9px] font-bold text-cyan-400">AMEX</span>
+              <span className="rounded bg-white/10 px-1 py-px text-[9px] font-bold text-blue-300">PayPal</span>
+            </span>
+          </div>
+        </div>
+
+        <div className="border-t border-white/5 pt-6">
           <p className="text-xs text-zinc-600 text-center">
             &copy; {new Date().getFullYear()} DubSync. All rights reserved.
           </p>
