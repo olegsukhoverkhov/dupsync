@@ -12,13 +12,10 @@ import { PricingNew } from "@/components/landing/pricing-new";
 import { Faq } from "@/components/landing/faq";
 import { FinalCta } from "@/components/landing/final-cta";
 import { Footer } from "@/components/landing/footer";
-import { TrustBar } from "@/components/landing/trust-bar";
-
 export default function LandingPage() {
   return (
     <div className="landing-dark bg-[#0F172A] text-white min-h-screen">
       <Header />
-      <TrustBar />
       <main>
         <HeroNew />
         <LogoBar />
