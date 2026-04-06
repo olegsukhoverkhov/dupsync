@@ -22,16 +22,14 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/dictionaries";
 import { LanguageSwitcher } from "./language-switcher";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { PlanType } from "@/lib/supabase/types";
-import { DemoSection } from "./demo-section";
-import { Examples } from "./examples";
-import { Testimonials } from "./testimonials";
-import { ComparisonBlock } from "./comparison-block";
+import { LogoBar } from "./logo-bar";
+import Image from "next/image";
 
 /* -------------------------------------------------------------------------- */
 /*  Helpers                                                                   */
@@ -244,18 +242,10 @@ function Hero({ dict }: { dict: Dictionary }) {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  LogoBar                                                                   */
+/*  LogoBar — uses the shared LogoBar component from logo-bar.tsx             */
 /* -------------------------------------------------------------------------- */
 
-function LogoBar({ dict }: { dict: Dictionary }) {
-  return (
-    <section className="border-y border-white/5 py-12">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <p className="text-center text-sm text-zinc-500">{dict.logoBar.trusted}</p>
-      </div>
-    </section>
-  );
-}
+/* LogoBar is imported from "./logo-bar" at the top of this file. */
 
 /* -------------------------------------------------------------------------- */
 /*  HowItWorks                                                               */
@@ -263,9 +253,9 @@ function LogoBar({ dict }: { dict: Dictionary }) {
 
 function HowItWorks({ dict }: { dict: Dictionary }) {
   const steps = [
-    { icon: Upload, step: "Step 1", title: dict.howItWorks.step1title, desc: dict.howItWorks.step1desc },
-    { icon: Cpu, step: "Step 2", title: dict.howItWorks.step2title, desc: dict.howItWorks.step2desc },
-    { icon: Download, step: "Step 3", title: dict.howItWorks.step3title, desc: dict.howItWorks.step3desc },
+    { icon: Upload, step: d(dict, "howItWorks.step1label", "STEP 1"), title: dict.howItWorks.step1title, desc: dict.howItWorks.step1desc },
+    { icon: Cpu, step: d(dict, "howItWorks.step2label", "STEP 2"), title: dict.howItWorks.step2title, desc: dict.howItWorks.step2desc },
+    { icon: Download, step: d(dict, "howItWorks.step3label", "STEP 3"), title: dict.howItWorks.step3title, desc: dict.howItWorks.step3desc },
   ];
   return (
     <section className="py-24">
@@ -400,33 +390,33 @@ function RoiCalculatorSection({ dict }: { dict: Dictionary }) {
   const rows = [
     {
       metric: d(dict, "roi.costPerLang", "Cost per language"),
-      traditional: "$3,000 \u2013 $5,000",
-      dubsync: "From $1/min",
+      traditional: d(dict, "roi.traditionalCostValue", "$3,000 \u2013 $5,000"),
+      dubsync: d(dict, "roi.dubsyncCostValue", "From $1/min"),
     },
     {
       metric: d(dict, "roi.timeFor10min", "Time for 10-min video"),
-      traditional: "1\u20133 weeks",
-      dubsync: "3 minutes",
+      traditional: d(dict, "roi.traditionalTimeValue", "1\u20133 weeks"),
+      dubsync: d(dict, "roi.dubsyncTimeValue", "3 minutes"),
     },
     {
       metric: d(dict, "roi.simultaneous", "Simultaneous languages"),
-      traditional: "1",
-      dubsync: "30+",
+      traditional: d(dict, "roi.traditionalSimultaneousValue", "1"),
+      dubsync: d(dict, "roi.dubsyncSimultaneousValue", "30+"),
     },
     {
       metric: d(dict, "roi.voiceActors", "Voice actors needed"),
-      traditional: "Yes",
-      dubsync: "No \u2014 AI voice cloning",
+      traditional: d(dict, "roi.traditionalVoiceActorsValue", "Yes"),
+      dubsync: d(dict, "roi.dubsyncVoiceActorsValue", "No \u2014 AI voice cloning"),
     },
     {
       metric: d(dict, "roi.lipSync", "Lip sync"),
-      traditional: "Manual work",
-      dubsync: "Automatic",
+      traditional: d(dict, "roi.traditionalLipSyncValue", "Manual work"),
+      dubsync: d(dict, "roi.dubsyncLipSyncValue", "Automatic"),
     },
     {
       metric: d(dict, "roi.totalCost", "10-min video \u00D7 5 languages"),
-      traditional: "~$20,000",
-      dubsync: "~$50",
+      traditional: d(dict, "roi.traditionalTotalCostValue", "~$20,000"),
+      dubsync: d(dict, "roi.dubsyncTotalCostValue", "~$50"),
     },
   ];
 
@@ -524,12 +514,15 @@ function Pricing({ dict }: { dict: Dictionary }) {
                   {plan.price > 0 && <span className="text-slate-500 ml-1">{dict.pricing.perMonth}</span>}
                 </div>
                 <ul className="space-y-3 mt-6 flex-1">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm">
-                      <Check className="h-4 w-4 text-pink-400 mt-0.5 shrink-0" />
-                      <span className="text-slate-300">{f}</span>
-                    </li>
-                  ))}
+                  {plan.features.map((f, fi) => {
+                    const translatedFeature = d(dict, `pricing.${key}Feature${fi + 1}`, f);
+                    return (
+                      <li key={fi} className="flex items-start gap-2 text-sm">
+                        <Check className="h-4 w-4 text-pink-400 mt-0.5 shrink-0" />
+                        <span className="text-slate-300">{translatedFeature}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
                 <Link
                   href="/signup"
@@ -678,6 +671,684 @@ function FaqSection({ dict }: { dict: Dictionary }) {
 }
 
 /* -------------------------------------------------------------------------- */
+/*  DemoSection (inline, translated)                                          */
+/* -------------------------------------------------------------------------- */
+
+function LocalizedDemoSection({ dict }: { dict: Dictionary }) {
+  const [activeTab, setActiveTab] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveTab((prev) => (prev + 1) % 3);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const TABS = [
+    {
+      id: "upload",
+      label: d(dict, "demo.uploadLabel", "Upload"),
+      icon: Upload,
+      description: d(dict, "demo.uploadDesc", "Drag & drop your video"),
+    },
+    {
+      id: "process",
+      label: d(dict, "demo.processLabel", "AI Processing"),
+      icon: Cpu,
+      description: d(dict, "demo.processDesc", "AI does the heavy lifting"),
+    },
+    {
+      id: "download",
+      label: d(dict, "demo.downloadLabel", "Download"),
+      icon: Download,
+      description: d(dict, "demo.downloadDesc", "Get dubbed videos"),
+    },
+  ];
+
+  return (
+    <section id="demo" className="py-24">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl font-bold">
+            {d(dict, "demo.title", "See it")} <span className="gradient-text">{d(dict, "demo.titleHighlight", "in action")}</span>
+          </h2>
+          <p className="mt-4 text-zinc-400 text-lg">
+            {d(dict, "demo.subtitle", "Three steps. That\u2019s all it takes to reach a global audience.")}
+          </p>
+        </div>
+
+        {/* Tab buttons */}
+        <div className="flex items-center justify-start sm:justify-center gap-2 mb-8 overflow-x-auto pb-2 -mx-6 px-6 sm:mx-0 sm:px-0 sm:overflow-visible sm:pb-0">
+          {TABS.map((tab, i) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(i)}
+              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-medium transition-all shrink-0 ${
+                activeTab === i
+                  ? "bg-white/10 text-white border border-white/10"
+                  : "text-zinc-500 hover:text-zinc-300"
+              }`}
+            >
+              <tab.icon className="h-4 w-4" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Progress bar */}
+        <div className="max-w-md mx-auto mb-8 h-1 bg-white/5 rounded-full overflow-hidden">
+          <div
+            key={activeTab}
+            className="h-full bg-gradient-to-r from-blue-500 to-violet-500 rounded-full"
+            style={{ animation: "progress-bar 4s linear forwards" }}
+          />
+        </div>
+
+        {/* Tab content — cards */}
+        <div className="max-w-3xl mx-auto">
+          <div className="rounded-2xl border border-white/10 bg-slate-800/50 p-8 min-h-[320px]">
+            {activeTab === 0 && (
+              <div className="flex flex-col items-center justify-center h-full py-8 animate-fade-in">
+                <div className="w-full max-w-md border-2 border-dashed border-white/10 rounded-xl p-12 text-center hover:border-blue-500/30 transition-colors">
+                  <Upload className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+                  <p className="text-white font-medium">{d(dict, "demo.dropHere", "Drop your video here")}</p>
+                  <p className="text-zinc-500 text-sm mt-1">{d(dict, "demo.formats", "MP4, MOV, AVI up to 5GB")}</p>
+                </div>
+                <div className="mt-6 flex items-center gap-3 bg-white/5 rounded-lg px-4 py-3 w-full max-w-md">
+                  <div className="h-10 w-10 rounded bg-blue-500/20 flex items-center justify-center">
+                    <Upload className="h-5 w-5 text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-white">product-demo.mp4</p>
+                    <p className="text-xs text-zinc-500">245 MB</p>
+                  </div>
+                  <Check className="h-5 w-5 text-green-400" />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 1 && (
+              <div className="py-8 animate-fade-in">
+                <div className="max-w-md mx-auto space-y-4">
+                  {[
+                    { label: d(dict, "demo.transcribing", "Transcribing audio"), done: true },
+                    { label: d(dict, "demo.translating", "Translating to Spanish"), done: true },
+                    { label: d(dict, "demo.cloning", "Cloning speaker voice"), done: true },
+                    { label: d(dict, "demo.syncing", "Syncing lip movements"), done: false },
+                  ].map((step) => (
+                    <div key={step.label} className="flex items-center gap-4">
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                        step.done ? "bg-green-500/20" : "bg-blue-500/20"
+                      }`}>
+                        {step.done ? (
+                          <Check className="h-4 w-4 text-green-400" />
+                        ) : (
+                          <div className="h-4 w-4 text-blue-400 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
+                        )}
+                      </div>
+                      <span className={`text-sm ${step.done ? "text-zinc-400" : "text-white font-medium"}`}>
+                        {step.label}
+                      </span>
+                      {step.done && (
+                        <span className="text-xs text-zinc-600 ml-auto">{d(dict, "demo.done", "Done")}</span>
+                      )}
+                      {!step.done && (
+                        <span className="text-xs text-blue-400 ml-auto">{d(dict, "demo.processing", "Processing...")}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-8 max-w-md mx-auto">
+                  <div className="flex justify-between text-xs text-zinc-500 mb-2">
+                    <span>{d(dict, "demo.overallProgress", "Overall progress")}</span>
+                    <span>75%</span>
+                  </div>
+                  <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full w-3/4 bg-gradient-to-r from-blue-500 to-violet-500 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 2 && (
+              <div className="py-8 animate-fade-in">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-lg mx-auto">
+                  {[
+                    { flag: "\uD83C\uDDEA\uD83C\uDDF8", lang: d(dict, "demo.langSpanish", "Spanish"), ready: true },
+                    { flag: "\uD83C\uDDEB\uD83C\uDDF7", lang: d(dict, "demo.langFrench", "French"), ready: true },
+                    { flag: "\uD83C\uDDE9\uD83C\uDDEA", lang: d(dict, "demo.langGerman", "German"), ready: true },
+                    { flag: "\uD83C\uDDEF\uD83C\uDDF5", lang: d(dict, "demo.langJapanese", "Japanese"), ready: false },
+                    { flag: "\uD83C\uDDF0\uD83C\uDDF7", lang: d(dict, "demo.langKorean", "Korean"), ready: false },
+                    { flag: "\uD83C\uDDE7\uD83C\uDDF7", lang: d(dict, "demo.langPortuguese", "Portuguese"), ready: false },
+                  ].map((lang) => (
+                    <div
+                      key={lang.lang}
+                      className={`rounded-xl border p-4 text-center transition-all ${
+                        lang.ready
+                          ? "border-white/10 bg-white/5 hover:bg-white/10 cursor-pointer"
+                          : "border-white/5 bg-white/[0.02] opacity-50"
+                      }`}
+                    >
+                      <span className="text-2xl">{lang.flag}</span>
+                      <p className="text-sm text-white mt-2">{lang.lang}</p>
+                      {lang.ready ? (
+                        <span className="inline-flex items-center gap-1 text-xs text-green-400 mt-1">
+                          <Download className="h-3 w-3" /> {d(dict, "demo.ready", "Ready")}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-zinc-600 mt-1 block">{d(dict, "demo.processing", "Processing...")}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Examples (inline, translated)                                             */
+/* -------------------------------------------------------------------------- */
+
+function LocalizedExamples({ dict }: { dict: Dictionary }) {
+  const EXAMPLES = [
+    {
+      title: d(dict, "examples.youtubeTitle", "YouTube Tutorial"),
+      original: d(dict, "examples.youtubeOriginal", "\uD83C\uDDFA\uD83C\uDDF8 English"),
+      dubbed: d(dict, "examples.youtubeDubbed", "\uD83C\uDDEA\uD83C\uDDF8 Spanish"),
+      duration: d(dict, "examples.youtubeDuration", "Dubbed in 3 min"),
+      accuracy: d(dict, "examples.youtubeAccuracy", "98% voice match"),
+      gradient: "from-blue-500/20 to-cyan-500/20",
+    },
+    {
+      title: d(dict, "examples.productTitle", "Product Demo"),
+      original: d(dict, "examples.productOriginal", "\uD83C\uDDFA\uD83C\uDDF8 English"),
+      dubbed: d(dict, "examples.productDubbed", "\uD83C\uDDEB\uD83C\uDDF7 French"),
+      duration: d(dict, "examples.productDuration", "Dubbed in 2 min"),
+      accuracy: d(dict, "examples.productAccuracy", "97% voice match"),
+      gradient: "from-violet-500/20 to-pink-500/20",
+    },
+    {
+      title: d(dict, "examples.courseTitle", "Online Course"),
+      original: d(dict, "examples.courseOriginal", "\uD83C\uDDFA\uD83C\uDDF8 English"),
+      dubbed: d(dict, "examples.courseDubbed", "\uD83C\uDDEF\uD83C\uDDF5 Japanese"),
+      duration: d(dict, "examples.courseDuration", "Dubbed in 5 min"),
+      accuracy: d(dict, "examples.courseAccuracy", "96% voice match"),
+      gradient: "from-amber-500/20 to-orange-500/20",
+    },
+  ];
+
+  return (
+    <section className="py-24 border-t border-white/5">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl font-bold">
+            {d(dict, "examples.title", "Real")} <span className="gradient-text">{d(dict, "examples.titleHighlight", "results")}</span>
+          </h2>
+          <p className="mt-4 text-zinc-400 text-lg">
+            {d(dict, "examples.subtitle", "See how creators use DubSync to reach global audiences")}
+          </p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {EXAMPLES.map((ex) => (
+            <div
+              key={ex.title}
+              className="group rounded-2xl border border-white/10 bg-slate-800/50 overflow-hidden hover:border-white/20 transition-all"
+            >
+              {/* Video thumbnail */}
+              <div className={`relative aspect-video bg-gradient-to-br ${ex.gradient}`}>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="h-14 w-14 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Play className="h-6 w-6 text-white ml-0.5" />
+                  </div>
+                </div>
+                {/* Language transform indicator */}
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                  <span className="text-xs bg-black/60 backdrop-blur-sm rounded-md px-2 py-1 text-white">
+                    {ex.original}
+                  </span>
+                  <ArrowRight className="h-4 w-4 text-white/50" />
+                  <span className="text-xs bg-black/60 backdrop-blur-sm rounded-md px-2 py-1 text-white">
+                    {ex.dubbed}
+                  </span>
+                </div>
+              </div>
+
+              {/* Info */}
+              <div className="p-4">
+                <h3 className="font-semibold text-white">{ex.title}</h3>
+                <div className="mt-3 flex items-center gap-4 text-xs text-zinc-500">
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {ex.duration}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Mic className="h-3 w-3" />
+                    {ex.accuracy}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Testimonials (inline, translated headings, EN quotes)                     */
+/* -------------------------------------------------------------------------- */
+
+const TESTIMONIALS = [
+  {
+    quote: "DubSync doubled my international audience in two months. The voice cloning is so good that my Spanish viewers genuinely think I speak Spanish. Game changer for any creator going global.",
+    name: "Daniel Moretti",
+    role: "YouTube Creator",
+    detail: "1.2M subscribers",
+    avatar: "/avatars/1.jpg",
+    gradient: "from-blue-500 to-cyan-500",
+    rating: 5,
+  },
+  {
+    quote: "We used to spend $5,000 per language for professional dubbing. DubSync does it in minutes for a fraction of the cost. The lip sync is incredible \u2014 our students can\u2019t tell it\u2019s AI.",
+    name: "Tom\u00E1\u0161 Nov\u00E1k",
+    role: "Head of Content",
+    detail: "EduTech Pro",
+    avatar: "/avatars/2.jpg",
+    gradient: "from-violet-500 to-pink-500",
+    rating: 4.5,
+  },
+  {
+    quote: "Our product demos now reach 15 markets instead of 3. DubSync paid for itself in the first week. It\u2019s a no-brainer for any global marketing team.",
+    name: "Marcus Johnson",
+    role: "Marketing Director",
+    detail: "ScaleUp Agency",
+    avatar: "/avatars/3.jpg",
+    gradient: "from-amber-500 to-orange-500",
+    rating: 5,
+  },
+  {
+    quote: "I run a cooking channel and needed my recipes in Japanese and Korean. DubSync nailed the tone \u2014 warm and conversational, not robotic. My Asian audience grew 400% in 3 months.",
+    name: "Elena Petrova",
+    role: "Content Creator",
+    detail: "850K subscribers",
+    avatar: "/avatars/4.jpg",
+    gradient: "from-green-500 to-emerald-500",
+    rating: 4,
+  },
+  {
+    quote: "As a solo developer, I integrated DubSync\u2019s API into our LMS in one afternoon. Now every course we publish automatically gets dubbed into 6 languages. The documentation is clear and the API is rock solid.",
+    name: "Mikael Lindstr\u00F6m",
+    role: "CTO",
+    detail: "LearnFlow",
+    avatar: "/avatars/5.jpg",
+    gradient: "from-red-500 to-pink-500",
+    rating: 5,
+  },
+  {
+    quote: "I was skeptical about AI dubbing until I tried DubSync. The voice cloning captured my energy and enthusiasm perfectly. My French and German versions sound like me, not a text-to-speech bot.",
+    name: "Sophia Andersson",
+    role: "Podcast Host",
+    detail: "The Global Show",
+    avatar: "/avatars/6.jpg",
+    gradient: "from-cyan-500 to-blue-500",
+    rating: 4.5,
+  },
+  {
+    quote: "We localize corporate training videos for 12 countries. Before DubSync it took 3 weeks per language. Now it\u2019s done in a day. The quality is consistent and our compliance team approved it.",
+    name: "James O\u2019Brien",
+    role: "L&D Manager",
+    detail: "Fortune 500 Company",
+    avatar: "/avatars/7.jpg",
+    gradient: "from-indigo-500 to-violet-500",
+    rating: 4.5,
+  },
+  {
+    quote: "DubSync helped me turn my English fitness tutorials into a Spanish-language brand. The lip sync makes it look completely natural. My Latino audience engagement is through the roof.",
+    name: "Rachel Torres",
+    role: "Fitness Influencer",
+    detail: "2.1M followers",
+    avatar: "/avatars/8.jpg",
+    gradient: "from-pink-500 to-rose-500",
+    rating: 5,
+  },
+];
+
+function TestimonialStars({ rating = 5 }: { rating?: number }) {
+  return (
+    <div className="flex gap-0.5">
+      {Array.from({ length: 5 }).map((_, i) => {
+        if (i < Math.floor(rating)) {
+          return <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />;
+        }
+        if (i < rating) {
+          return (
+            <div key={i} className="relative h-3.5 w-3.5">
+              <Star className="absolute h-3.5 w-3.5 text-amber-400/30" />
+              <div className="absolute overflow-hidden w-[50%] h-full">
+                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+              </div>
+            </div>
+          );
+        }
+        return <Star key={i} className="h-3.5 w-3.5 text-amber-400/30" />;
+      })}
+    </div>
+  );
+}
+
+function TestimonialAvatar({ src, name, gradient }: { src: string; name: string; gradient: string }) {
+  const initials = name.split(" ").map((n) => n[0]).join("");
+  const [imgError, setImgError] = useState(false);
+  return (
+    <div className={`relative h-10 w-10 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-xs font-bold text-white shrink-0 overflow-hidden`}>
+      {!imgError ? (
+        <Image
+          src={src}
+          alt={name}
+          width={40}
+          height={40}
+          className="absolute inset-0 w-full h-full object-cover rounded-full z-10"
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        <span>{initials}</span>
+      )}
+    </div>
+  );
+}
+
+function LocalizedTestimonials({ dict }: { dict: Dictionary }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const speed = 0.5;
+    let animId: number;
+
+    function step() {
+      if (!el || isUserScrolling) {
+        animId = requestAnimationFrame(step);
+        return;
+      }
+      el.scrollLeft += speed;
+      if (el.scrollLeft >= el.scrollWidth / 2) {
+        el.scrollLeft = 0;
+      }
+      animId = requestAnimationFrame(step);
+    }
+
+    animId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animId);
+  }, [isUserScrolling]);
+
+  const pauseAutoScroll = useCallback(() => {
+    setIsUserScrolling(true);
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+    resumeTimer.current = setTimeout(() => setIsUserScrolling(false), 3000);
+  }, []);
+
+  const isDragging = useRef(false);
+  const dragStartX = useRef(0);
+  const scrollStartX = useRef(0);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    isDragging.current = true;
+    dragStartX.current = e.clientX;
+    scrollStartX.current = scrollRef.current?.scrollLeft || 0;
+    pauseAutoScroll();
+  }, [pauseAutoScroll]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging.current || !scrollRef.current) return;
+    e.preventDefault();
+    const dx = e.clientX - dragStartX.current;
+    scrollRef.current.scrollLeft = scrollStartX.current - dx;
+  }, []);
+
+  const handleMouseUp = useCallback(() => {
+    isDragging.current = false;
+  }, []);
+
+  return (
+    <section className="py-24 border-t border-white/5">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold">
+            {d(dict, "testimonials.title", "Loved by")} <span className="gradient-text">{d(dict, "testimonials.titleHighlight", "creators")}</span>
+          </h2>
+          <p className="mt-4 text-slate-400 text-lg">
+            {d(dict, "testimonials.subtitle", "Join thousands of creators who are reaching global audiences")}
+          </p>
+          {/* Trustpilot rating */}
+          <div className="mt-6 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-5 py-2.5">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#00B67A" />
+            </svg>
+            <div className="flex gap-0.5">
+              {Array.from({ length: 5 }).map((_, i) => {
+                if (i < 4) return <Star key={i} className="h-4 w-4 fill-[#00B67A] text-[#00B67A]" />;
+                return (
+                  <div key={i} className="relative h-4 w-4">
+                    <Star className="absolute h-4 w-4 text-[#00B67A]/30" />
+                    <div className="absolute overflow-hidden w-[80%] h-full">
+                      <Star className="h-4 w-4 fill-[#00B67A] text-[#00B67A]" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <span className="text-sm text-white font-semibold">4.8/5</span>
+            <span className="text-xs text-slate-400 hidden sm:inline">
+              {d(dict, "testimonials.trustpilotRated", "Rated on")} <span className="text-[#00B67A] font-medium">Trustpilot</span> &middot; {d(dict, "testimonials.trustpilotReviews", "2,000+ reviews")}
+            </span>
+          </div>
+        </div>
+
+        {/* Scrollable auto-moving carousel */}
+        <div className="relative overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#0F172A] to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#0F172A] to-transparent z-10 pointer-events-none" />
+
+          <div
+            ref={scrollRef}
+            className="flex gap-5 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={pauseAutoScroll}
+            onWheel={pauseAutoScroll}
+          >
+            {[...TESTIMONIALS, ...TESTIMONIALS].map((t, idx) => (
+              <div
+                key={`${t.name}-${idx}`}
+                className="shrink-0 w-[280px] sm:w-[340px] rounded-2xl border border-white/10 bg-slate-800/40 p-5 hover:border-white/20 transition-all flex flex-col select-none"
+              >
+                <TestimonialStars rating={t.rating} />
+                <p className="mt-3 text-slate-300 text-sm leading-relaxed flex-1">
+                  &ldquo;{t.quote}&rdquo;
+                </p>
+                <div className="mt-4 flex items-center gap-3 pt-3 border-t border-white/5">
+                  <TestimonialAvatar src={t.avatar} name={t.name} gradient={t.gradient} />
+                  <div>
+                    <p className="text-sm font-medium text-white">{t.name}</p>
+                    <p className="text-xs text-slate-500">{t.role} &middot; {t.detail}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Disclaimer */}
+        <p className="mt-6 text-center text-xs text-slate-600">
+          {d(dict, "testimonials.disclaimer", "Testimonials are from English-speaking users and have not been translated.")}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  ComparisonBlock (inline, translated)                                      */
+/* -------------------------------------------------------------------------- */
+
+function LocalizedComparisonBlock({ dict }: { dict: Dictionary }) {
+  const ROWS = [
+    {
+      feature: d(dict, "comparison.featureLipSyncMinutes", "Lip sync minutes from ~$20/mo"),
+      dubsync: { text: d(dict, "comparison.dubsyncLipSyncMinutes", "20 min"), color: "text-green-400" },
+      rask: { text: d(dict, "comparison.raskLipSyncMinutes", "\u2717 not available"), color: "text-red-400" },
+      heygen: { text: d(dict, "comparison.heygenLipSyncMinutes", "shared pool*"), color: "text-yellow-400" },
+    },
+    {
+      feature: d(dict, "comparison.featureLipSyncIncluded", "Lip sync included in every credit"),
+      dubsync: { text: d(dict, "comparison.dubsyncLipSyncIncluded", "always"), color: "text-green-400" },
+      rask: { text: d(dict, "comparison.raskLipSyncIncluded", "2x credit cost"), color: "text-red-400" },
+      heygen: { text: d(dict, "comparison.heygenLipSyncIncluded", "costs credits"), color: "text-yellow-400" },
+    },
+    {
+      feature: d(dict, "comparison.featurePrice", "Price for lip sync access"),
+      dubsync: { text: d(dict, "comparison.dubsyncPrice", "$19.99/mo"), color: "text-green-400" },
+      rask: { text: d(dict, "comparison.raskPrice", "$120/mo"), color: "text-red-400" },
+      heygen: { text: d(dict, "comparison.heygenPrice", "$29/mo"), color: "text-yellow-400" },
+    },
+    {
+      feature: d(dict, "comparison.featureHiddenSurcharges", "Hidden lip sync surcharges"),
+      dubsync: { text: d(dict, "comparison.dubsyncHiddenSurcharges", "none"), color: "text-green-400" },
+      rask: { text: d(dict, "comparison.raskHiddenSurcharges", "doubles usage"), color: "text-red-400" },
+      heygen: { text: d(dict, "comparison.heygenHiddenSurcharges", "shared pool"), color: "text-yellow-400" },
+    },
+    {
+      feature: d(dict, "comparison.featureWatermark", "Watermark on free plan"),
+      dubsync: { text: d(dict, "comparison.dubsyncWatermark", "\u2717 No watermark"), color: "text-green-400" },
+      rask: { text: d(dict, "comparison.raskWatermark", "\u2713 Watermark"), color: "text-red-400" },
+      heygen: { text: d(dict, "comparison.heygenWatermark", "\u2713 Watermark"), color: "text-red-400" },
+    },
+  ];
+
+  const STATS = [
+    {
+      value: d(dict, "comparison.stat1Value", "20 min"),
+      label: d(dict, "comparison.stat1Label", "of lip sync from just $19.99"),
+    },
+    {
+      value: d(dict, "comparison.stat2Value", "$1.00/min"),
+      label: d(dict, "comparison.stat2Label", "all-inclusive, lip sync included in every credit"),
+    },
+    {
+      value: d(dict, "comparison.stat3Value", "$0"),
+      label: d(dict, "comparison.stat3Label", "hidden surcharges, every credit = lip sync included"),
+    },
+  ];
+
+  return (
+    <section className="py-24 border-t border-white/5">
+      <div className="mx-auto max-w-5xl px-6 lg:px-8">
+        {/* Header */}
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl font-bold">
+            {d(dict, "comparison.title", "Every credit includes lip sync.")}{" "}
+            <span className="gradient-text">{d(dict, "comparison.titleHighlight", "No hidden fees.")}</span>
+          </h2>
+          <p className="mt-4 text-slate-400 text-lg max-w-2xl mx-auto">
+            {d(dict, "comparison.subtitle", "See how DubSync compares to Rask AI and HeyGen for AI video dubbing with lip sync.")}
+          </p>
+        </div>
+
+        {/* Comparison table */}
+        <div className="overflow-x-auto rounded-2xl border border-white/10 bg-slate-800/50">
+          <table className="w-full text-sm">
+            <caption className="sr-only">
+              {d(dict, "comparison.caption", "DubSync vs Rask AI vs HeyGen \u2014 lip sync comparison")}
+            </caption>
+            <thead>
+              <tr className="border-b border-white/10">
+                <th className="px-6 py-4 text-left text-slate-400 font-medium">
+                  {d(dict, "comparison.headerFeature", "Feature")}
+                </th>
+                <th className="px-6 py-4 text-center font-semibold text-white">
+                  DubSync
+                </th>
+                <th className="px-6 py-4 text-center font-medium text-slate-400">
+                  Rask AI
+                </th>
+                <th className="px-6 py-4 text-center font-medium text-slate-400">
+                  HeyGen
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {ROWS.map((row, i) => (
+                <tr
+                  key={row.feature}
+                  className={i < ROWS.length - 1 ? "border-b border-white/5" : ""}
+                >
+                  <td className="px-6 py-4 text-slate-300">{row.feature}</td>
+                  <td className={`px-6 py-4 text-center font-semibold ${row.dubsync.color}`}>
+                    {row.dubsync.text}
+                  </td>
+                  <td className={`px-6 py-4 text-center ${row.rask.color}`}>
+                    {row.rask.text}
+                  </td>
+                  <td className={`px-6 py-4 text-center ${row.heygen.color}`}>
+                    {row.heygen.text}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footnote */}
+        <p className="mt-4 text-xs text-slate-500 text-center">
+          {d(dict, "comparison.footnote", "* HeyGen lip sync shares Premium Credits with avatars, generation, and other features. Prices as of April 2026.")}
+        </p>
+
+        {/* Stat cards */}
+        <div className="mt-12 grid sm:grid-cols-3 gap-6">
+          {STATS.map((stat) => (
+            <div
+              key={stat.value}
+              className="rounded-2xl border border-white/10 bg-slate-800/50 p-6 text-center"
+            >
+              <div className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">
+                {stat.value}
+              </div>
+              <p className="mt-2 text-sm text-slate-400">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom text + link */}
+        <p className="mt-8 text-center text-sm text-slate-500">
+          {d(dict, "comparison.bottomText", "Other tools charge $120/mo for lip sync or split credits between features.")}
+        </p>
+        <div className="mt-4 text-center">
+          <Link
+            href="/compare"
+            className="text-sm text-pink-400 hover:text-pink-300 font-medium"
+          >
+            {d(dict, "comparison.cta", "See how we compare")} &rarr;
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /*  FinalCTA                                                                  */
 /* -------------------------------------------------------------------------- */
 
@@ -774,15 +1445,15 @@ export function LocalizedLanding({ dict, lang }: { dict: Dictionary; lang: Local
       <Header dict={dict} lang={lang} />
       <main>
         <Hero dict={dict} />
-        <LogoBar dict={dict} />
+        <LogoBar />
         <HowItWorks dict={dict} />
-        <DemoSection />
-        <Examples />
+        <LocalizedDemoSection dict={dict} />
+        <LocalizedExamples dict={dict} />
         <Features dict={dict} />
         <UseCasesSection dict={dict} />
         <RoiCalculatorSection dict={dict} />
-        <ComparisonBlock />
-        <Testimonials />
+        <LocalizedComparisonBlock dict={dict} />
+        <LocalizedTestimonials dict={dict} />
         <Pricing dict={dict} />
         <FaqSection dict={dict} />
         <FinalCTA dict={dict} />
