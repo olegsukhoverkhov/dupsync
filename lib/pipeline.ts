@@ -1,6 +1,41 @@
 import { createServiceClient } from "./supabase/server";
 import * as ai from "./ai";
 import { LANGUAGE_MAP } from "./supabase/constants";
+import { execFile } from "child_process";
+import { promisify } from "util";
+import { writeFile, readFile, unlink } from "fs/promises";
+import { join } from "path";
+import { tmpdir } from "os";
+
+const execFileAsync = promisify(execFile);
+
+// Convert any video format to WAV using ffmpeg-static
+async function convertToWav(inputBuffer: Buffer, inputExt: string): Promise<Buffer> {
+  let ffmpegPath: string;
+  try {
+    ffmpegPath = (await import("ffmpeg-static")).default as unknown as string;
+  } catch {
+    throw new Error("ffmpeg-static not available");
+  }
+  if (!ffmpegPath) throw new Error("ffmpeg binary path not found");
+
+  const id = Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+  const inputPath = join(tmpdir(), `input-${id}.${inputExt}`);
+  const outputPath = join(tmpdir(), `output-${id}.wav`);
+
+  try {
+    await writeFile(inputPath, inputBuffer);
+    await execFileAsync(ffmpegPath, [
+      "-i", inputPath,
+      "-vn", "-ar", "16000", "-ac", "1", "-f", "wav",
+      "-y", outputPath,
+    ], { timeout: 30000 });
+    return await readFile(outputPath);
+  } finally {
+    await unlink(inputPath).catch(() => {});
+    await unlink(outputPath).catch(() => {});
+  }
+}
 
 function log(dubId: string, msg: string) {
   console.log(`[DUB:${dubId.slice(0, 8)}] ${msg}`);
@@ -30,36 +65,49 @@ export async function runTranscription(projectId: string) {
     const ext = (project.original_video_url.split(".").pop() || "mp4").toLowerCase();
     const languageHint = project.original_language !== "auto" ? project.original_language : undefined;
 
-    // Try full-audio.wav first (extracted by FFmpeg WASM, works for all formats)
-    const videoDir = project.original_video_url.split("/").slice(0, -1).join("/");
-    const fullAudioPath = `${videoDir}/full-audio.wav`;
+    // Download original video
+    console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Downloading: ${project.original_video_url}`);
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from("videos")
+      .download(project.original_video_url);
+
+    if (downloadError || !fileData) {
+      throw new Error(`Failed to download video: ${downloadError?.message}`);
+    }
+
+    const videoBuffer = Buffer.from(await fileData.arrayBuffer());
+    console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Video: ${(videoBuffer.byteLength / 1024 / 1024).toFixed(2)}MB, ext=${ext}`);
 
     let buffer: Buffer;
     let transcribeFilename: string;
 
-    const { data: wavData, error: wavErr } = await supabase.storage
+    // Check if client already extracted audio (full-audio.wav or voice-sample.wav)
+    const videoDir = project.original_video_url.split("/").slice(0, -1).join("/");
+    const { data: wavData } = await supabase.storage
       .from("videos")
-      .download(fullAudioPath);
+      .download(`${videoDir}/full-audio.wav`);
 
-    if (wavData && !wavErr) {
-      // Use FFmpeg-extracted full audio WAV (works for any format)
+    if (wavData) {
       buffer = Buffer.from(await wavData.arrayBuffer());
       transcribeFilename = "audio.wav";
-      console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Using full-audio.wav: ${(buffer.byteLength / 1024).toFixed(0)}KB`);
-    } else {
-      // Fallback to original video file
-      console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] No WAV sample, using video: ${project.original_video_url}`);
-      const { data: fileData, error: downloadError } = await supabase.storage
-        .from("videos")
-        .download(project.original_video_url);
-
-      if (downloadError || !fileData) {
-        throw new Error(`Failed to download video: ${downloadError?.message}`);
+      console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Using client-extracted full-audio.wav: ${(buffer.byteLength / 1024).toFixed(0)}KB`);
+    } else if (!["mp4", "mp3", "wav", "webm", "m4a", "ogg", "flac"].includes(ext)) {
+      // Format not supported by Whisper — convert on server using ffmpeg-static
+      console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Converting ${ext} to WAV on server...`);
+      try {
+        buffer = await convertToWav(videoBuffer, ext);
+        transcribeFilename = "audio.wav";
+        console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Converted to WAV: ${(buffer.byteLength / 1024).toFixed(0)}KB`);
+      } catch (convErr) {
+        console.error(`[TRANSCRIBE:${projectId.slice(0, 8)}] FFmpeg conversion failed:`, convErr);
+        // Last resort — try sending as mp4 anyway
+        buffer = videoBuffer;
+        transcribeFilename = "audio.mp4";
       }
-
-      buffer = Buffer.from(await fileData.arrayBuffer());
+    } else {
+      // Format supported by Whisper — use directly
+      buffer = videoBuffer;
       transcribeFilename = `video.${ext}`;
-      console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Video size: ${(buffer.byteLength / 1024 / 1024).toFixed(2)}MB`);
     }
 
     console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Calling Whisper API (file=${transcribeFilename}, lang=${languageHint || "auto"})`);
