@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "DubSync — AI Video Dubbing with Lip Sync | From $19.99/mo",
   description:
-    "Dub your videos into 30+ languages with AI lip sync and voice cloning. Every credit includes lip sync. Plans from $19.99/mo. Try free.",
+    "AI video dubbing with lip sync in 30+ languages. No watermark, even on the free plan. From $19.99/mo.",
   metadataBase: new URL("https://dubsync.app"),
   alternates: {
     canonical: "/",

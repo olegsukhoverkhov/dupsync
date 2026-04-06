@@ -25,6 +25,12 @@ const ROWS = [
     rask: { text: "doubles usage", color: "text-red-400" },
     heygen: { text: "shared pool", color: "text-yellow-400" },
   },
+  {
+    feature: "Watermark on free plan",
+    dubsync: { text: "\u2717 No watermark", color: "text-green-400" },
+    rask: { text: "\u2713 Watermark", color: "text-red-400" },
+    heygen: { text: "\u2713 Watermark", color: "text-red-400" },
+  },
 ];
 
 const STATS = [

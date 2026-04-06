@@ -22,7 +22,7 @@ export function FinalCta() {
             href="/signup"
             className="gradient-button inline-flex items-center justify-center gap-2 rounded-xl px-10 py-4 text-lg font-semibold w-full sm:w-auto"
           >
-            Start Dubbing Free
+            Dub Your First Video Free
             <ArrowRight className="h-5 w-5" />
           </Link>
         </div>

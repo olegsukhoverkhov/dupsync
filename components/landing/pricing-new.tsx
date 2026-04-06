@@ -13,6 +13,12 @@ const PLANS: { key: PlanType; popular?: boolean }[] = [
   { key: "enterprise" },
 ];
 
+const ANNUAL_SAVINGS: Partial<Record<PlanType, number>> = {
+  starter: 48,
+  pro: 120,
+  enterprise: 360,
+};
+
 export function PricingNew() {
   const [annual, setAnnual] = useState(false);
 
@@ -46,6 +52,10 @@ export function PricingNew() {
               Annual <span className="text-green-400 text-xs ml-1">-20%</span>
             </button>
           </div>
+        </div>
+
+        <div className="text-center text-sm text-slate-400 mb-8 border border-white/5 bg-white/5 rounded-xl px-4 py-3 max-w-xl mx-auto">
+          Every plan includes lip sync and watermark-free exports — even Free.
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
@@ -83,6 +93,11 @@ export function PricingNew() {
                   {annual && priceRaw > 0 && (
                     <p className="text-xs text-green-400 mt-1">
                       Billed ${((priceRaw / 100) * 12).toFixed(2)}/year
+                    </p>
+                  )}
+                  {annual && ANNUAL_SAVINGS[key] && (
+                    <p className="text-xs text-green-400 font-medium mt-1">
+                      Save ${ANNUAL_SAVINGS[key]}/year
                     </p>
                   )}
                 </div>
