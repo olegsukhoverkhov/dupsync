@@ -30,22 +30,22 @@ export async function runTranscription(projectId: string) {
     const ext = (project.original_video_url.split(".").pop() || "mp4").toLowerCase();
     const languageHint = project.original_language !== "auto" ? project.original_language : undefined;
 
-    // Try voice-sample.wav first (extracted by client, works for all formats)
+    // Try full-audio.wav first (extracted by FFmpeg WASM, works for all formats)
     const videoDir = project.original_video_url.split("/").slice(0, -1).join("/");
-    const voiceSamplePath = `${videoDir}/voice-sample.wav`;
+    const fullAudioPath = `${videoDir}/full-audio.wav`;
 
     let buffer: Buffer;
     let transcribeFilename: string;
 
     const { data: wavData, error: wavErr } = await supabase.storage
       .from("videos")
-      .download(voiceSamplePath);
+      .download(fullAudioPath);
 
     if (wavData && !wavErr) {
-      // Use extracted WAV (works for iPhone MOV, any format)
+      // Use FFmpeg-extracted full audio WAV (works for any format)
       buffer = Buffer.from(await wavData.arrayBuffer());
       transcribeFilename = "audio.wav";
-      console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Using voice-sample.wav: ${(buffer.byteLength / 1024).toFixed(0)}KB`);
+      console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Using full-audio.wav: ${(buffer.byteLength / 1024).toFixed(0)}KB`);
     } else {
       // Fallback to original video file
       console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] No WAV sample, using video: ${project.original_video_url}`);

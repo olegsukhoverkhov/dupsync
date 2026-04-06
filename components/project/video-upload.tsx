@@ -7,7 +7,8 @@ import { Progress } from "@/components/ui/progress";
 import { createClient } from "@/lib/supabase/client";
 
 // Extract audio from video using FFmpeg WASM (works with ALL formats including iPhone MOV/HEVC)
-async function extractAudioFromVideo(videoFile: globalThis.File): Promise<Blob> {
+// Returns: { fullAudio: full WAV for Whisper, voiceSample: 30s WAV for voice cloning }
+async function extractAudioFromVideo(videoFile: globalThis.File): Promise<{ fullAudio: Blob; voiceSample: Blob }> {
   const { FFmpeg } = await import("@ffmpeg/ffmpeg");
   const { fetchFile } = await import("@ffmpeg/util");
 
@@ -22,26 +23,34 @@ async function extractAudioFromVideo(videoFile: globalThis.File): Promise<Blob> 
   const ext = videoFile.name.split(".").pop()?.toLowerCase() || "mp4";
   const inputName = `input.${ext}`;
 
-  console.log(`[FFMPEG] Converting ${videoFile.name} (${(videoFile.size / 1024 / 1024).toFixed(1)}MB) to WAV...`);
+  console.log(`[FFMPEG] Converting ${videoFile.name} (${(videoFile.size / 1024 / 1024).toFixed(1)}MB)...`);
   await ffmpeg.writeFile(inputName, await fetchFile(videoFile));
 
-  // Extract first 30 seconds of audio as 16kHz mono WAV
+  // 1. Extract FULL audio as 16kHz mono WAV (for Whisper transcription)
   await ffmpeg.exec([
     "-i", inputName,
-    "-vn",             // no video
-    "-ar", "16000",    // 16kHz sample rate
-    "-ac", "1",        // mono
-    "-t", "30",        // max 30 seconds
-    "-f", "wav",
-    "output.wav",
+    "-vn", "-ar", "16000", "-ac", "1", "-f", "wav",
+    "full-audio.wav",
   ]);
 
-  const data = await ffmpeg.readFile("output.wav") as Uint8Array;
+  // 2. Extract first 30 seconds as voice sample (for voice cloning)
+  await ffmpeg.exec([
+    "-i", inputName,
+    "-vn", "-ar", "16000", "-ac", "1", "-t", "30", "-f", "wav",
+    "voice-sample.wav",
+  ]);
+
+  const fullData = await ffmpeg.readFile("full-audio.wav") as Uint8Array;
+  const sampleData = await ffmpeg.readFile("voice-sample.wav") as Uint8Array;
   ffmpeg.terminate();
 
-  console.log(`[FFMPEG] Extracted WAV: ${data.length} bytes`);
+  console.log(`[FFMPEG] Full audio: ${(fullData.length / 1024).toFixed(0)}KB, Voice sample: ${(sampleData.length / 1024).toFixed(0)}KB`);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return new Blob([data as any], { type: "audio/wav" });
+  return {
+    fullAudio: new Blob([fullData as any], { type: "audio/wav" }),
+    voiceSample: new Blob([sampleData as any], { type: "audio/wav" }),
+  };
 }
 
 interface VideoUploadProps {
@@ -120,25 +129,30 @@ export function VideoUpload({
       if (uploadError) throw new Error(uploadError.message);
       setProgress(50);
 
-      // Step 2: Extract audio from video in browser (50-90%)
+      // Step 2: Extract audio from video using FFmpeg WASM (50-90%)
       try {
-        const audioBlob = await extractAudioFromVideo(file);
-        setProgress(75);
+        const { fullAudio, voiceSample } = await extractAudioFromVideo(file);
+        setProgress(70);
 
-        const audioPath = `${projectDir}/voice-sample.wav`;
-        const { error: audioUploadError } = await supabase.storage
+        // Upload full audio (for Whisper transcription)
+        await supabase.storage
           .from("videos")
-          .upload(audioPath, audioBlob, {
+          .upload(`${projectDir}/full-audio.wav`, fullAudio, {
             contentType: "audio/wav",
             upsert: false,
           });
+        setProgress(80);
 
-        if (audioUploadError) {
-          console.warn("Audio extraction upload failed:", audioUploadError.message);
-        }
+        // Upload voice sample (for voice cloning)
+        await supabase.storage
+          .from("videos")
+          .upload(`${projectDir}/voice-sample.wav`, voiceSample, {
+            contentType: "audio/wav",
+            upsert: false,
+          });
         setProgress(90);
       } catch (audioErr) {
-        console.warn("Audio extraction failed, will use pre-made voice:", audioErr);
+        console.warn("Audio extraction failed:", audioErr);
         setProgress(90);
       }
 
