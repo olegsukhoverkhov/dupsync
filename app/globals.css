@@ -123,6 +123,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-color: #0F172A;
   }
   html {
     @apply font-sans;
