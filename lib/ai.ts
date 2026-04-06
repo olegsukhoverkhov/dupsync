@@ -34,12 +34,59 @@ function getWhisperMimeType(filename: string): string {
   return mimeTypes[ext] || "video/mp4";
 }
 
-// Whisper transcription via OpenAI API
+// Transcription via AssemblyAI (primary) — accepts ANY format including HEVC MOV
+export async function transcribeWithAssemblyAI(
+  audioBuffer: Buffer,
+  languageHint?: string
+): Promise<{ segments: TranscriptSegment[]; language: string }> {
+  const { AssemblyAI } = await import("assemblyai");
+  const client = new AssemblyAI({ apiKey: process.env.ASSEMBLYAI_API_KEY! });
+
+  console.log(`[ASSEMBLYAI] Uploading ${(audioBuffer.byteLength / 1024 / 1024).toFixed(2)}MB...`);
+
+  // Upload the file
+  const uploadUrl = await client.files.upload(audioBuffer);
+  console.log(`[ASSEMBLYAI] Uploaded: ${uploadUrl}`);
+
+  // Transcribe
+  const transcript = await client.transcripts.transcribe({
+    audio_url: uploadUrl,
+    language_code: languageHint && languageHint !== "auto" ? languageHint : undefined,
+    language_detection: !languageHint || languageHint === "auto",
+  });
+
+  if (transcript.status === "error") {
+    throw new Error(`AssemblyAI error: ${transcript.error}`);
+  }
+
+  const segments: TranscriptSegment[] = (transcript.words || []).reduce((acc: TranscriptSegment[], word) => {
+    // Group words into segments by sentence boundaries or 5-second chunks
+    const lastSeg = acc[acc.length - 1];
+    const wordStart = (word.start || 0) / 1000;
+    const wordEnd = (word.end || 0) / 1000;
+
+    if (!lastSeg || wordStart - lastSeg.end > 1.0 || wordEnd - lastSeg.start > 5.0) {
+      acc.push({ start: wordStart, end: wordEnd, text: word.text || "" });
+    } else {
+      lastSeg.end = wordEnd;
+      lastSeg.text += " " + (word.text || "");
+    }
+    return acc;
+  }, []);
+
+  const detectedLang = transcript.language_code || languageHint || "en";
+  console.log(`[ASSEMBLYAI] Done: ${segments.length} segments, lang=${detectedLang}`);
+
+  return { segments, language: detectedLang };
+}
+
+// Transcription: Whisper (primary) → AssemblyAI (fallback for unsupported formats)
 export async function transcribe(
   audioBuffer: Buffer,
   filename: string,
   languageHint?: string
 ): Promise<{ segments: TranscriptSegment[]; language: string }> {
+  // Try Whisper first
   const whisperFilename = getWhisperFilename(filename);
   const mimeType = getWhisperMimeType(whisperFilename);
   const formData = new FormData();
@@ -51,7 +98,6 @@ export async function transcribe(
   formData.append("model", "whisper-1");
   formData.append("response_format", "verbose_json");
   formData.append("timestamp_granularities[]", "segment");
-  // If language hint provided, tell Whisper explicitly (ISO 639-1 code)
   if (languageHint && languageHint !== "auto") {
     formData.append("language", languageHint);
   }
@@ -69,7 +115,14 @@ export async function transcribe(
 
   if (!response.ok) {
     const errorBody = await response.text().catch(() => "");
-    console.error("Whisper API error:", response.status, errorBody);
+    console.error("Whisper API error:", response.status, errorBody.slice(0, 200));
+
+    // Fallback to AssemblyAI (accepts ALL formats including HEVC MOV)
+    if (process.env.ASSEMBLYAI_API_KEY) {
+      console.log("[TRANSCRIBE] Whisper failed, trying AssemblyAI...");
+      return await transcribeWithAssemblyAI(audioBuffer, languageHint);
+    }
+
     throw new Error(`Whisper API error: ${response.status} ${response.statusText}`);
   }
 
