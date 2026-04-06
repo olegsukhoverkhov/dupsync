@@ -166,16 +166,39 @@ export async function runTranscription(projectId: string) {
     let buffer: Buffer;
     let transcribeFilename: string;
 
-    // Check if client already extracted audio (full-audio.wav or voice-sample.wav)
+    // Check if client extracted audio (webm or mp4 via MediaRecorder)
     const videoDir = project.original_video_url.split("/").slice(0, -1).join("/");
-    const { data: wavData } = await supabase.storage
-      .from("videos")
-      .download(`${videoDir}/full-audio.wav`);
+    let clientAudio: Buffer | null = null;
+    let clientAudioExt = "";
 
-    if (wavData) {
-      buffer = Buffer.from(await wavData.arrayBuffer());
-      transcribeFilename = "audio.wav";
-      console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Using client-extracted full-audio.wav: ${(buffer.byteLength / 1024).toFixed(0)}KB`);
+    for (const tryExt of ["webm", "mp4", "wav"]) {
+      const tryPath = `${videoDir}/extracted-audio.${tryExt}`;
+      const { data: audioData } = await supabase.storage
+        .from("videos")
+        .download(tryPath);
+      if (audioData) {
+        clientAudio = Buffer.from(await audioData.arrayBuffer());
+        clientAudioExt = tryExt;
+        console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Found extracted-audio.${tryExt}: ${(clientAudio.byteLength / 1024).toFixed(0)}KB`);
+        break;
+      }
+    }
+
+    // Also check for legacy full-audio.wav
+    if (!clientAudio) {
+      const { data: wavData } = await supabase.storage
+        .from("videos")
+        .download(`${videoDir}/full-audio.wav`);
+      if (wavData) {
+        clientAudio = Buffer.from(await wavData.arrayBuffer());
+        clientAudioExt = "wav";
+      }
+    }
+
+    if (clientAudio) {
+      buffer = clientAudio;
+      transcribeFilename = `audio.${clientAudioExt}`;
+      console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Using client-extracted audio.${clientAudioExt}: ${(buffer.byteLength / 1024).toFixed(0)}KB`);
     } else if (!["mp4", "mp3", "wav", "webm", "m4a", "ogg", "flac", "mpeg", "mpga"].includes(ext)) {
       // Format not directly supported by Whisper (MOV, AVI, MKV, etc.)
       // Try multiple formats with retry

@@ -6,9 +6,78 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { createClient } from "@/lib/supabase/client";
 
-// Client-side audio extraction is not reliable (FFmpeg WASM needs COOP/COEP headers,
-// AudioContext doesn't support MOV/HEVC). Server-side handles conversion now.
-// This function is kept as a no-op wrapper that the upload flow skips gracefully.
+// Extract audio from video using <video> + MediaRecorder API
+// Works on iOS Safari without SharedArrayBuffer (unlike FFmpeg WASM)
+async function extractAudioViaMediaRecorder(videoFile: globalThis.File): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    const video = document.createElement("video");
+    video.muted = false;
+    video.playsInline = true;
+    video.src = URL.createObjectURL(videoFile);
+
+    video.onloadedmetadata = () => {
+      try {
+        // Use captureStream to get a MediaStream from the video
+        const stream = (video as HTMLVideoElement & { captureStream(): MediaStream }).captureStream();
+        // Get audio tracks only
+        const audioTracks = stream.getAudioTracks();
+        if (audioTracks.length === 0) {
+          console.warn("[AUDIO_EXTRACT] No audio tracks in video");
+          resolve(null);
+          return;
+        }
+
+        const audioStream = new MediaStream(audioTracks);
+        const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+          ? "audio/webm;codecs=opus"
+          : MediaRecorder.isTypeSupported("audio/mp4")
+            ? "audio/mp4"
+            : "audio/webm";
+
+        const recorder = new MediaRecorder(audioStream, { mimeType });
+        const chunks: Blob[] = [];
+
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) chunks.push(e.data);
+        };
+
+        recorder.onstop = () => {
+          URL.revokeObjectURL(video.src);
+          video.remove();
+          const ext = mimeType.includes("mp4") ? "mp4" : "webm";
+          const blob = new Blob(chunks, { type: mimeType });
+          console.log(`[AUDIO_EXTRACT] Recorded ${(blob.size / 1024).toFixed(0)}KB as ${ext}`);
+          resolve(blob);
+        };
+
+        recorder.onerror = () => {
+          URL.revokeObjectURL(video.src);
+          resolve(null);
+        };
+
+        // Start recording and play video
+        recorder.start();
+        video.play().catch(() => resolve(null));
+
+        // Stop when video ends
+        video.onended = () => recorder.stop();
+
+        // Safety timeout (max 60 seconds of recording)
+        setTimeout(() => {
+          if (recorder.state === "recording") recorder.stop();
+        }, 60000);
+      } catch {
+        URL.revokeObjectURL(video.src);
+        resolve(null);
+      }
+    };
+
+    video.onerror = () => {
+      URL.revokeObjectURL(video.src);
+      resolve(null);
+    };
+  });
+}
 
 interface VideoUploadProps {
   userId: string;
@@ -86,8 +155,25 @@ export function VideoUpload({
       if (uploadError) throw new Error(uploadError.message);
       setProgress(50);
 
+      // Step 2: Extract audio via MediaRecorder (works on iOS Safari)
+      try {
+        setProgress(55);
+        const audioBlob = await extractAudioViaMediaRecorder(file);
+        if (audioBlob && audioBlob.size > 1000) {
+          setProgress(75);
+          const audioExt = audioBlob.type.includes("mp4") ? "mp4" : "webm";
+          await supabase.storage
+            .from("videos")
+            .upload(`${projectDir}/extracted-audio.${audioExt}`, audioBlob, {
+              contentType: audioBlob.type,
+              upsert: false,
+            });
+          console.log(`[UPLOAD] Extracted audio: ${(audioBlob.size / 1024).toFixed(0)}KB ${audioExt}`);
+        }
+      } catch (audioErr) {
+        console.warn("Audio extraction failed:", audioErr);
+      }
       setProgress(90);
-      // Audio extraction happens server-side during transcription
 
       setProgress(100);
       onUploadComplete(videoPath, file);
