@@ -72,7 +72,7 @@ export async function GET() {
       },
       body: JSON.stringify({
         audio_url: upload_url,
-        speech_model: "universal-2",
+        speech_models: ["universal-2"],
         language_code: "en",
       }),
     });
