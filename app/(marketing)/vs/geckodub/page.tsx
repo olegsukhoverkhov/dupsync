@@ -6,31 +6,62 @@ import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 import { ArrowRight, Check, X } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "DubSync vs GeckoDub — AI Dubbing Comparison 2026",
+  title: "DubSync vs GeckoDub (2026) — 20 Lip Sync Min vs 7 for Similar Price",
   description:
-    "Compare DubSync and GeckoDub for AI video dubbing. Pricing, lip sync, API access, and features compared side by side for 2026.",
+    "GeckoDub splits video and lip sync into separate pools (only 7 min lip sync on Starter). DubSync includes lip sync in all 20 minutes. Compare plans.",
   alternates: {
     canonical: "https://dubsync.app/vs/geckodub",
   },
   openGraph: {
     type: "website",
-    title: "DubSync vs GeckoDub — AI Dubbing Comparison 2026",
+    title: "DubSync vs GeckoDub (2026) — 20 Lip Sync Min vs 7 for Similar Price",
     description:
-      "Compare DubSync and GeckoDub for AI video dubbing. Pricing, lip sync, and feature differences.",
+      "GeckoDub splits video and lip sync into separate pools (only 7 min lip sync on Starter). DubSync includes lip sync in all 20 minutes.",
     url: "https://dubsync.app/vs/geckodub",
     images: ["/og-image.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "DubSync vs GeckoDub — AI Dubbing Comparison 2026",
+    title: "DubSync vs GeckoDub (2026) — 20 Lip Sync Min vs 7 for Similar Price",
     description:
-      "Compare DubSync and GeckoDub for AI video dubbing. Pricing, lip sync, and features compared.",
+      "GeckoDub splits video and lip sync into separate pools. DubSync includes lip sync in every minute.",
   },
 };
 
-const FEATURES = [
+const LIP_SYNC_ROWS = [
+  {
+    feature: "Starter plan lip sync minutes",
+    dubsync: "20 min (all with lip sync)",
+    dubsyncPositive: true,
+    competitor: "7 min (from 20 min total)",
+    competitorNegative: true,
+  },
+  {
+    feature: "Lip sync credit model",
+    dubsync: "Unified pool",
+    dubsyncPositive: true,
+    competitor: "Separate pools",
+    competitorNegative: true,
+  },
+  {
+    feature: "Starter plan price",
+    dubsync: "$19.99/mo",
+    dubsyncPositive: false,
+    competitor: "\u20AC12/mo",
+    competitorNegative: false,
+  },
+  {
+    feature: "Extra lip sync min for ~$8 more",
+    dubsync: "+13 lip sync minutes",
+    dubsyncPositive: true,
+    competitor: "n/a",
+    competitorNegative: false,
+  },
+];
+
+const FEATURE_ROWS = [
   { feature: "Voice cloning", dubsync: true, competitor: true },
-  { feature: "Lip sync included", dubsync: true, competitor: false },
+  { feature: "Lip sync in every minute", dubsync: true, competitor: false },
   { feature: "Multi-speaker detection", dubsync: true, competitor: true },
   { feature: "Script editing", dubsync: true, competitor: true },
   { feature: "API access", dubsync: true, competitor: false },
@@ -43,20 +74,16 @@ const FEATURES = [
 
 const FAQS = [
   {
-    q: "How does GeckoDub pricing compare to DubSync?",
-    a: "GeckoDub's Starter plan is \u20AC12/month for 20 minutes of video dubbing plus 7 minutes of lip sync (separate pools). DubSync's Starter plan is $19.99/month for 20 minutes with lip sync included on every minute. GeckoDub's lower price comes with the trade-off of limited lip sync minutes and no API access.",
+    q: "Why does GeckoDub split lip sync into a separate pool?",
+    a: "GeckoDub separates video dubbing minutes from lip sync minutes. On the Starter plan (\u20AC12/mo), you get 20 minutes of dubbed video but only 7 of those can have lip sync. The remaining 13 minutes are audio-only dubbing. DubSync includes lip sync on every minute by default.",
   },
   {
-    q: "Does GeckoDub include lip sync?",
-    a: "GeckoDub offers lip sync, but it is tracked as a separate minute pool from regular dubbing. On the Starter plan, you get 20 minutes of dubbing but only 7 minutes of lip sync. On Creator Pro, you get 40 minutes of dubbing but only 15 minutes of lip sync. DubSync includes lip sync on every dubbed minute at no extra cost.",
+    q: "Is GeckoDub cheaper than DubSync?",
+    a: "GeckoDub Starter is \u20AC12/mo vs DubSync Starter at $19.99/mo. However, GeckoDub only gives 7 lip sync minutes while DubSync gives 20. For roughly $8 more per month, you get 13 additional lip sync minutes with DubSync, plus API access, 4K output, and a free plan to test first.",
   },
   {
-    q: "Does GeckoDub have an API?",
-    a: "No. As of 2026, GeckoDub does not offer API access. If you need programmatic dubbing for integration into your workflow, CMS, or application, DubSync's API is available on paid plans.",
-  },
-  {
-    q: "Which platform is better for small creators?",
-    a: "GeckoDub has a slight price advantage at the entry level (\u20AC12 vs $19.99), but DubSync includes lip sync on every minute and offers a free plan to test quality before paying. For creators who need lip sync on all their content, DubSync is the better value overall.",
+    q: "Does GeckoDub have API access?",
+    a: "No. As of 2026, GeckoDub does not offer API access at any pricing tier. If you need programmatic dubbing for integration into your workflow, CMS, or application, DubSync provides API access on all paid plans.",
   },
 ];
 
@@ -82,9 +109,8 @@ export default function VsGeckoDubPage() {
             DubSync vs GeckoDub
           </h1>
           <p className="mt-4 text-lg text-slate-400 max-w-2xl mx-auto">
-            GeckoDub is an affordable European AI dubbing platform. DubSync offers
-            a more complete feature set with lip sync included. Here is a detailed
-            comparison to help you choose.
+            GeckoDub splits video and lip sync into separate pools.
+            DubSync includes lip sync in every minute.
           </p>
         </section>
 
@@ -93,11 +119,52 @@ export default function VsGeckoDubPage() {
           <div className="rounded-2xl border border-pink-500/20 bg-pink-500/5 p-8">
             <h2 className="text-xl font-bold text-white mb-3">Quick verdict</h2>
             <p className="text-slate-400 leading-relaxed">
-              GeckoDub offers competitive pricing for basic dubbing, but separates lip
-              sync into a limited minute pool and lacks API access. DubSync includes lip
-              sync on every minute, offers API access, 4K output, and a free plan to
-              test quality. For creators who need lip sync on all their content, DubSync
-              is the better value despite the slightly higher starting price.
+              GeckoDub&apos;s Starter plan ({"\u20AC"}12/mo) gives you 20 min of video dubbing
+              but only 7 with lip sync. DubSync Starter ($19.99/mo) gives you 20 min
+              where ALL of them include lip sync. For roughly $8 more per month, you
+              get 13 additional lip sync minutes, plus API access, 4K output, and a
+              free plan to test quality first.
+            </p>
+          </div>
+        </section>
+
+        {/* Lip Sync Pool Comparison */}
+        <section className="mx-auto max-w-5xl px-6 lg:px-8 mb-16">
+          <h2 className="text-2xl font-bold text-center mb-8">
+            Lip sync pool comparison
+          </h2>
+          <div className="overflow-x-auto rounded-2xl border border-white/10">
+            <table className="w-full text-sm">
+              <caption className="sr-only">
+                Lip sync pool comparison between DubSync and GeckoDub
+              </caption>
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th scope="col" className="text-left p-4 text-slate-400 font-medium">Metric</th>
+                  <th scope="col" className="p-4 text-pink-400 font-medium bg-pink-500/10">DubSync</th>
+                  <th scope="col" className="p-4 text-slate-400 font-medium">GeckoDub</th>
+                </tr>
+              </thead>
+              <tbody>
+                {LIP_SYNC_ROWS.map((row) => (
+                  <tr key={row.feature} className="border-b border-white/5">
+                    <th scope="row" className="p-4 text-slate-300 font-normal text-left">{row.feature}</th>
+                    <td className={`p-4 bg-pink-500/10 text-center font-medium ${row.dubsyncPositive ? "text-green-400" : "text-slate-300"}`}>
+                      {row.dubsync}
+                    </td>
+                    <td className={`p-4 text-center font-medium ${row.competitorNegative ? "text-red-400" : "text-yellow-400"}`}>
+                      {row.competitor}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-4 rounded-xl border border-green-500/20 bg-green-500/5 p-4">
+            <p className="text-sm text-green-300/80">
+              <strong>Bottom line:</strong> For ~$8 more per month ($19.99 vs {"\u20AC"}12),
+              DubSync gives you 13 additional lip sync minutes (20 vs 7), API access,
+              4K output, and a free plan to test before paying.
             </p>
           </div>
         </section>
@@ -134,7 +201,11 @@ export default function VsGeckoDubPage() {
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-slate-800/40 p-6">
-              <h3 className="text-lg font-bold text-white mb-4">GeckoDub</h3>
+              <h3 className="text-lg font-bold text-white mb-4">
+                <a href="https://www.geckodub.com/pricing" rel="nofollow noopener" target="_blank" className="hover:underline">
+                  GeckoDub
+                </a>
+              </h3>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-300">Starter</span>
@@ -163,17 +234,20 @@ export default function VsGeckoDubPage() {
           </h2>
           <div className="overflow-x-auto rounded-2xl border border-white/10">
             <table className="w-full text-sm">
+              <caption className="sr-only">
+                Feature comparison between DubSync and GeckoDub
+              </caption>
               <thead>
                 <tr className="border-b border-white/10">
-                  <th className="text-left p-4 text-slate-400 font-medium">Feature</th>
-                  <th className="p-4 text-pink-400 font-medium bg-pink-500/10">DubSync</th>
-                  <th className="p-4 text-slate-400 font-medium">GeckoDub</th>
+                  <th scope="col" className="text-left p-4 text-slate-400 font-medium">Feature</th>
+                  <th scope="col" className="p-4 text-pink-400 font-medium bg-pink-500/10">DubSync</th>
+                  <th scope="col" className="p-4 text-slate-400 font-medium">GeckoDub</th>
                 </tr>
               </thead>
               <tbody>
-                {FEATURES.map((f) => (
+                {FEATURE_ROWS.map((f) => (
                   <tr key={f.feature} className="border-b border-white/5">
-                    <td className="p-4 text-slate-300">{f.feature}</td>
+                    <th scope="row" className="p-4 text-slate-300 font-normal text-left">{f.feature}</th>
                     <td className="p-4 bg-pink-500/10 text-center">
                       <FeatureIcon value={f.dubsync} />
                     </td>
@@ -183,14 +257,14 @@ export default function VsGeckoDubPage() {
                   </tr>
                 ))}
                 <tr className="border-b border-white/5">
-                  <td className="p-4 text-slate-300">Languages</td>
+                  <th scope="row" className="p-4 text-slate-300 font-normal text-left">Languages</th>
                   <td className="p-4 bg-pink-500/10 text-center text-slate-300">30+</td>
                   <td className="p-4 text-center text-slate-300">20+</td>
                 </tr>
                 <tr className="border-b border-white/5">
-                  <td className="p-4 text-slate-300">Lip sync cost per minute</td>
+                  <th scope="row" className="p-4 text-slate-300 font-normal text-left">Lip sync cost per minute</th>
                   <td className="p-4 bg-pink-500/10 text-center text-green-400 font-medium">$1.00 (included)</td>
-                  <td className="p-4 text-center text-slate-300">{"\u20AC"}1.53 (separate pool)</td>
+                  <td className="p-4 text-center text-red-400 font-medium">{"\u20AC"}1.53 (separate pool)</td>
                 </tr>
               </tbody>
             </table>
@@ -215,7 +289,7 @@ export default function VsGeckoDubPage() {
                 </li>
                 <li className="flex gap-2">
                   <Check className="h-4 w-4 text-green-400 shrink-0 mt-0.5" />
-                  <span>Good value for dubbing without lip sync</span>
+                  <span>Good value if you do not need lip sync on every video</span>
                 </li>
               </ul>
             </div>
@@ -262,11 +336,11 @@ export default function VsGeckoDubPage() {
               </li>
               <li className="flex gap-3">
                 <span className="flex items-center justify-center h-6 w-6 rounded-full bg-pink-500/20 text-pink-400 text-xs font-bold shrink-0">2</span>
-                <span><Link href="/signup" className="text-pink-400 hover:underline">Sign up for DubSync</Link> (free) and test with your first video to compare quality.</span>
+                <span><Link href="/login" className="text-pink-400 hover:underline">Sign up for DubSync</Link> (free) and test with your first video to compare quality.</span>
               </li>
               <li className="flex gap-3">
                 <span className="flex items-center justify-center h-6 w-6 rounded-full bg-pink-500/20 text-pink-400 text-xs font-bold shrink-0">3</span>
-                <span>Select your languages and let DubSync handle transcription, translation, voice cloning, and lip sync in one step.</span>
+                <span>Select your languages and let DubSync handle transcription, translation, voice cloning, and lip sync in one step. Every minute includes lip sync.</span>
               </li>
               <li className="flex gap-3">
                 <span className="flex items-center justify-center h-6 w-6 rounded-full bg-pink-500/20 text-pink-400 text-xs font-bold shrink-0">4</span>
@@ -292,6 +366,31 @@ export default function VsGeckoDubPage() {
           </div>
         </section>
 
+        {/* Internal Links */}
+        <section className="mx-auto max-w-4xl px-6 lg:px-8 mb-16">
+          <h2 className="text-lg font-semibold text-white mb-4">Related comparisons</h2>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/compare" className="rounded-lg border border-white/10 bg-slate-800/40 px-4 py-2 text-sm text-slate-300 hover:bg-white/5 transition-colors">
+              All Comparisons
+            </Link>
+            <Link href="/vs/rask-ai" className="rounded-lg border border-white/10 bg-slate-800/40 px-4 py-2 text-sm text-slate-300 hover:bg-white/5 transition-colors">
+              DubSync vs Rask AI
+            </Link>
+            <Link href="/vs/heygen" className="rounded-lg border border-white/10 bg-slate-800/40 px-4 py-2 text-sm text-slate-300 hover:bg-white/5 transition-colors">
+              DubSync vs HeyGen
+            </Link>
+            <Link href="/#pricing" className="rounded-lg border border-white/10 bg-slate-800/40 px-4 py-2 text-sm text-slate-300 hover:bg-white/5 transition-colors">
+              DubSync Pricing
+            </Link>
+            <Link href="/blog/ai-dubbing-pricing-comparison-2026" className="rounded-lg border border-white/10 bg-slate-800/40 px-4 py-2 text-sm text-slate-300 hover:bg-white/5 transition-colors">
+              2026 Pricing Guide
+            </Link>
+            <Link href="/login" className="rounded-lg border border-white/10 bg-slate-800/40 px-4 py-2 text-sm text-slate-300 hover:bg-white/5 transition-colors">
+              Log In
+            </Link>
+          </div>
+        </section>
+
         {/* CTA */}
         <section className="mx-auto max-w-3xl px-6 lg:px-8 text-center">
           <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-pink-500/10 via-violet-500/10 to-blue-600/10 p-10">
@@ -303,7 +402,7 @@ export default function VsGeckoDubPage() {
             </p>
             <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
               <Link
-                href="/signup"
+                href="/login"
                 className="inline-flex items-center justify-center gap-2 gradient-button rounded-xl px-6 py-3 text-sm font-semibold"
               >
                 Try DubSync Free

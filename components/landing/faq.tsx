@@ -18,7 +18,7 @@ const FAQS = [
   },
   {
     q: "Is there a free plan?",
-    a: "Yes. DubSync offers a free plan with 5 minutes of dubbing per month, 2 target languages, and 720p output. No credit card is required to get started.",
+    a: "Yes. The free plan includes 1 video up to 15 seconds with lip sync and voice cloning. No credit card required.",
   },
   {
     q: "How accurate is the lip sync?",
@@ -38,7 +38,15 @@ const FAQS = [
   },
   {
     q: "How much does AI video dubbing cost?",
-    a: "DubSync offers plans from free (5 min/month) to Enterprise ($199/month, unlimited). The Pro plan at $79/month includes 300 minutes with 4K output and API access — a fraction of traditional dubbing costs.",
+    a: "DubSync offers a free plan (1 video up to 15 seconds), Starter at $19.99/month (20 credits), Pro at $49.99/month (50 credits), and Business at $149.99/month (150 credits). Annual billing saves 20%. Every credit includes lip sync.",
+  },
+  {
+    q: "What does 1 credit mean in DubSync?",
+    a: "1 credit = 1 minute of dubbed video in 1 target language, always with lip sync included. A 5-minute video into 3 languages uses 15 credits. No hidden multipliers.",
+  },
+  {
+    q: "Does DubSync include lip sync on all plans?",
+    a: "Yes. Every paid plan includes lip sync in every credit — no extra charges, no separate pools, no credit multipliers. Even the free plan includes lip sync.",
   },
   {
     q: "Is DubSync better than traditional dubbing?",
@@ -76,6 +84,19 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 }
 
 export function Faq() {
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQS.map((faq) => ({
+      "@type": "Question",
+      name: faq.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.a,
+      },
+    })),
+  };
+
   return (
     <section className="py-24">
       <div className="mx-auto max-w-3xl px-6 lg:px-8">
@@ -91,6 +112,11 @@ export function Faq() {
           ))}
         </div>
       </div>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
     </section>
   );
 }

@@ -9,6 +9,7 @@ import { Features } from "@/components/landing/features";
 import { Testimonials } from "@/components/landing/testimonials";
 import { StatsBanner } from "@/components/landing/stats-banner";
 import { PricingNew } from "@/components/landing/pricing-new";
+import { ComparisonBlock } from "@/components/landing/comparison-block";
 import { Faq } from "@/components/landing/faq";
 import { FinalCta } from "@/components/landing/final-cta";
 import { Footer } from "@/components/landing/footer";
@@ -27,6 +28,7 @@ export default function LandingPage() {
         <Testimonials />
         <StatsBanner />
         <PricingNew />
+        <ComparisonBlock />
         <Faq />
         <FinalCta />
       </main>

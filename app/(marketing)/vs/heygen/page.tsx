@@ -6,31 +6,31 @@ import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 import { ArrowRight, Check, X } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "DubSync vs HeyGen — AI Dubbing Comparison 2026",
+  title: "DubSync vs HeyGen (2026) — Dedicated Lip Sync vs Shared Credits",
   description:
-    "Compare DubSync and HeyGen for AI video dubbing. Pricing, lip sync, credit systems, and feature differences explained for 2026.",
+    "HeyGen shares lip sync credits with avatars and generation. DubSync gives dedicated lip sync in every credit. Compare for video dubbing in 2026.",
   alternates: {
     canonical: "https://dubsync.app/vs/heygen",
   },
   openGraph: {
     type: "website",
-    title: "DubSync vs HeyGen — AI Dubbing Comparison 2026",
+    title: "DubSync vs HeyGen (2026) — Dedicated Lip Sync vs Shared Credits",
     description:
-      "Compare DubSync and HeyGen for AI video dubbing. Pricing, lip sync, credits, and features.",
+      "HeyGen shares lip sync credits with avatars and generation. DubSync gives dedicated lip sync in every credit.",
     url: "https://dubsync.app/vs/heygen",
     images: ["/og-image.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "DubSync vs HeyGen — AI Dubbing Comparison 2026",
+    title: "DubSync vs HeyGen (2026) — Dedicated Lip Sync vs Shared Credits",
     description:
-      "Compare DubSync and HeyGen for AI video dubbing. Pricing, lip sync, and features compared.",
+      "HeyGen shares lip sync credits with avatars and generation. DubSync gives dedicated lip sync in every credit.",
   },
 };
 
-const FEATURES = [
+const FEATURE_ROWS = [
   { feature: "Voice cloning", dubsync: true, competitor: true },
-  { feature: "Lip sync included", dubsync: true, competitor: true },
+  { feature: "Dedicated lip sync credits", dubsync: true, competitor: false },
   { feature: "Multi-speaker detection", dubsync: true, competitor: true },
   { feature: "Script editing", dubsync: true, competitor: true },
   { feature: "API access", dubsync: true, competitor: true },
@@ -43,20 +43,16 @@ const FEATURES = [
 
 const FAQS = [
   {
-    q: "How does HeyGen pricing compare to DubSync?",
-    a: "HeyGen uses a credit-based system where 1 credit roughly equals 1 minute for basic dubbing. The Creator plan is $29/month for 200 credits (~40 min). DubSync uses a simpler model: 1 credit = 1 minute, with the Starter plan at $19.99/month for 20 minutes. DubSync is more predictable since you always know exactly how many minutes you get.",
+    q: "Does HeyGen share lip sync credits with other features?",
+    a: "Yes. HeyGen uses a shared credit pool across all features including avatar generation, video creation, and lip sync dubbing. If you use 100 credits on a 5-minute Avatar IV video, those credits are gone from your lip sync budget. DubSync dedicates all your credits to lip sync dubbing with no sharing.",
   },
   {
-    q: "Does HeyGen have better features than DubSync?",
-    a: "HeyGen excels at AI avatar generation and video creation from scratch, making it more of a video creation platform. DubSync is focused specifically on dubbing existing videos with lip sync. If you need to create AI avatar videos, HeyGen is the better choice. If you need to dub your own footage, DubSync offers better value and a more streamlined workflow.",
+    q: "How many lip sync minutes do you actually get on HeyGen?",
+    a: "It depends on how you use your other credits. HeyGen Creator gives 200 Premium Credits, but a 5-min Avatar IV video costs 100 credits, leaving only 100 for lip sync (~20 min). DubSync Starter gives you a guaranteed 20 lip sync minutes at $19.99/mo with no sharing.",
   },
   {
-    q: "Which platform has better lip sync?",
-    a: "Both DubSync and HeyGen include lip sync as a standard feature on paid plans. HeyGen has a slight edge for avatar-based content since it generates the entire face. DubSync specializes in lip-syncing real footage of real people, which is the more common use case for creators dubbing their own videos.",
-  },
-  {
-    q: "Can I migrate from HeyGen to DubSync?",
-    a: "Yes. Download your original source videos and upload them to DubSync. Both platforms work with standard video formats. DubSync does not import HeyGen-specific projects or avatars, but your original footage works seamlessly.",
+    q: "Is DubSync better than HeyGen for video dubbing?",
+    a: "For dedicated video dubbing with lip sync, yes. DubSync is purpose-built for dubbing existing videos, so every credit goes toward lip sync. HeyGen is a broader video platform that splits credits across avatars, generation, and dubbing. If you only need dubbing, DubSync gives more predictable value.",
   },
 ];
 
@@ -82,9 +78,8 @@ export default function VsHeyGenPage() {
             DubSync vs HeyGen
           </h1>
           <p className="mt-4 text-lg text-slate-400 max-w-2xl mx-auto">
-            HeyGen is a powerful AI video platform with avatar creation and
-            dubbing. DubSync is purpose-built for dubbing existing videos.
-            Here is how they compare for video dubbing specifically.
+            HeyGen shares lip sync credits with avatars and generation.
+            DubSync gives you dedicated lip sync in every credit.
           </p>
         </section>
 
@@ -94,10 +89,60 @@ export default function VsHeyGenPage() {
             <h2 className="text-xl font-bold text-white mb-3">Quick verdict</h2>
             <p className="text-slate-400 leading-relaxed">
               If you need to dub your own videos with lip sync, DubSync offers
-              simpler pricing and a more focused workflow. If you need AI avatars,
-              video creation from scratch, or a broader video production toolkit,
-              HeyGen is the more versatile platform. For pure dubbing value,
-              DubSync&apos;s transparent per-minute pricing makes budgeting easier.
+              dedicated credits and a more focused workflow. HeyGen&apos;s shared credit
+              pool means your lip sync budget shrinks every time you use avatars or
+              other features. For pure dubbing value, DubSync&apos;s transparent
+              per-minute pricing gives you guaranteed lip sync capacity.
+            </p>
+          </div>
+        </section>
+
+        {/* Shared Pool Calculation */}
+        <section className="mx-auto max-w-5xl px-6 lg:px-8 mb-16">
+          <h2 className="text-2xl font-bold text-center mb-8">
+            The shared credit pool problem
+          </h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="rounded-2xl border border-white/10 bg-slate-800/40 p-6">
+              <h3 className="text-lg font-bold text-white mb-4">HeyGen Creator ($29/mo)</h3>
+              <div className="space-y-3 text-sm text-slate-400">
+                <div className="flex justify-between">
+                  <span>Total credits</span>
+                  <span className="text-white font-medium">200 Premium Credits</span>
+                </div>
+                <div className="flex justify-between text-red-400">
+                  <span>5-min Avatar IV video</span>
+                  <span className="font-medium">-100 credits</span>
+                </div>
+                <div className="border-t border-white/10 pt-3 flex justify-between">
+                  <span>Remaining for lip sync</span>
+                  <span className="text-yellow-400 font-medium">100 credits (~20 min)</span>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-pink-500/20 bg-pink-500/5 p-6">
+              <h3 className="text-lg font-bold text-pink-400 mb-4">DubSync Starter ($19.99/mo)</h3>
+              <div className="space-y-3 text-sm text-slate-400">
+                <div className="flex justify-between">
+                  <span>Total minutes</span>
+                  <span className="text-white font-medium">20 min</span>
+                </div>
+                <div className="flex justify-between text-green-400">
+                  <span>No credit sharing</span>
+                  <span className="font-medium">0 min deducted</span>
+                </div>
+                <div className="border-t border-white/10 pt-3 flex justify-between">
+                  <span>Available for lip sync</span>
+                  <span className="text-green-400 font-medium">20 min (all of them)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4">
+            <p className="text-sm text-yellow-300/80">
+              <strong>Result:</strong> Same lip sync capacity (20 min), but DubSync costs
+              $19.99 vs HeyGen&apos;s $29 — and with HeyGen, one avatar video can wipe
+              out half your dubbing budget.
             </p>
           </div>
         </section>
@@ -129,12 +174,16 @@ export default function VsHeyGenPage() {
                 </div>
               </div>
               <p className="mt-4 text-xs text-slate-500">
-                1 credit = 1 minute. Lip sync included on all plans.
+                1 credit = 1 minute. Lip sync included on all plans. No sharing.
               </p>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-slate-800/40 p-6">
-              <h3 className="text-lg font-bold text-white mb-4">HeyGen</h3>
+              <h3 className="text-lg font-bold text-white mb-4">
+                <a href="https://www.heygen.com/pricing" rel="nofollow noopener" target="_blank" className="hover:underline">
+                  HeyGen
+                </a>
+              </h3>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-300">Free</span>
@@ -142,11 +191,11 @@ export default function VsHeyGenPage() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-300">Creator</span>
-                  <span className="text-white font-medium">$29/mo — 200 credits (~40 min)</span>
+                  <span className="text-white font-medium">$29/mo — 200 credits (shared)</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-300">Pro</span>
-                  <span className="text-white font-medium">$99/mo — 2000 credits (~200 min)</span>
+                  <span className="text-white font-medium">$99/mo — 2000 credits (shared)</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-300">Business</span>
@@ -154,7 +203,7 @@ export default function VsHeyGenPage() {
                 </div>
               </div>
               <p className="mt-4 text-xs text-slate-500">
-                Credit-based pricing. Credits vary by feature used.
+                Credits shared across avatars, video creation, and dubbing.
               </p>
             </div>
           </div>
@@ -167,17 +216,20 @@ export default function VsHeyGenPage() {
           </h2>
           <div className="overflow-x-auto rounded-2xl border border-white/10">
             <table className="w-full text-sm">
+              <caption className="sr-only">
+                Feature comparison between DubSync and HeyGen
+              </caption>
               <thead>
                 <tr className="border-b border-white/10">
-                  <th className="text-left p-4 text-slate-400 font-medium">Feature</th>
-                  <th className="p-4 text-pink-400 font-medium bg-pink-500/10">DubSync</th>
-                  <th className="p-4 text-slate-400 font-medium">HeyGen</th>
+                  <th scope="col" className="text-left p-4 text-slate-400 font-medium">Feature</th>
+                  <th scope="col" className="p-4 text-pink-400 font-medium bg-pink-500/10">DubSync</th>
+                  <th scope="col" className="p-4 text-slate-400 font-medium">HeyGen</th>
                 </tr>
               </thead>
               <tbody>
-                {FEATURES.map((f) => (
+                {FEATURE_ROWS.map((f) => (
                   <tr key={f.feature} className="border-b border-white/5">
-                    <td className="p-4 text-slate-300">{f.feature}</td>
+                    <th scope="row" className="p-4 text-slate-300 font-normal text-left">{f.feature}</th>
                     <td className="p-4 bg-pink-500/10 text-center">
                       <FeatureIcon value={f.dubsync} />
                     </td>
@@ -187,7 +239,7 @@ export default function VsHeyGenPage() {
                   </tr>
                 ))}
                 <tr className="border-b border-white/5">
-                  <td className="p-4 text-slate-300">Languages</td>
+                  <th scope="row" className="p-4 text-slate-300 font-normal text-left">Languages</th>
                   <td className="p-4 bg-pink-500/10 text-center text-slate-300">30+</td>
                   <td className="p-4 text-center text-slate-300">40+</td>
                 </tr>
@@ -216,10 +268,6 @@ export default function VsHeyGenPage() {
                   <Check className="h-4 w-4 text-green-400 shrink-0 mt-0.5" />
                   <span>Broader video production toolkit beyond dubbing</span>
                 </li>
-                <li className="flex gap-2">
-                  <Check className="h-4 w-4 text-green-400 shrink-0 mt-0.5" />
-                  <span>Lower entry price for basic dubbing ($29 vs $19.99 but more minutes)</span>
-                </li>
               </ul>
             </div>
             <div className="rounded-2xl border border-pink-500/20 bg-pink-500/5 p-6">
@@ -229,11 +277,15 @@ export default function VsHeyGenPage() {
               <ul className="space-y-3 text-sm text-slate-400">
                 <li className="flex gap-2">
                   <Check className="h-4 w-4 text-pink-400 shrink-0 mt-0.5" />
+                  <span>Dedicated lip sync credits — no sharing with other features</span>
+                </li>
+                <li className="flex gap-2">
+                  <Check className="h-4 w-4 text-pink-400 shrink-0 mt-0.5" />
                   <span>Transparent pricing: 1 credit = 1 minute, no guesswork</span>
                 </li>
                 <li className="flex gap-2">
                   <Check className="h-4 w-4 text-pink-400 shrink-0 mt-0.5" />
-                  <span>Purpose-built for dubbing existing videos with a streamlined UX</span>
+                  <span>Purpose-built for dubbing existing videos</span>
                 </li>
                 <li className="flex gap-2">
                   <Check className="h-4 w-4 text-pink-400 shrink-0 mt-0.5" />
@@ -261,11 +313,11 @@ export default function VsHeyGenPage() {
               </li>
               <li className="flex gap-3">
                 <span className="flex items-center justify-center h-6 w-6 rounded-full bg-pink-500/20 text-pink-400 text-xs font-bold shrink-0">2</span>
-                <span><Link href="/signup" className="text-pink-400 hover:underline">Sign up for DubSync</Link> and test with a free video to compare quality.</span>
+                <span><Link href="/login" className="text-pink-400 hover:underline">Sign up for DubSync</Link> and test with a free video to compare quality.</span>
               </li>
               <li className="flex gap-3">
                 <span className="flex items-center justify-center h-6 w-6 rounded-full bg-pink-500/20 text-pink-400 text-xs font-bold shrink-0">3</span>
-                <span>Select your languages and dubbing settings. DubSync&apos;s interface is optimized for fast dubbing workflows.</span>
+                <span>Select your languages and let DubSync handle the full pipeline. Every credit goes to lip sync — no sharing.</span>
               </li>
               <li className="flex gap-3">
                 <span className="flex items-center justify-center h-6 w-6 rounded-full bg-pink-500/20 text-pink-400 text-xs font-bold shrink-0">4</span>
@@ -291,18 +343,43 @@ export default function VsHeyGenPage() {
           </div>
         </section>
 
+        {/* Internal Links */}
+        <section className="mx-auto max-w-4xl px-6 lg:px-8 mb-16">
+          <h2 className="text-lg font-semibold text-white mb-4">Related comparisons</h2>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/compare" className="rounded-lg border border-white/10 bg-slate-800/40 px-4 py-2 text-sm text-slate-300 hover:bg-white/5 transition-colors">
+              All Comparisons
+            </Link>
+            <Link href="/vs/rask-ai" className="rounded-lg border border-white/10 bg-slate-800/40 px-4 py-2 text-sm text-slate-300 hover:bg-white/5 transition-colors">
+              DubSync vs Rask AI
+            </Link>
+            <Link href="/vs/geckodub" className="rounded-lg border border-white/10 bg-slate-800/40 px-4 py-2 text-sm text-slate-300 hover:bg-white/5 transition-colors">
+              DubSync vs GeckoDub
+            </Link>
+            <Link href="/#pricing" className="rounded-lg border border-white/10 bg-slate-800/40 px-4 py-2 text-sm text-slate-300 hover:bg-white/5 transition-colors">
+              DubSync Pricing
+            </Link>
+            <Link href="/blog/ai-dubbing-pricing-comparison-2026" className="rounded-lg border border-white/10 bg-slate-800/40 px-4 py-2 text-sm text-slate-300 hover:bg-white/5 transition-colors">
+              2026 Pricing Guide
+            </Link>
+            <Link href="/login" className="rounded-lg border border-white/10 bg-slate-800/40 px-4 py-2 text-sm text-slate-300 hover:bg-white/5 transition-colors">
+              Log In
+            </Link>
+          </div>
+        </section>
+
         {/* CTA */}
         <section className="mx-auto max-w-3xl px-6 lg:px-8 text-center">
           <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-pink-500/10 via-violet-500/10 to-blue-600/10 p-10">
             <h2 className="text-2xl font-bold text-white">
-              Try DubSync for your next dubbing project
+              Dedicated lip sync credits. No sharing.
             </h2>
             <p className="mt-3 text-slate-400">
-              Purpose-built for video dubbing with transparent pricing. Start free.
+              Every DubSync credit goes to lip sync dubbing. Start free.
             </p>
             <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
               <Link
-                href="/signup"
+                href="/login"
                 className="inline-flex items-center justify-center gap-2 gradient-button rounded-xl px-6 py-3 text-sm font-semibold"
               >
                 Try DubSync Free

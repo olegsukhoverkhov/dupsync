@@ -24,7 +24,7 @@ export function PricingNew() {
             Simple, <span className="gradient-text">transparent</span> pricing
           </h2>
           <p className="mt-4 text-slate-400 text-lg">
-            Start free. Scale as you grow. No hidden fees.
+            AI video dubbing plans with lip sync included. Starting at $19.99/month.
           </p>
 
           {/* Monthly/Annual toggle */}

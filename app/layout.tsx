@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DubSync — AI Video Dubbing & Voice Cloning | Dub Videos in 30+ Languages",
+  title: "DubSync — AI Video Dubbing with Lip Sync | From $19.99/mo",
   description:
-    "Dub videos into 30+ languages with AI voice cloning and lip sync. Upload a video, get studio-quality dubbing in minutes. Free plan available — no credit card required.",
+    "Dub your videos into 30+ languages with AI lip sync and voice cloning. Every credit includes lip sync. Plans from $19.99/mo. Try free.",
   metadataBase: new URL("https://dubsync.app"),
   alternates: {
     canonical: "/",
@@ -34,9 +34,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "DubSync",
-    title: "DubSync — AI Video Dubbing & Voice Cloning",
+    title: "DubSync — AI Video Dubbing with Lip Sync",
     description:
-      "Upload a video. AI clones the speaker's voice, translates, and syncs lips — automatically. Go global in minutes.",
+      "Dub videos into 30+ languages with AI lip sync from $19.99/mo. 1 credit = 1 minute with lip sync included. No hidden fees.",
     url: "https://dubsync.app",
     locale: "en_US",
     images: [
@@ -50,9 +50,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "DubSync — AI Video Dubbing & Voice Cloning",
+    title: "DubSync — AI Video Dubbing with Lip Sync",
     description:
-      "Upload a video. AI clones the voice, translates, and syncs lips — automatically.",
+      "Dub videos into 30+ languages. Lip sync included in every credit from $19.99/mo.",
     images: ["/og-image.png"],
   },
   robots: {
