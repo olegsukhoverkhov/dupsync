@@ -65,6 +65,14 @@ export const ALL_ARTICLES = [
     readingTime: "8 min read",
     category: "Use Case",
   },
+  {
+    slug: "ai-dubbing-pricing-comparison-2026",
+    title: "AI Video Dubbing Pricing Comparison 2026",
+    excerpt: "Complete pricing guide comparing DubSync, Rask AI, HeyGen, ElevenLabs, and GeckoDub.",
+    date: "April 7, 2026",
+    readingTime: "15 min read",
+    category: "Guide",
+  },
 ];
 
 export function BlogPostLayout({

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
-import { ArrowRight, Check, X, Minus } from "lucide-react";
+import { ArrowRight, Check, X } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "AI Video Dubbing Comparison 2026 — DubSync vs Rask AI vs HeyGen vs ElevenLabs",
