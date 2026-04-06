@@ -7,21 +7,28 @@
     "demo": "Demo",
     "pricing": "Preise",
     "login": "Anmelden",
-    "getStarted": "Jetzt starten"
+    "getStarted": "Jetzt starten",
+    "features": "Funktionen",
+    "compare": "Vergleich",
+    "blog": "Blog",
+    "about": "Über uns"
   },
   "hero": {
     "badge": "Jetzt mit KI-Lippensynchronisation",
     "title1": "KI-Videosynchronisation —",
     "title2": "Stimmen klonen & Lippen synchronisieren in 30+ Sprachen",
     "subtitle": "Laden Sie ein Video hoch. Die KI klont die Stimme des Sprechers, ubersetzt und synchronisiert die Lippen — vollautomatisch. Erreichen Sie die Welt in Minuten, nicht Wochen.",
-    "ctaPrimary": "Kostenlos starten",
+    "ctaPrimary": "Synchronisiere dein erstes Video kostenlos",
     "ctaSecondary": "Demo ansehen",
     "creators": "Ersteller",
     "minDubbed": "Min. synchronisiert",
-    "languages": "Sprachen"
+    "languages": "Sprachen",
+    "noWatermark": "Ohne Wasserzeichen",
+    "lipSyncIncluded": "Lippensynchronisation inklusive",
+    "noCreditCard": "Keine Kreditkarte nötig"
   },
   "logoBar": {
-    "trusted": "Das Vertrauen von Creatorn und Teams weltweit"
+    "trusted": "Genutzt von Teams bei"
   },
   "whatIs": {
     "title": "Was ist KI-Videosynchronisation?",
@@ -95,6 +102,49 @@
     "company": "Unternehmen",
     "resources": "Ressourcen",
     "legal": "Rechtliches",
-    "copyright": "DubSync. Alle Rechte vorbehalten."
+    "copyright": "DubSync. Alle Rechte vorbehalten.",
+    "features": "Funktionen",
+    "pricing": "Preise",
+    "compare": "Vergleich",
+    "changelog": "Changelog",
+    "about": "Über uns",
+    "blog": "Blog",
+    "contact": "Kontakt",
+    "docs": "Dokumentation",
+    "privacy": "Datenschutz",
+    "terms": "AGB"
+  },
+  "useCases": {
+    "title": "Für deinen Workflow gebaut",
+    "subtitle": "Erfahre, wie Teams wie deins DubSync nutzen",
+    "youtube": "YouTube & Content Creator",
+    "youtubeDesc": "Erreiche globale Zielgruppen, indem du deine Videos in über 30 Sprachen synchronisierst. Steigere Abonnenten und Umsatz, ohne neu zu drehen.",
+    "youtubeBadge": "10x Zielgruppen-Reichweite",
+    "elearning": "E-Learning & Online-Kurse",
+    "elearningDesc": "Mache Kurse weltweit zugänglich. Synchronisiere Vorlesungen, Tutorials und Schulungsvideos und behalte dabei die Stimme und Persönlichkeit des Dozenten.",
+    "elearningBadge": "Udemy, Coursera, LMS",
+    "marketing": "Marketing & Produkt-Teams",
+    "marketingDesc": "Lokalisiere Produkt-Demos, Anzeigen und Onboarding-Videos für jeden Markt. Starte Kampagnen in über 30 Sprachen gleichzeitig.",
+    "marketingBadge": "15 Märkte, 1 Video",
+    "podcasts": "Podcasts & Medien",
+    "podcastsDesc": "Erweitere deinen Podcast auf neue Sprachmärkte. KI bewahrt deine Stimme, deinen Ton und deinen Stil in jeder Sprache.",
+    "podcastsBadge": "Gleiche Stimme, neue Sprache"
+  },
+  "roi": {
+    "title": "Warum Tausende für Synchronisation zahlen?",
+    "subtitle": "Sehen Sie, wie viel Sie mit KI-Synchronisation sparen",
+    "traditional": "Traditionelle Synchronisation",
+    "dubsync": "DubSync",
+    "costPerLang": "Kosten pro Sprache",
+    "timeFor10min": "Zeit für 10-Min-Video",
+    "simultaneous": "Gleichzeitige Sprachen",
+    "voiceActors": "Benötigte Synchronsprecher",
+    "lipSync": "Lippensynchronisation",
+    "totalCost": "10-Min-Video × 5 Sprachen",
+    "cta": "99% Synchronisationskosten sparen — Kostenlos starten"
+  },
+  "comparison": {
+    "title": "Jedes Guthaben beinhaltet Lippensynchronisation. Keine versteckten Gebühren.",
+    "subtitle": "Sehen Sie, wie DubSync im Vergleich zu Rask AI und HeyGen bei KI-Videosynchronisation mit Lippensync abschneidet."
   }
 }

@@ -7,21 +7,28 @@
     "demo": "Demo",
     "pricing": "Precos",
     "login": "Entrar",
-    "getStarted": "Comecar"
+    "getStarted": "Comecar",
+    "features": "Recursos",
+    "compare": "Comparar",
+    "blog": "Blog",
+    "about": "Sobre"
   },
   "hero": {
     "badge": "Agora com tecnologia de lip-sync com IA",
     "title1": "Dublagem de Video com IA —",
     "title2": "Clone Vozes e Sincronize Labios em 30+ Idiomas",
     "subtitle": "Envie um video. A IA clona a voz do locutor, traduz e sincroniza os labios — tudo automaticamente. Alcance o mundo em minutos, nao em semanas.",
-    "ctaPrimary": "Comece de Graca",
+    "ctaPrimary": "Duble seu primeiro vídeo grátis",
     "ctaSecondary": "Assistir Demo",
     "creators": "criadores",
     "minDubbed": "min dublados",
-    "languages": "idiomas"
+    "languages": "idiomas",
+    "noWatermark": "Sem marca d'água",
+    "lipSyncIncluded": "Sincronia labial incluída",
+    "noCreditCard": "Sem cartão de crédito"
   },
   "logoBar": {
-    "trusted": "A confianca de criadores e equipes no mundo todo"
+    "trusted": "Usado por equipes em"
   },
   "whatIs": {
     "title": "O que e dublagem de video com IA?",
@@ -95,6 +102,49 @@
     "company": "Empresa",
     "resources": "Recursos",
     "legal": "Legal",
-    "copyright": "DubSync. Todos os direitos reservados."
+    "copyright": "DubSync. Todos os direitos reservados.",
+    "features": "Recursos",
+    "pricing": "Preços",
+    "compare": "Comparar",
+    "changelog": "Registro de alterações",
+    "about": "Sobre",
+    "blog": "Blog",
+    "contact": "Contato",
+    "docs": "Documentação",
+    "privacy": "Privacidade",
+    "terms": "Termos"
+  },
+  "useCases": {
+    "title": "Feito para o seu fluxo de trabalho",
+    "subtitle": "Veja como equipes como a sua usam o DubSync",
+    "youtube": "YouTube e Criadores de Conteúdo",
+    "youtubeDesc": "Alcance audiências globais dublando seus vídeos em mais de 30 idiomas. Aumente inscritos e receita sem regravar conteúdo.",
+    "youtubeBadge": "10x alcance de audiência",
+    "elearning": "E-Learning e Cursos Online",
+    "elearningDesc": "Torne seus cursos acessíveis mundialmente. Duble aulas, tutoriais e vídeos de treinamento mantendo a voz e personalidade do instrutor.",
+    "elearningBadge": "Udemy, Coursera, LMS",
+    "marketing": "Marketing e Equipes de Produto",
+    "marketingDesc": "Localize demos de produto, anúncios e vídeos de onboarding para cada mercado. Lance campanhas em mais de 30 idiomas simultaneamente.",
+    "marketingBadge": "15 mercados, 1 vídeo",
+    "podcasts": "Podcasts e Mídia",
+    "podcastsDesc": "Expanda seu podcast para novos mercados linguísticos. A IA preserva sua voz, tom e estilo em cada idioma.",
+    "podcastsBadge": "Mesma voz, novo idioma"
+  },
+  "roi": {
+    "title": "Por que pagar milhares por dublagem?",
+    "subtitle": "Veja quanto você economiza com dublagem por IA",
+    "traditional": "Dublagem Tradicional",
+    "dubsync": "DubSync",
+    "costPerLang": "Custo por idioma",
+    "timeFor10min": "Tempo para vídeo de 10 min",
+    "simultaneous": "Idiomas simultâneos",
+    "voiceActors": "Atores de voz necessários",
+    "lipSync": "Sincronia labial",
+    "totalCost": "Vídeo de 10 min × 5 idiomas",
+    "cta": "Economize 99% em custos de dublagem — Comece Grátis"
+  },
+  "comparison": {
+    "title": "Cada crédito inclui sincronia labial. Sem taxas ocultas.",
+    "subtitle": "Veja como o DubSync se compara ao Rask AI e HeyGen para dublagem de vídeo com IA e sincronia labial."
   }
 }

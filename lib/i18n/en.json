@@ -7,21 +7,28 @@
     "demo": "Demo",
     "pricing": "Pricing",
     "login": "Log In",
-    "getStarted": "Get Started"
+    "getStarted": "Get Started",
+    "features": "Features",
+    "compare": "Compare",
+    "blog": "Blog",
+    "about": "About"
   },
   "hero": {
     "badge": "Now with AI lip-sync technology",
     "title1": "AI Video Dubbing —",
     "title2": "Clone Voices & Sync Lips in 30+ Languages",
     "subtitle": "Upload a video. AI clones the speaker's voice, translates, and syncs lips — automatically. Go global in minutes, not weeks.",
-    "ctaPrimary": "Start Dubbing Free",
+    "ctaPrimary": "Dub Your First Video Free",
     "ctaSecondary": "Watch Demo",
     "creators": "creators",
     "minDubbed": "min dubbed",
-    "languages": "languages"
+    "languages": "languages",
+    "noWatermark": "No watermark",
+    "lipSyncIncluded": "Lip sync included",
+    "noCreditCard": "No credit card required"
   },
   "logoBar": {
-    "trusted": "Trusted by creators and teams worldwide"
+    "trusted": "Used by teams at"
   },
   "whatIs": {
     "title": "What is AI video dubbing?",
@@ -95,6 +102,49 @@
     "company": "Company",
     "resources": "Resources",
     "legal": "Legal",
-    "copyright": "DubSync. All rights reserved."
+    "copyright": "DubSync. All rights reserved.",
+    "features": "Features",
+    "pricing": "Pricing",
+    "compare": "Compare",
+    "changelog": "Changelog",
+    "about": "About",
+    "blog": "Blog",
+    "contact": "Contact",
+    "docs": "Documentation",
+    "privacy": "Privacy",
+    "terms": "Terms"
+  },
+  "useCases": {
+    "title": "Built for your workflow",
+    "subtitle": "See how teams like yours use DubSync",
+    "youtube": "YouTube & Content Creators",
+    "youtubeDesc": "Reach global audiences by dubbing your videos into 30+ languages. Grow subscribers and revenue without re-shooting content.",
+    "youtubeBadge": "10x audience reach",
+    "elearning": "E-Learning & Online Courses",
+    "elearningDesc": "Make courses accessible worldwide. Dub lectures, tutorials, and training videos while keeping instructor voice and personality.",
+    "elearningBadge": "Udemy, Coursera, LMS",
+    "marketing": "Marketing & Product Teams",
+    "marketingDesc": "Localize product demos, ads, and onboarding videos for every market. Launch campaigns in 30+ languages simultaneously.",
+    "marketingBadge": "15 markets, 1 video",
+    "podcasts": "Podcasts & Media",
+    "podcastsDesc": "Expand your podcast to new language markets. AI preserves your voice, tone, and delivery in every language.",
+    "podcastsBadge": "Same voice, new language"
+  },
+  "roi": {
+    "title": "Why pay thousands for dubbing?",
+    "subtitle": "See how much you save with AI-powered dubbing",
+    "traditional": "Traditional Dubbing",
+    "dubsync": "DubSync",
+    "costPerLang": "Cost per language",
+    "timeFor10min": "Time for 10-min video",
+    "simultaneous": "Simultaneous languages",
+    "voiceActors": "Voice actors needed",
+    "lipSync": "Lip sync",
+    "totalCost": "10-min video × 5 languages",
+    "cta": "Save 99% on dubbing costs — Start Free"
+  },
+  "comparison": {
+    "title": "Every credit includes lip sync. No hidden fees.",
+    "subtitle": "See how DubSync compares to Rask AI and HeyGen for AI video dubbing with lip sync."
   }
 }

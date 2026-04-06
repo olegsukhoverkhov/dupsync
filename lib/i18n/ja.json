@@ -7,21 +7,28 @@
     "demo": "デモ",
     "pricing": "料金プラン",
     "login": "ログイン",
-    "getStarted": "今すぐ始める"
+    "getStarted": "今すぐ始める",
+    "features": "機能",
+    "compare": "比較",
+    "blog": "ブログ",
+    "about": "概要"
   },
   "hero": {
     "badge": "AIリップシンク技術を搭載",
     "title1": "AI動画吹き替え —",
     "title2": "音声クローン＆リップシンクで30以上の言語に対応",
     "subtitle": "動画をアップロードするだけ。AIが話者の声をクローンし、翻訳し、リップシンクまで自動で完了します。数週間かかっていた作業が、わずか数分でグローバル展開。",
-    "ctaPrimary": "無料で始める",
+    "ctaPrimary": "最初の動画を無料で吹き替え",
     "ctaSecondary": "デモを見る",
     "creators": "クリエイター",
     "minDubbed": "分の吹き替え実績",
-    "languages": "対応言語"
+    "languages": "対応言語",
+    "noWatermark": "ウォーターマークなし",
+    "lipSyncIncluded": "リップシンク付き",
+    "noCreditCard": "クレジットカード不要"
   },
   "logoBar": {
-    "trusted": "世界中のクリエイターやチームに選ばれています"
+    "trusted": "以下の企業のチームが利用中"
   },
   "whatIs": {
     "title": "AI動画吹き替えとは？",
@@ -95,6 +102,49 @@
     "company": "会社情報",
     "resources": "リソース",
     "legal": "法的情報",
-    "copyright": "DubSync. All rights reserved."
+    "copyright": "DubSync. All rights reserved.",
+    "features": "機能",
+    "pricing": "料金",
+    "compare": "比較",
+    "changelog": "更新履歴",
+    "about": "概要",
+    "blog": "ブログ",
+    "contact": "お問い合わせ",
+    "docs": "ドキュメント",
+    "privacy": "プライバシー",
+    "terms": "利用規約"
+  },
+  "useCases": {
+    "title": "あなたのワークフローに最適",
+    "subtitle": "あなたのようなチームがDubSyncをどう活用しているかご覧ください",
+    "youtube": "YouTube & コンテンツクリエイター",
+    "youtubeDesc": "動画を30以上の言語に吹き替えて、グローバルなオーディエンスにリーチ。再撮影なしで登録者と収益を増やしましょう。",
+    "youtubeBadge": "オーディエンス10倍",
+    "elearning": "Eラーニング & オンラインコース",
+    "elearningDesc": "コースを世界中でアクセス可能に。講師の声と個性を保ちながら、講義やチュートリアルを吹き替えできます。",
+    "elearningBadge": "Udemy, Coursera, LMS",
+    "marketing": "マーケティング & プロダクトチーム",
+    "marketingDesc": "製品デモ、広告、オンボーディング動画をあらゆる市場向けにローカライズ。30以上の言語で同時にキャンペーンを展開。",
+    "marketingBadge": "15市場、1つの動画",
+    "podcasts": "ポッドキャスト & メディア",
+    "podcastsDesc": "ポッドキャストを新しい言語市場に拡大。AIがあなたの声、トーン、スタイルをすべての言語で再現します。",
+    "podcastsBadge": "同じ声、新しい言語"
+  },
+  "roi": {
+    "title": "なぜ吹き替えに何千ドルも払うのですか？",
+    "subtitle": "AI吹き替えでどれだけ節約できるかご覧ください",
+    "traditional": "従来の吹き替え",
+    "dubsync": "DubSync",
+    "costPerLang": "言語あたりのコスト",
+    "timeFor10min": "10分動画の所要時間",
+    "simultaneous": "同時対応言語数",
+    "voiceActors": "必要な声優数",
+    "lipSync": "リップシンク",
+    "totalCost": "10分動画 × 5言語",
+    "cta": "吹き替えコストを99%削減 — 無料で始める"
+  },
+  "comparison": {
+    "title": "すべてのクレジットにリップシンク付き。隠れた費用なし。",
+    "subtitle": "DubSyncがRask AIやHeyGenとAI動画吹き替え・リップシンクでどう比較されるかご覧ください。"
   }
 }
