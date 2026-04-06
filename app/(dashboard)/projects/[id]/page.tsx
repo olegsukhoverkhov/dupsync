@@ -156,6 +156,7 @@ const STATUS_LABELS: Record<DubStatus, string> = {
   pending: "Waiting...",
   translating: "Translating",
   generating_voice: "Generating Voice",
+  audio_ready: "Audio Ready — Syncing Lips...",
   lip_syncing: "Syncing Lips",
   merging: "Finalizing",
   done: "Complete",
@@ -222,6 +223,26 @@ export default function ProjectDetailPage({
     }, 3000);
     return () => clearInterval(interval);
   }, [id]);
+
+  const [lipSyncTriggered, setLipSyncTriggered] = useState<Set<string>>(new Set());
+
+  // Auto-trigger lip sync for audio_ready dubs (Stage 2)
+  useEffect(() => {
+    const audioReadyDubs = dubs.filter(
+      (d) => d.status === "audio_ready" && !lipSyncTriggered.has(d.id)
+    );
+    if (audioReadyDubs.length === 0) return;
+
+    // Trigger lip sync one at a time (sequential)
+    const nextDub = audioReadyDubs[0];
+    setLipSyncTriggered((prev) => new Set(prev).add(nextDub.id));
+
+    fetch("/api/dub/lipsync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dubId: nextDub.id }),
+    }).catch(() => {});
+  }, [dubs, lipSyncTriggered]);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [retryLoading, setRetryLoading] = useState(false);
@@ -455,20 +476,20 @@ export default function ProjectDetailPage({
                   {STATUS_LABELS[activeDub.status]}
                 </CardDescription>
               </div>
-              {activeDub.status === "done" && (
+              {(activeDub.status === "done" || activeDub.status === "audio_ready") && activeDub.dubbed_video_url && (
                 <button
                   onClick={() => handleDownload(activeDub)}
                   className="gradient-button rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1"
                 >
                   <Download className="h-3 w-3" />
-                  Download
+                  {activeDub.status === "audio_ready" ? "Download Audio" : "Download"}
                 </button>
               )}
             </div>
           </CardHeader>
           <CardContent>
-            {/* Inline player + info for completed dubs */}
-            {activeDub.status === "done" && (
+            {/* Inline player + info for completed/audio_ready dubs */}
+            {(activeDub.status === "done" || activeDub.status === "audio_ready") && activeDub.dubbed_video_url && (
               <>
                 <DubInlinePlayer dub={activeDub} />
                 {profile && <DubInfoCard dub={activeDub} plan={profile.plan} />}

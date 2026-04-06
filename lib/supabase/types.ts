@@ -14,6 +14,7 @@ export type DubStatus =
   | "generating_voice"
   | "lip_syncing"
   | "merging"
+  | "audio_ready"
   | "done"
   | "error";
 
