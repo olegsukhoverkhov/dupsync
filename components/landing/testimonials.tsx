@@ -1,8 +1,8 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { Star, ShieldCheck } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 const TESTIMONIALS = [
   {
@@ -75,7 +75,7 @@ function Stars() {
   return (
     <div className="flex gap-0.5">
       {Array.from({ length: 5 }).map((_, i) => (
-        <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+        <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
       ))}
     </div>
   );
@@ -85,13 +85,13 @@ function Avatar({ src, name, gradient }: { src: string; name: string; gradient: 
   const initials = name.split(" ").map((n) => n[0]).join("");
   const [imgError, setImgError] = useState(false);
   return (
-    <div className={`relative h-11 w-11 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-sm font-bold text-white shrink-0 overflow-hidden`}>
+    <div className={`relative h-10 w-10 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-xs font-bold text-white shrink-0 overflow-hidden`}>
       {!imgError && (
         <Image
           src={src}
           alt={name}
-          width={44}
-          height={44}
+          width={40}
+          height={40}
           className="absolute inset-0 w-full h-full object-cover rounded-full"
           onError={() => setImgError(true)}
         />
@@ -101,11 +101,22 @@ function Avatar({ src, name, gradient }: { src: string; name: string; gradient: 
   );
 }
 
+// Trustpilot star icon (green)
+function TrustpilotIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none">
+      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#00B67A" />
+    </svg>
+  );
+}
+
 export function Testimonials() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
   return (
     <section className="py-24 border-t border-white/5">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold">
             Loved by <span className="gradient-text">creators</span>
           </h2>
@@ -114,35 +125,61 @@ export function Testimonials() {
           </p>
           {/* Trustpilot rating */}
           <div className="mt-6 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-5 py-2.5">
+            <TrustpilotIcon />
             <div className="flex gap-0.5">
               {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className="h-4 w-4 fill-green-500 text-green-500" />
+                <Star key={i} className="h-4 w-4 fill-[#00B67A] text-[#00B67A]" />
               ))}
             </div>
             <span className="text-sm text-white font-semibold">4.8/5</span>
-            <span className="text-xs text-slate-400">Rated on Trustpilot &middot; 2,000+ reviews</span>
+            <span className="text-xs text-slate-400 hidden sm:inline">Rated on <span className="text-[#00B67A] font-medium">Trustpilot</span> &middot; 2,000+ reviews</span>
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {TESTIMONIALS.map((t) => (
-            <div
-              key={t.name}
-              className="rounded-2xl border border-white/10 bg-slate-800/40 p-5 hover:border-white/20 transition-all flex flex-col"
-            >
-              <Stars />
-              <p className="mt-3 text-slate-300 text-sm leading-relaxed flex-1">
-                &ldquo;{t.quote}&rdquo;
-              </p>
-              <div className="mt-4 flex items-center gap-3 pt-4 border-t border-white/5">
-                <Avatar src={t.avatar} name={t.name} gradient={t.gradient} />
-                <div>
-                  <p className="text-sm font-medium text-white">{t.name}</p>
-                  <p className="text-xs text-slate-500">{t.role} &middot; {t.detail}</p>
+        {/* Horizontal scroll carousel */}
+        <div className="relative">
+          <div
+            ref={scrollRef}
+            className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {TESTIMONIALS.map((t) => (
+              <div
+                key={t.name}
+                className="snap-start shrink-0 w-[320px] sm:w-[360px] rounded-2xl border border-white/10 bg-slate-800/40 p-5 hover:border-white/20 transition-all flex flex-col"
+              >
+                <Stars />
+                <p className="mt-3 text-slate-300 text-sm leading-relaxed flex-1">
+                  &ldquo;{t.quote}&rdquo;
+                </p>
+                <div className="mt-4 flex items-center gap-3 pt-3 border-t border-white/5">
+                  <Avatar src={t.avatar} name={t.name} gradient={t.gradient} />
+                  <div>
+                    <p className="text-sm font-medium text-white">{t.name}</p>
+                    <p className="text-xs text-slate-500">{t.role} &middot; {t.detail}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+
+          {/* Scroll indicators */}
+          <div className="flex justify-center gap-2 mt-4">
+            {TESTIMONIALS.map((t, i) => (
+              <button
+                key={t.name}
+                onClick={() => {
+                  scrollRef.current?.children[i]?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest",
+                    inline: "center",
+                  });
+                }}
+                className="h-1.5 w-6 rounded-full bg-white/10 hover:bg-white/30 transition-colors cursor-pointer"
+                aria-label={`Go to testimonial ${i + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
