@@ -1,40 +1,69 @@
 import { createServiceClient } from "./supabase/server";
 import * as ai from "./ai";
 import { LANGUAGE_MAP } from "./supabase/constants";
-import { execFile } from "child_process";
-import { promisify } from "util";
-import { writeFile, readFile, unlink } from "fs/promises";
-import { join } from "path";
-import { tmpdir } from "os";
 
-const execFileAsync = promisify(execFile);
+// Try multiple Whisper-compatible formats for unsupported video files
+async function transcribeWithRetry(
+  buffer: Buffer,
+  originalExt: string,
+  languageHint?: string
+): Promise<{ segments: { start: number; end: number; text: string }[]; language: string }> {
+  // Try formats in order of likelihood to work
+  const formats = [
+    { filename: "audio.mp4", mime: "video/mp4" },
+    { filename: "audio.m4a", mime: "audio/mp4" },
+    { filename: "audio.wav", mime: "audio/wav" },
+    { filename: "audio.mpeg", mime: "video/mpeg" },
+  ];
 
-// Convert any video format to WAV using ffmpeg-static
-async function convertToWav(inputBuffer: Buffer, inputExt: string): Promise<Buffer> {
-  let ffmpegPath: string;
-  try {
-    ffmpegPath = (await import("ffmpeg-static")).default as unknown as string;
-  } catch {
-    throw new Error("ffmpeg-static not available");
+  let lastError: Error | null = null;
+
+  for (const fmt of formats) {
+    try {
+      console.log(`[TRANSCRIBE] Trying format: ${fmt.filename} (${fmt.mime}) for .${originalExt} file`);
+
+      const formData = new FormData();
+      formData.append(
+        "file",
+        new Blob([new Uint8Array(buffer)], { type: fmt.mime }),
+        fmt.filename
+      );
+      formData.append("model", "whisper-1");
+      formData.append("response_format", "verbose_json");
+      formData.append("timestamp_granularities[]", "segment");
+      if (languageHint && languageHint !== "auto") {
+        formData.append("language", languageHint);
+      }
+
+      const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const segments = (data.segments || []).map(
+          (s: { start: number; end: number; text: string }) => ({
+            start: s.start,
+            end: s.end,
+            text: s.text.trim(),
+          })
+        );
+        console.log(`[TRANSCRIBE] Success with ${fmt.filename}: ${segments.length} segments`);
+        return { segments, language: data.language || "en" };
+      }
+
+      const errBody = await response.text().catch(() => "");
+      console.log(`[TRANSCRIBE] Failed with ${fmt.filename}: ${response.status} ${errBody.slice(0, 100)}`);
+      lastError = new Error(`Whisper ${response.status}: ${errBody.slice(0, 200)}`);
+    } catch (e) {
+      lastError = e instanceof Error ? e : new Error(String(e));
+      console.log(`[TRANSCRIBE] Exception with ${fmt.filename}: ${lastError.message}`);
+    }
   }
-  if (!ffmpegPath) throw new Error("ffmpeg binary path not found");
 
-  const id = Date.now() + "-" + Math.random().toString(36).slice(2, 8);
-  const inputPath = join(tmpdir(), `input-${id}.${inputExt}`);
-  const outputPath = join(tmpdir(), `output-${id}.wav`);
-
-  try {
-    await writeFile(inputPath, inputBuffer);
-    await execFileAsync(ffmpegPath, [
-      "-i", inputPath,
-      "-vn", "-ar", "16000", "-ac", "1", "-f", "wav",
-      "-y", outputPath,
-    ], { timeout: 30000 });
-    return await readFile(outputPath);
-  } finally {
-    await unlink(inputPath).catch(() => {});
-    await unlink(outputPath).catch(() => {});
-  }
+  throw lastError || new Error("All transcription formats failed");
 }
 
 function log(dubId: string, msg: string) {
@@ -91,19 +120,22 @@ export async function runTranscription(projectId: string) {
       buffer = Buffer.from(await wavData.arrayBuffer());
       transcribeFilename = "audio.wav";
       console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Using client-extracted full-audio.wav: ${(buffer.byteLength / 1024).toFixed(0)}KB`);
-    } else if (!["mp4", "mp3", "wav", "webm", "m4a", "ogg", "flac"].includes(ext)) {
-      // Format not supported by Whisper — convert on server using ffmpeg-static
-      console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Converting ${ext} to WAV on server...`);
-      try {
-        buffer = await convertToWav(videoBuffer, ext);
-        transcribeFilename = "audio.wav";
-        console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Converted to WAV: ${(buffer.byteLength / 1024).toFixed(0)}KB`);
-      } catch (convErr) {
-        console.error(`[TRANSCRIBE:${projectId.slice(0, 8)}] FFmpeg conversion failed:`, convErr);
-        // Last resort — try sending as mp4 anyway
-        buffer = videoBuffer;
-        transcribeFilename = "audio.mp4";
-      }
+    } else if (!["mp4", "mp3", "wav", "webm", "m4a", "ogg", "flac", "mpeg", "mpga"].includes(ext)) {
+      // Format not directly supported by Whisper (MOV, AVI, MKV, etc.)
+      // Try multiple formats with retry
+      console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Unsupported format .${ext}, trying multiple formats...`);
+      const result = await transcribeWithRetry(videoBuffer, ext, languageHint);
+      // Skip normal transcribe call, go directly to save
+      const rawEnd = result.segments.length > 0 ? result.segments[result.segments.length - 1].end : 0;
+      const durationSeconds = Math.ceil(rawEnd + 1);
+      await supabase.from("projects").update({
+        status: "ready",
+        transcript: result.segments,
+        original_language: result.language,
+        duration_seconds: durationSeconds,
+      }).eq("id", projectId);
+      console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Done: ${result.segments.length} segments, ${durationSeconds}s`);
+      return;
     } else {
       // Format supported by Whisper — use directly
       buffer = videoBuffer;
