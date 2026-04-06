@@ -7,6 +7,7 @@ import {
   Clock,
   Globe,
   Mic,
+  GraduationCap,
   Scan,
   Zap,
   Sparkles,
@@ -349,31 +350,72 @@ function Features({ dict }: { dict: Dictionary }) {
 /*  UseCases (inline, dict-driven with fallbacks)                             */
 /* -------------------------------------------------------------------------- */
 
-function UseCasesSection({ dict }: { dict: Dictionary }) {
-  const useCases = [
+function UseCasesSection({ dict, lang }: { dict: Dictionary; lang: Locale }) {
+  const cards = [
     {
-      icon: "\u{1F3AC}",
-      title: d(dict, "useCases.youtube", "YouTube & Content Creators"),
-      description: d(dict, "useCases.youtubeDesc", "Reach global audiences by dubbing your videos into 30+ languages. Grow subscribers and revenue without re-shooting content."),
-      badge: d(dict, "useCases.youtubeBadge", "10x audience reach"),
+      key: "youtube",
+      icon: (
+        <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none">
+          <rect x="2" y="4" width="20" height="16" rx="4" fill="#FF0000" />
+          <path d="M10 8.5v7l6-3.5-6-3.5z" fill="white" />
+        </svg>
+      ),
+      link: `/${lang}/platforms/youtube`,
     },
     {
-      icon: "\u{1F393}",
-      title: d(dict, "useCases.elearning", "E-Learning & Online Courses"),
-      description: d(dict, "useCases.elearningDesc", "Make courses accessible worldwide. Dub lectures, tutorials, and training videos while keeping instructor voice and personality."),
-      badge: d(dict, "useCases.elearningBadge", "Udemy, Coursera, LMS"),
+      key: "tiktok",
+      icon: (
+        <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none">
+          <path
+            d="M19 7.5V2h-3.5c0 3-2 4.5-4.5 5v6.5c0 2.5-2 4.5-4.5 4.5S2 16 2 13.5 4 9 6.5 9c.5 0 1 .1 1.5.2V12c-.5-.1-1-.2-1.5-.2C5.1 11.8 4 12.5 4 13.5S5.1 15.2 6.5 15.2 9 14 9 13V2h4c0 0 0 3.5 3 5 .7.3 1.5.5 2.5.5h.5z"
+            fill="currentColor"
+          />
+        </svg>
+      ),
+      link: `/${lang}/platforms/tiktok`,
     },
     {
-      icon: "\u{1F4C8}",
-      title: d(dict, "useCases.marketing", "Marketing & Product Teams"),
-      description: d(dict, "useCases.marketingDesc", "Localize product demos, ads, and onboarding videos for every market. Launch campaigns in 30+ languages simultaneously."),
-      badge: d(dict, "useCases.marketingBadge", "15 markets, 1 video"),
+      key: "instagram",
+      icon: (
+        <svg viewBox="0 0 24 24" className="h-8 w-8">
+          <defs>
+            <linearGradient id="ig-loc" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0%" stopColor="#FFDC80" />
+              <stop offset="25%" stopColor="#F77737" />
+              <stop offset="50%" stopColor="#E1306C" />
+              <stop offset="75%" stopColor="#C13584" />
+              <stop offset="100%" stopColor="#5851DB" />
+            </linearGradient>
+          </defs>
+          <rect x="2" y="2" width="20" height="20" rx="5" stroke="url(#ig-loc)" strokeWidth="2" fill="none" />
+          <circle cx="12" cy="12" r="4.5" stroke="url(#ig-loc)" strokeWidth="2" fill="none" />
+          <circle cx="17.5" cy="6.5" r="1.2" fill="url(#ig-loc)" />
+        </svg>
+      ),
+      link: `/${lang}/platforms/instagram`,
     },
     {
-      icon: "\u{1F399}\uFE0F",
-      title: d(dict, "useCases.podcasts", "Podcasts & Media"),
-      description: d(dict, "useCases.podcastsDesc", "Expand your podcast to new language markets. AI preserves your voice, tone, and delivery in every language."),
-      badge: d(dict, "useCases.podcastsBadge", "Same voice, new language"),
+      key: "facebook",
+      icon: (
+        <svg viewBox="0 0 24 24" className="h-8 w-8">
+          <circle cx="12" cy="12" r="10" fill="#1877F2" />
+          <path
+            d="M15.5 8H14c-1.1 0-1.5.7-1.5 1.5V11h3l-.5 3h-2.5v7h-3v-7H8v-3h1.5V9c0-2.2 1.3-3.5 3.5-3.5h2.5v2.5z"
+            fill="white"
+          />
+        </svg>
+      ),
+      link: `/${lang}/platforms/facebook`,
+    },
+    {
+      key: "elearning",
+      icon: <GraduationCap className="h-8 w-8 text-white" />,
+      link: `/${lang}/platforms/elearning`,
+    },
+    {
+      key: "podcasts",
+      icon: <Mic className="h-8 w-8 text-white" />,
+      link: `/${lang}/platforms/podcasts`,
     },
   ];
 
@@ -388,17 +430,32 @@ function UseCasesSection({ dict }: { dict: Dictionary }) {
             {d(dict, "useCases.subtitle", "See how teams like yours use DubSync")}
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {useCases.map((uc) => (
-            <div key={uc.title} className="rounded-2xl border border-white/10 bg-slate-800/40 p-6">
-              <span className="text-[40px] leading-none" role="img" aria-label={uc.title}>
-                {uc.icon}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {cards.map((card) => (
+            <div
+              key={card.key}
+              className="group rounded-2xl border border-white/10 bg-slate-800/40 p-6 transition-colors hover:border-white/20 hover:bg-slate-800/60"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5">
+                {card.icon}
+              </div>
+              <h3 className="mt-4 text-lg font-semibold text-white">
+                {d(dict, `useCases.${card.key}`, card.key)}
+              </h3>
+              <p className="mt-2 text-sm text-slate-400">
+                {d(dict, `useCases.${card.key}Desc`, "")}
+              </p>
+              <span className="mt-4 inline-block rounded-md border border-pink-500/30 bg-pink-500/10 px-2 py-0.5 text-xs text-pink-400">
+                {d(dict, `useCases.${card.key}Tag`, "")}
               </span>
-              <h3 className="mt-4 text-lg font-semibold text-white">{uc.title}</h3>
-              <p className="mt-2 text-sm text-slate-400 line-clamp-2">{uc.description}</p>
-              <span className="mt-4 inline-block rounded-md border border-pink-500/30 bg-pink-500/10 px-2.5 py-1 text-xs text-pink-400">
-                {uc.badge}
-              </span>
+              <div className="mt-4">
+                <Link
+                  href={card.link}
+                  className="text-sm text-pink-400 hover:text-pink-300 transition-colors"
+                >
+                  {d(dict, "useCases.learnMore", "Learn more \u2192")}
+                </Link>
+              </div>
             </div>
           ))}
         </div>
@@ -1551,7 +1608,7 @@ export function LocalizedLanding({ dict, lang }: { dict: Dictionary; lang: Local
         <LocalizedDemoSection dict={dict} />
         <LocalizedExamples dict={dict} />
         <Features dict={dict} />
-        <UseCasesSection dict={dict} />
+        <UseCasesSection dict={dict} lang={lang} />
         <RoiCalculatorSection dict={dict} />
         <LocalizedComparisonBlock dict={dict} />
         <LocalizedTestimonials dict={dict} />
