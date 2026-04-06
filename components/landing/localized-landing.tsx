@@ -28,7 +28,6 @@ import type { Locale } from "@/lib/i18n/dictionaries";
 import { LanguageSwitcher } from "./language-switcher";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { PlanType } from "@/lib/supabase/types";
-import { LogoBar } from "./logo-bar";
 import Image from "next/image";
 
 /* -------------------------------------------------------------------------- */
@@ -242,10 +241,36 @@ function Hero({ dict }: { dict: Dictionary }) {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  LogoBar — uses the shared LogoBar component from logo-bar.tsx             */
+/*  LogoBar (inline, dict-driven)                                             */
 /* -------------------------------------------------------------------------- */
 
-/* LogoBar is imported from "./logo-bar" at the top of this file. */
+const LOGOS = [
+  "YouTube", "Udemy", "Coursera", "Shopify", "HubSpot",
+  "Notion", "Linear", "Vercel", "Product Hunt", "TechCrunch",
+  "Canva", "Loom",
+];
+
+function LocalizedLogoBar({ dict }: { dict: Dictionary }) {
+  return (
+    <section className="border-y border-white/5 py-12">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <p className="text-center text-sm text-zinc-500 mb-8">
+          {d(dict, "logoBar.trusted", "Used by teams at")}
+        </p>
+        <div className="flex items-center justify-center gap-x-6 sm:gap-x-10 gap-y-4 flex-wrap">
+          {LOGOS.map((name) => (
+            <div
+              key={name}
+              className="text-zinc-600 font-semibold text-base tracking-tight hover:text-zinc-400 transition-colors"
+            >
+              {name}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 /* -------------------------------------------------------------------------- */
 /*  HowItWorks                                                               */
@@ -400,13 +425,13 @@ function RoiCalculatorSection({ dict }: { dict: Dictionary }) {
     },
     {
       metric: d(dict, "roi.simultaneous", "Simultaneous languages"),
-      traditional: d(dict, "roi.traditionalSimultaneousValue", "1"),
-      dubsync: d(dict, "roi.dubsyncSimultaneousValue", "30+"),
+      traditional: d(dict, "roi.traditionalLangsValue", "1"),
+      dubsync: d(dict, "roi.dubsyncLangsValue", "30+"),
     },
     {
       metric: d(dict, "roi.voiceActors", "Voice actors needed"),
-      traditional: d(dict, "roi.traditionalVoiceActorsValue", "Yes"),
-      dubsync: d(dict, "roi.dubsyncVoiceActorsValue", "No \u2014 AI voice cloning"),
+      traditional: d(dict, "roi.traditionalActorsValue", "Yes"),
+      dubsync: d(dict, "roi.dubsyncActorsValue", "No \u2014 AI voice cloning"),
     },
     {
       metric: d(dict, "roi.lipSync", "Lip sync"),
@@ -415,8 +440,8 @@ function RoiCalculatorSection({ dict }: { dict: Dictionary }) {
     },
     {
       metric: d(dict, "roi.totalCost", "10-min video \u00D7 5 languages"),
-      traditional: d(dict, "roi.traditionalTotalCostValue", "~$20,000"),
-      dubsync: d(dict, "roi.dubsyncTotalCostValue", "~$50"),
+      traditional: d(dict, "roi.traditionalTotalValue", "~$20,000"),
+      dubsync: d(dict, "roi.dubsyncTotalValue", "~$50"),
     },
   ];
 
@@ -479,6 +504,38 @@ function RoiCalculatorSection({ dict }: { dict: Dictionary }) {
 /*  Pricing                                                                   */
 /* -------------------------------------------------------------------------- */
 
+function translateFeature(feature: string, dict: Dictionary): string {
+  const featureMap: Record<string, string> = {
+    "1 video up to 15 sec/month": d(dict, "pricing.videoUpTo", feature),
+    "1 target language": d(dict, "pricing.targetLanguage", feature),
+    "720p output": d(dict, "pricing.output720", feature),
+    "1080p output": d(dict, "pricing.output1080", feature),
+    "4K output": d(dict, "pricing.output4k", feature),
+    "100MB max file size": d(dict, "pricing.maxFile100", feature),
+    "500MB max file size": d(dict, "pricing.maxFile500", feature),
+    "2GB max file size": d(dict, "pricing.maxFile2gb", feature),
+    "5GB max file size": d(dict, "pricing.maxFile5gb", feature),
+    "Voice cloning": d(dict, "pricing.voiceCloning", feature),
+    "Basic lip sync": d(dict, "pricing.basicLipSync", feature),
+    "Lip sync on all videos": d(dict, "pricing.lipSyncAll", feature),
+    "Email support": d(dict, "pricing.emailSupport", feature),
+    "API access": d(dict, "pricing.apiAccess", feature),
+    "Priority processing": d(dict, "pricing.priorityProcessing", feature),
+    "Custom voice profiles": d(dict, "pricing.customVoices", feature),
+    "Dedicated support": d(dict, "pricing.dedicatedSupport", feature),
+    "Unlimited projects": d(dict, "pricing.unlimitedProjects", feature),
+  };
+  // Handle "N credits/month" pattern
+  const creditsMatch = feature.match(/^(\d+) credits\/month$/);
+  if (creditsMatch) return `${creditsMatch[1]} ${d(dict, "pricing.creditsMonth", "credits/month")}`;
+  // Handle "Up to N languages" pattern
+  const langsMatch = feature.match(/^Up to (\d+) languages$/);
+  if (langsMatch) return d(dict, "pricing.upToLangs", feature).replace("{n}", langsMatch[1]);
+  // Handle "All 30+ languages"
+  if (feature === "All 30+ languages") return d(dict, "pricing.allLangs", feature);
+  return featureMap[feature] || feature;
+}
+
 function Pricing({ dict }: { dict: Dictionary }) {
   const plans: { key: PlanType; popular?: boolean }[] = [
     { key: "free" },
@@ -514,15 +571,12 @@ function Pricing({ dict }: { dict: Dictionary }) {
                   {plan.price > 0 && <span className="text-slate-500 ml-1">{dict.pricing.perMonth}</span>}
                 </div>
                 <ul className="space-y-3 mt-6 flex-1">
-                  {plan.features.map((f, fi) => {
-                    const translatedFeature = d(dict, `pricing.${key}Feature${fi + 1}`, f);
-                    return (
-                      <li key={fi} className="flex items-start gap-2 text-sm">
-                        <Check className="h-4 w-4 text-pink-400 mt-0.5 shrink-0" />
-                        <span className="text-slate-300">{translatedFeature}</span>
-                      </li>
-                    );
-                  })}
+                  {plan.features.map((f, fi) => (
+                    <li key={fi} className="flex items-start gap-2 text-sm">
+                      <Check className="h-4 w-4 text-pink-400 mt-0.5 shrink-0" />
+                      <span className="text-slate-300">{translateFeature(f, dict)}</span>
+                    </li>
+                  ))}
                 </ul>
                 <Link
                   href="/signup"
@@ -536,6 +590,38 @@ function Pricing({ dict }: { dict: Dictionary }) {
               </div>
             );
           })}
+        </div>
+
+        {/* How credits work */}
+        <div className="mt-16 max-w-3xl mx-auto rounded-2xl border border-white/10 bg-slate-800/30 p-8">
+          <h3 className="text-xl font-bold text-white mb-4">
+            {d(dict, "pricing.howCreditsWork", "How credits work")}
+          </h3>
+          <p className="text-slate-400 text-sm mb-6">
+            {d(dict, "pricing.creditExplanation", "1 credit = 1 minute of dubbed video in 1 target language.")}
+          </p>
+          <div className="space-y-3 text-sm">
+            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+              <span className="text-slate-300">{d(dict, "pricing.creditExample1", "5 min video \u00D7 1 lang =")}</span>
+              <span className="font-semibold text-white">5 {d(dict, "pricing.credits", "credits")}</span>
+            </div>
+            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+              <span className="text-slate-300">{d(dict, "pricing.creditExample2", "5 min video \u00D7 3 langs =")}</span>
+              <span className="font-semibold text-white">15 {d(dict, "pricing.credits", "credits")}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-300">{d(dict, "pricing.creditExample3", "10 min video \u00D7 2 langs =")}</span>
+              <span className="font-semibold text-white">20 {d(dict, "pricing.credits", "credits")}</span>
+            </div>
+          </div>
+          <p className="mt-6 text-xs text-slate-500">
+            {d(dict, "pricing.creditNote", "Video duration rounds up to the nearest minute. Unused credits don\u2019t roll over.")}
+          </p>
+          <div className="mt-4">
+            <Link href="/compare" className="text-sm text-pink-400 hover:text-pink-300 font-medium">
+              {d(dict, "pricing.compareLink", "Compare with competitors \u2192")}
+            </Link>
+          </div>
         </div>
       </div>
     </section>
@@ -710,7 +796,7 @@ function LocalizedDemoSection({ dict }: { dict: Dictionary }) {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold">
-            {d(dict, "demo.title", "See it")} <span className="gradient-text">{d(dict, "demo.titleHighlight", "in action")}</span>
+            <span className="gradient-text">{d(dict, "demo.title", "See it in action")}</span>
           </h2>
           <p className="mt-4 text-zinc-400 text-lg">
             {d(dict, "demo.subtitle", "Three steps. That\u2019s all it takes to reach a global audience.")}
@@ -887,7 +973,7 @@ function LocalizedExamples({ dict }: { dict: Dictionary }) {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold">
-            {d(dict, "examples.title", "Real")} <span className="gradient-text">{d(dict, "examples.titleHighlight", "results")}</span>
+            <span className="gradient-text">{d(dict, "examples.title", "Real results")}</span>
           </h2>
           <p className="mt-4 text-zinc-400 text-lg">
             {d(dict, "examples.subtitle", "See how creators use DubSync to reach global audiences")}
@@ -1125,7 +1211,7 @@ function LocalizedTestimonials({ dict }: { dict: Dictionary }) {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold">
-            {d(dict, "testimonials.title", "Loved by")} <span className="gradient-text">{d(dict, "testimonials.titleHighlight", "creators")}</span>
+            <span className="gradient-text">{d(dict, "testimonials.title", "Loved by creators")}</span>
           </h2>
           <p className="mt-4 text-slate-400 text-lg">
             {d(dict, "testimonials.subtitle", "Join thousands of creators who are reaching global audiences")}
@@ -1207,34 +1293,34 @@ function LocalizedTestimonials({ dict }: { dict: Dictionary }) {
 function LocalizedComparisonBlock({ dict }: { dict: Dictionary }) {
   const ROWS = [
     {
-      feature: d(dict, "comparison.featureLipSyncMinutes", "Lip sync minutes from ~$20/mo"),
-      dubsync: { text: d(dict, "comparison.dubsyncLipSyncMinutes", "20 min"), color: "text-green-400" },
-      rask: { text: d(dict, "comparison.raskLipSyncMinutes", "\u2717 not available"), color: "text-red-400" },
-      heygen: { text: d(dict, "comparison.heygenLipSyncMinutes", "shared pool*"), color: "text-yellow-400" },
+      feature: d(dict, "comparison.lipSyncMinutes", "Lip sync minutes from ~$20/mo"),
+      dubsync: { text: "20 min", color: "text-green-400" },
+      rask: { text: d(dict, "comparison.notAvailable", "\u2717 not available"), color: "text-red-400" },
+      heygen: { text: d(dict, "comparison.sharedPool", "shared pool*"), color: "text-yellow-400" },
     },
     {
-      feature: d(dict, "comparison.featureLipSyncIncluded", "Lip sync included in every credit"),
-      dubsync: { text: d(dict, "comparison.dubsyncLipSyncIncluded", "always"), color: "text-green-400" },
-      rask: { text: d(dict, "comparison.raskLipSyncIncluded", "2x credit cost"), color: "text-red-400" },
-      heygen: { text: d(dict, "comparison.heygenLipSyncIncluded", "costs credits"), color: "text-yellow-400" },
+      feature: d(dict, "comparison.lipSyncIncluded", "Lip sync included in every credit"),
+      dubsync: { text: d(dict, "comparison.always", "always"), color: "text-green-400" },
+      rask: { text: d(dict, "comparison.twoXCost", "2x credit cost"), color: "text-red-400" },
+      heygen: { text: d(dict, "comparison.costsCredits", "costs credits"), color: "text-yellow-400" },
     },
     {
-      feature: d(dict, "comparison.featurePrice", "Price for lip sync access"),
-      dubsync: { text: d(dict, "comparison.dubsyncPrice", "$19.99/mo"), color: "text-green-400" },
-      rask: { text: d(dict, "comparison.raskPrice", "$120/mo"), color: "text-red-400" },
-      heygen: { text: d(dict, "comparison.heygenPrice", "$29/mo"), color: "text-yellow-400" },
+      feature: d(dict, "comparison.priceForAccess", "Price for lip sync access"),
+      dubsync: { text: "$19.99/mo", color: "text-green-400" },
+      rask: { text: "$120/mo", color: "text-red-400" },
+      heygen: { text: "$29/mo", color: "text-yellow-400" },
     },
     {
-      feature: d(dict, "comparison.featureHiddenSurcharges", "Hidden lip sync surcharges"),
-      dubsync: { text: d(dict, "comparison.dubsyncHiddenSurcharges", "none"), color: "text-green-400" },
-      rask: { text: d(dict, "comparison.raskHiddenSurcharges", "doubles usage"), color: "text-red-400" },
-      heygen: { text: d(dict, "comparison.heygenHiddenSurcharges", "shared pool"), color: "text-yellow-400" },
+      feature: d(dict, "comparison.hiddenSurcharges", "Hidden lip sync surcharges"),
+      dubsync: { text: d(dict, "comparison.none", "none"), color: "text-green-400" },
+      rask: { text: d(dict, "comparison.doublesUsage", "doubles usage"), color: "text-red-400" },
+      heygen: { text: d(dict, "comparison.sharedPool", "shared pool*"), color: "text-yellow-400" },
     },
     {
-      feature: d(dict, "comparison.featureWatermark", "Watermark on free plan"),
-      dubsync: { text: d(dict, "comparison.dubsyncWatermark", "\u2717 No watermark"), color: "text-green-400" },
-      rask: { text: d(dict, "comparison.raskWatermark", "\u2713 Watermark"), color: "text-red-400" },
-      heygen: { text: d(dict, "comparison.heygenWatermark", "\u2713 Watermark"), color: "text-red-400" },
+      feature: d(dict, "comparison.watermarkRow", "Watermark on free plan"),
+      dubsync: { text: "\u2717 " + d(dict, "comparison.noWatermark", "No watermark"), color: "text-green-400" },
+      rask: { text: "\u2713 " + d(dict, "comparison.watermark", "Watermark"), color: "text-red-400" },
+      heygen: { text: "\u2713 " + d(dict, "comparison.watermark", "Watermark"), color: "text-red-400" },
     },
   ];
 
@@ -1259,8 +1345,7 @@ function LocalizedComparisonBlock({ dict }: { dict: Dictionary }) {
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold">
-            {d(dict, "comparison.title", "Every credit includes lip sync.")}{" "}
-            <span className="gradient-text">{d(dict, "comparison.titleHighlight", "No hidden fees.")}</span>
+            {d(dict, "comparison.title", "Every credit includes lip sync. No hidden fees.")}
           </h2>
           <p className="mt-4 text-slate-400 text-lg max-w-2xl mx-auto">
             {d(dict, "comparison.subtitle", "See how DubSync compares to Rask AI and HeyGen for AI video dubbing with lip sync.")}
@@ -1276,7 +1361,7 @@ function LocalizedComparisonBlock({ dict }: { dict: Dictionary }) {
             <thead>
               <tr className="border-b border-white/10">
                 <th className="px-6 py-4 text-left text-slate-400 font-medium">
-                  {d(dict, "comparison.headerFeature", "Feature")}
+                  {d(dict, "comparison.feature", "Feature")}
                 </th>
                 <th className="px-6 py-4 text-center font-semibold text-white">
                   DubSync
@@ -1340,7 +1425,7 @@ function LocalizedComparisonBlock({ dict }: { dict: Dictionary }) {
             href="/compare"
             className="text-sm text-pink-400 hover:text-pink-300 font-medium"
           >
-            {d(dict, "comparison.cta", "See how we compare")} &rarr;
+            {d(dict, "comparison.seeFullComparison", "See how we compare \u2192")}
           </Link>
         </div>
       </div>
@@ -1425,7 +1510,23 @@ function Footer({ dict, lang }: { dict: Dictionary; lang: Locale }) {
             </div>
           ))}
         </div>
-        <div className="border-t border-white/5 pt-8">
+        {/* Trust badges */}
+        <div className="border-t border-white/5 pt-6 pb-4">
+          <div className="flex items-center justify-center gap-5 sm:gap-8 flex-wrap text-[11px] text-slate-500">
+            <span className="flex items-center gap-1">SSL Secured</span>
+            <span className="flex items-center gap-1">PCI DSS</span>
+            <span className="flex items-center gap-1">GDPR</span>
+            <span className="flex items-center gap-1">SOC 2</span>
+            <span className="flex items-center gap-1.5">
+              <span className="rounded bg-white/10 px-1 py-px text-[9px] font-bold text-blue-400">VISA</span>
+              <span className="rounded bg-white/10 px-1 py-px text-[9px] font-bold text-orange-400">MC</span>
+              <span className="rounded bg-white/10 px-1 py-px text-[9px] font-bold text-cyan-400">AMEX</span>
+              <span className="rounded bg-white/10 px-1 py-px text-[9px] font-bold text-blue-300">PayPal</span>
+            </span>
+          </div>
+        </div>
+
+        <div className="border-t border-white/5 pt-6">
           <p className="text-xs text-zinc-600 text-center">
             &copy; {new Date().getFullYear()} {dict.footer.copyright}
           </p>
@@ -1445,7 +1546,7 @@ export function LocalizedLanding({ dict, lang }: { dict: Dictionary; lang: Local
       <Header dict={dict} lang={lang} />
       <main>
         <Hero dict={dict} />
-        <LogoBar />
+        <LocalizedLogoBar dict={dict} />
         <HowItWorks dict={dict} />
         <LocalizedDemoSection dict={dict} />
         <LocalizedExamples dict={dict} />
