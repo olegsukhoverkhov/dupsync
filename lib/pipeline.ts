@@ -63,7 +63,63 @@ async function transcribeWithRetry(
     }
   }
 
-  throw lastError || new Error("All transcription formats failed");
+  // Last resort: use GPT-4o audio input for transcription
+  // GPT-4o accepts any audio/video format via base64
+  console.log(`[TRANSCRIBE] All Whisper formats failed. Trying GPT-4o audio transcription...`);
+  try {
+    const base64Audio = buffer.toString("base64");
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-audio-preview",
+        messages: [
+          {
+            role: "system",
+            content: "You are a transcription assistant. Transcribe the audio accurately. Return ONLY a JSON array of segments: [{\"start\": 0.0, \"end\": 2.5, \"text\": \"Hello world\"}]. No other text."
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "input_audio",
+                input_audio: {
+                  data: base64Audio,
+                  format: originalExt === "mov" ? "mp4" : originalExt,
+                },
+              },
+              {
+                type: "text",
+                text: languageHint ? `Transcribe this audio. The language is ${languageHint}.` : "Transcribe this audio.",
+              },
+            ],
+          },
+        ],
+        max_tokens: 4096,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || "[]";
+      // Parse JSON from response
+      const jsonMatch = content.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        const segments = JSON.parse(jsonMatch[0]);
+        console.log(`[TRANSCRIBE] GPT-4o success: ${segments.length} segments`);
+        return { segments, language: languageHint || "en" };
+      }
+    }
+    const errText = await response.text().catch(() => "");
+    console.log(`[TRANSCRIBE] GPT-4o failed: ${response.status} ${errText.slice(0, 200)}`);
+  } catch (gptErr) {
+    console.log(`[TRANSCRIBE] GPT-4o exception: ${gptErr instanceof Error ? gptErr.message : String(gptErr)}`);
+  }
+
+  throw lastError || new Error("All transcription methods failed. Please try uploading as MP4 format.");
 }
 
 function log(dubId: string, msg: string) {
