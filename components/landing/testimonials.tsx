@@ -12,6 +12,7 @@ const TESTIMONIALS = [
     detail: "1.2M subscribers",
     avatar: "/avatars/1.jpg",
     gradient: "from-blue-500 to-cyan-500",
+    rating: 5,
   },
   {
     quote: "We used to spend $5,000 per language for professional dubbing. DubSync does it in minutes for a fraction of the cost. The lip sync is incredible — our students can't tell it's AI.",
@@ -20,6 +21,7 @@ const TESTIMONIALS = [
     detail: "EduTech Pro",
     avatar: "/avatars/2.jpg",
     gradient: "from-violet-500 to-pink-500",
+    rating: 4.5,
   },
   {
     quote: "Our product demos now reach 15 markets instead of 3. DubSync paid for itself in the first week. It's a no-brainer for any global marketing team.",
@@ -28,6 +30,7 @@ const TESTIMONIALS = [
     detail: "ScaleUp Agency",
     avatar: "/avatars/3.jpg",
     gradient: "from-amber-500 to-orange-500",
+    rating: 5,
   },
   {
     quote: "I run a cooking channel and needed my recipes in Japanese and Korean. DubSync nailed the tone — warm and conversational, not robotic. My Asian audience grew 400% in 3 months.",
@@ -36,6 +39,7 @@ const TESTIMONIALS = [
     detail: "850K subscribers",
     avatar: "/avatars/4.jpg",
     gradient: "from-green-500 to-emerald-500",
+    rating: 4,
   },
   {
     quote: "As a solo developer, I integrated DubSync's API into our LMS in one afternoon. Now every course we publish automatically gets dubbed into 6 languages. The documentation is clear and the API is rock solid.",
@@ -44,6 +48,7 @@ const TESTIMONIALS = [
     detail: "LearnFlow",
     avatar: "/avatars/5.jpg",
     gradient: "from-red-500 to-pink-500",
+    rating: 5,
   },
   {
     quote: "I was skeptical about AI dubbing until I tried DubSync. The voice cloning captured my energy and enthusiasm perfectly. My French and German versions sound like me, not a text-to-speech bot.",
@@ -52,6 +57,7 @@ const TESTIMONIALS = [
     detail: "The Global Show",
     avatar: "/avatars/6.jpg",
     gradient: "from-cyan-500 to-blue-500",
+    rating: 4.5,
   },
   {
     quote: "We localize corporate training videos for 12 countries. Before DubSync it took 3 weeks per language. Now it's done in a day. The quality is consistent and our compliance team approved it.",
@@ -60,6 +66,7 @@ const TESTIMONIALS = [
     detail: "Fortune 500 Company",
     avatar: "/avatars/7.jpg",
     gradient: "from-indigo-500 to-violet-500",
+    rating: 4.5,
   },
   {
     quote: "DubSync helped me turn my English fitness tutorials into a Spanish-language brand. The lip sync makes it look completely natural. My Latino audience engagement is through the roof.",
@@ -68,15 +75,32 @@ const TESTIMONIALS = [
     detail: "2.1M followers",
     avatar: "/avatars/8.jpg",
     gradient: "from-pink-500 to-rose-500",
+    rating: 5,
   },
 ];
 
-function Stars() {
+function Stars({ rating = 5 }: { rating?: number }) {
   return (
     <div className="flex gap-0.5">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-      ))}
+      {Array.from({ length: 5 }).map((_, i) => {
+        if (i < Math.floor(rating)) {
+          // Full star
+          return <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />;
+        }
+        if (i < rating) {
+          // Half star
+          return (
+            <div key={i} className="relative h-3.5 w-3.5">
+              <Star className="absolute h-3.5 w-3.5 text-amber-400/30" />
+              <div className="absolute overflow-hidden w-[50%] h-full">
+                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+              </div>
+            </div>
+          );
+        }
+        // Empty star
+        return <Star key={i} className="h-3.5 w-3.5 text-amber-400/30" />;
+      })}
     </div>
   );
 }
@@ -185,9 +209,18 @@ export function Testimonials() {
           <div className="mt-6 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-5 py-2.5">
             <TrustpilotIcon />
             <div className="flex gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className="h-4 w-4 fill-[#00B67A] text-[#00B67A]" />
-              ))}
+              {Array.from({ length: 5 }).map((_, i) => {
+                if (i < 4) return <Star key={i} className="h-4 w-4 fill-[#00B67A] text-[#00B67A]" />;
+                // 5th star: 80% filled for 4.8 rating
+                return (
+                  <div key={i} className="relative h-4 w-4">
+                    <Star className="absolute h-4 w-4 text-[#00B67A]/30" />
+                    <div className="absolute overflow-hidden w-[80%] h-full">
+                      <Star className="h-4 w-4 fill-[#00B67A] text-[#00B67A]" />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             <span className="text-sm text-white font-semibold">4.8/5</span>
             <span className="text-xs text-slate-400 hidden sm:inline">Rated on <span className="text-[#00B67A] font-medium">Trustpilot</span> &middot; 2,000+ reviews</span>
@@ -216,7 +249,7 @@ export function Testimonials() {
                 key={`${t.name}-${idx}`}
                 className="shrink-0 w-[300px] sm:w-[340px] rounded-2xl border border-white/10 bg-slate-800/40 p-5 hover:border-white/20 transition-all flex flex-col select-none"
               >
-                <Stars />
+                <Stars rating={t.rating} />
                 <p className="mt-3 text-slate-300 text-sm leading-relaxed flex-1">
                   &ldquo;{t.quote}&rdquo;
                 </p>
