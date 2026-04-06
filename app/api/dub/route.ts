@@ -1,4 +1,4 @@
-import { NextResponse, after } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { runDubbing } from "@/lib/pipeline";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
@@ -145,16 +145,15 @@ export async function POST(request: Request) {
     await supabase.from("credit_usage").insert(usageInserts);
   }
 
-  // Start dubbing pipelines after response is sent
-  after(async () => {
-    for (const dub of dubs || []) {
-      try {
-        await runDubbing(dub.id);
-      } catch (err) {
-        console.error(`Dubbing failed for ${dub.id}:`, err);
-      }
+  // Run dubbing synchronously — client polls for status
+  // after() was unreliable (timeout kills long-running lip sync)
+  for (const dub of dubs || []) {
+    try {
+      await runDubbing(dub.id);
+    } catch (err) {
+      console.error(`Dubbing failed for ${dub.id}:`, err);
     }
-  });
+  }
 
   return NextResponse.json(dubs, { status: 201 });
 }

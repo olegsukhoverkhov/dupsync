@@ -186,12 +186,13 @@ export async function runDubbing(dubId: string) {
 
     log(dubId, "Audio uploaded successfully");
 
+    // Save audio-only result first (user can download even if lip sync fails)
     await supabase
       .from("dubs")
-      .update({ progress: 80 })
+      .update({ progress: 80, dubbed_video_url: audioPath })
       .eq("id", dubId);
 
-    // Step 3: Lip sync via fal.ai (Vercel Pro = 300s timeout)
+    // Step 3: Lip sync via fal.ai
     await supabase
       .from("dubs")
       .update({ status: "lip_syncing", progress: 82 })
