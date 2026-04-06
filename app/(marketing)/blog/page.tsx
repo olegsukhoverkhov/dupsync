@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
-import { ALL_ARTICLES } from "@/components/blog/blog-post-layout";
-import { ArrowRight, Clock } from "lucide-react";
+import { SORTED_ARTICLES, formatArticleDate } from "@/components/blog/blog-post-layout";
+import { ArrowRight, Clock, Calendar } from "lucide-react";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 
 export const metadata: Metadata = {
@@ -28,7 +28,7 @@ export default function BlogPage() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {ALL_ARTICLES.map((article) => (
+            {SORTED_ARTICLES.map((article) => (
               <Link
                 key={article.slug}
                 href={`/blog/${article.slug}`}
@@ -44,10 +44,16 @@ export default function BlogPage() {
                   {article.excerpt}
                 </p>
                 <div className="mt-4 flex items-center justify-between">
-                  <span className="flex items-center gap-1 text-xs text-slate-600">
-                    <Clock className="h-3 w-3" />
-                    {article.readingTime}
-                  </span>
+                  <div className="flex items-center gap-3 text-xs text-slate-600">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {formatArticleDate(article.date)}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {article.readingTime}
+                    </span>
+                  </div>
                   <span className="text-xs text-pink-400 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     Read <ArrowRight className="h-3 w-3" />
                   </span>
