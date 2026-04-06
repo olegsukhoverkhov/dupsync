@@ -18,6 +18,7 @@ export const TRANSLATED_SLUGS: Record<string, string> = {
   "ai-dubbing-for-youtube": "ai-dubbing-for-youtube",
   "voice-cloning-video-translation": "voice-cloning-video-translation",
   "how-to-clone-voice-for-video": "how-to-clone-voice-for-video",
+  "ai-dubbing-pricing-comparison-2026": "ai-dubbing-pricing-comparison-2026",
 };
 
 type TranslationModule = { default: ArticleTranslation[] };
