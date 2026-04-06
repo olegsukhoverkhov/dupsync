@@ -2,7 +2,7 @@
 
 import { Star, ShieldCheck } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
 const TESTIMONIALS = [
   {
@@ -112,6 +112,42 @@ function TrustpilotIcon() {
 }
 
 export function Testimonials() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auto-scroll slowly
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const speed = 0.5; // pixels per frame
+    let animId: number;
+
+    function step() {
+      if (!el || isUserScrolling) {
+        animId = requestAnimationFrame(step);
+        return;
+      }
+      el.scrollLeft += speed;
+      // Loop: when scrolled past halfway (duplicate content), reset
+      if (el.scrollLeft >= el.scrollWidth / 2) {
+        el.scrollLeft = 0;
+      }
+      animId = requestAnimationFrame(step);
+    }
+
+    animId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animId);
+  }, [isUserScrolling]);
+
+  // Pause auto-scroll on user interaction, resume after 3s
+  const handleInteractionStart = useCallback(() => {
+    setIsUserScrolling(true);
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+    resumeTimer.current = setTimeout(() => setIsUserScrolling(false), 3000);
+  }, []);
+
   return (
     <section className="py-24 border-t border-white/5">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -135,18 +171,24 @@ export function Testimonials() {
           </div>
         </div>
 
-        {/* Auto-scrolling marquee */}
+        {/* Scrollable auto-moving carousel */}
         <div className="relative overflow-hidden">
           {/* Fade edges */}
-          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#0F172A] to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#0F172A] to-transparent z-10 pointer-events-none" />
+          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#0F172A] to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#0F172A] to-transparent z-10 pointer-events-none" />
 
-          <div className="flex gap-5 animate-marquee hover:[animation-play-state:paused]">
+          <div
+            ref={scrollRef}
+            className="flex gap-5 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing"
+            onMouseDown={handleInteractionStart}
+            onTouchStart={handleInteractionStart}
+            onWheel={handleInteractionStart}
+          >
             {/* Duplicate cards for seamless loop */}
             {[...TESTIMONIALS, ...TESTIMONIALS].map((t, idx) => (
               <div
                 key={`${t.name}-${idx}`}
-                className="shrink-0 w-[320px] sm:w-[350px] rounded-2xl border border-white/10 bg-slate-800/40 p-5 hover:border-white/20 transition-all flex flex-col"
+                className="shrink-0 w-[300px] sm:w-[340px] rounded-2xl border border-white/10 bg-slate-800/40 p-5 hover:border-white/20 transition-all flex flex-col select-none"
               >
                 <Stars />
                 <p className="mt-3 text-slate-300 text-sm leading-relaxed flex-1">
