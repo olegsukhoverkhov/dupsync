@@ -2,7 +2,7 @@
 
 import { Star, ShieldCheck } from "lucide-react";
 import Image from "next/image";
-import { useState, useRef } from "react";
+import { useState } from "react";
 
 const TESTIMONIALS = [
   {
@@ -111,8 +111,6 @@ function TrustpilotIcon() {
 }
 
 export function Testimonials() {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
   return (
     <section className="py-24 border-t border-white/5">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -136,17 +134,18 @@ export function Testimonials() {
           </div>
         </div>
 
-        {/* Horizontal scroll carousel */}
-        <div className="relative">
-          <div
-            ref={scrollRef}
-            className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            {TESTIMONIALS.map((t) => (
+        {/* Auto-scrolling marquee */}
+        <div className="relative overflow-hidden">
+          {/* Fade edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#0F172A] to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#0F172A] to-transparent z-10 pointer-events-none" />
+
+          <div className="flex gap-5 animate-marquee hover:[animation-play-state:paused]">
+            {/* Duplicate cards for seamless loop */}
+            {[...TESTIMONIALS, ...TESTIMONIALS].map((t, idx) => (
               <div
-                key={t.name}
-                className="snap-start shrink-0 w-[320px] sm:w-[360px] rounded-2xl border border-white/10 bg-slate-800/40 p-5 hover:border-white/20 transition-all flex flex-col"
+                key={`${t.name}-${idx}`}
+                className="shrink-0 w-[320px] sm:w-[350px] rounded-2xl border border-white/10 bg-slate-800/40 p-5 hover:border-white/20 transition-all flex flex-col"
               >
                 <Stars />
                 <p className="mt-3 text-slate-300 text-sm leading-relaxed flex-1">
@@ -160,24 +159,6 @@ export function Testimonials() {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Scroll indicators */}
-          <div className="flex justify-center gap-2 mt-4">
-            {TESTIMONIALS.map((t, i) => (
-              <button
-                key={t.name}
-                onClick={() => {
-                  scrollRef.current?.children[i]?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "nearest",
-                    inline: "center",
-                  });
-                }}
-                className="h-1.5 w-6 rounded-full bg-white/10 hover:bg-white/30 transition-colors cursor-pointer"
-                aria-label={`Go to testimonial ${i + 1}`}
-              />
             ))}
           </div>
         </div>
