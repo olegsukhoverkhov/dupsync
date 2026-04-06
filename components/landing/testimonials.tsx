@@ -1,29 +1,73 @@
+"use client";
+
 import { Star } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 
 const TESTIMONIALS = [
   {
-    quote: "DubSync doubled my international audience in two months. The voice cloning is so good that my Spanish viewers think I actually speak Spanish.",
-    name: "Alex Rivera",
+    quote: "DubSync doubled my international audience in two months. The voice cloning is so good that my Spanish viewers genuinely think I speak Spanish. Game changer for any creator going global.",
+    name: "Daniel Moretti",
     role: "YouTube Creator",
-    followers: "1.2M subscribers",
-    avatar: "AR",
+    detail: "1.2M subscribers",
+    avatar: "/avatars/1.jpg",
     gradient: "from-blue-500 to-cyan-500",
   },
   {
-    quote: "We used to spend $5,000 per language for professional dubbing. DubSync does it in minutes for a fraction of the cost. The lip sync is incredible.",
-    name: "Sarah Chen",
+    quote: "We used to spend $5,000 per language for professional dubbing. DubSync does it in minutes for a fraction of the cost. The lip sync is incredible — our students can't tell it's AI.",
+    name: "Tomáš Novák",
     role: "Head of Content",
-    followers: "EduTech Pro",
-    avatar: "SC",
+    detail: "EduTech Pro",
+    avatar: "/avatars/2.jpg",
     gradient: "from-violet-500 to-pink-500",
   },
   {
-    quote: "Our product demos now reach 15 markets instead of 3. DubSync paid for itself in the first week. It's a no-brainer for any global team.",
-    name: "Marcus Klein",
+    quote: "Our product demos now reach 15 markets instead of 3. DubSync paid for itself in the first week. It's a no-brainer for any global marketing team.",
+    name: "Marcus Johnson",
     role: "Marketing Director",
-    followers: "ScaleUp Agency",
-    avatar: "MK",
+    detail: "ScaleUp Agency",
+    avatar: "/avatars/3.jpg",
     gradient: "from-amber-500 to-orange-500",
+  },
+  {
+    quote: "I run a cooking channel and needed my recipes in Japanese and Korean. DubSync nailed the tone — warm and conversational, not robotic. My Asian audience grew 400% in 3 months.",
+    name: "Elena Petrova",
+    role: "Content Creator",
+    detail: "850K subscribers",
+    avatar: "/avatars/4.jpg",
+    gradient: "from-green-500 to-emerald-500",
+  },
+  {
+    quote: "As a solo developer, I integrated DubSync's API into our LMS in one afternoon. Now every course we publish automatically gets dubbed into 6 languages. The documentation is clear and the API is rock solid.",
+    name: "Mikael Lindström",
+    role: "CTO",
+    detail: "LearnFlow",
+    avatar: "/avatars/5.jpg",
+    gradient: "from-red-500 to-pink-500",
+  },
+  {
+    quote: "I was skeptical about AI dubbing until I tried DubSync. The voice cloning captured my energy and enthusiasm perfectly. My French and German versions sound like me, not a text-to-speech bot.",
+    name: "Sophia Andersson",
+    role: "Podcast Host",
+    detail: "The Global Show",
+    avatar: "/avatars/6.jpg",
+    gradient: "from-cyan-500 to-blue-500",
+  },
+  {
+    quote: "We localize corporate training videos for 12 countries. Before DubSync it took 3 weeks per language. Now it's done in a day. The quality is consistent and our compliance team approved it.",
+    name: "James O'Brien",
+    role: "L&D Manager",
+    detail: "Fortune 500 Company",
+    avatar: "/avatars/7.jpg",
+    gradient: "from-indigo-500 to-violet-500",
+  },
+  {
+    quote: "DubSync helped me turn my English fitness tutorials into a Spanish-language brand. The lip sync makes it look completely natural. My Latino audience engagement is through the roof.",
+    name: "Rachel Torres",
+    role: "Fitness Influencer",
+    detail: "2.1M followers",
+    avatar: "/avatars/8.jpg",
+    gradient: "from-pink-500 to-rose-500",
   },
 ];
 
@@ -37,6 +81,26 @@ function Stars() {
   );
 }
 
+function Avatar({ src, name, gradient }: { src: string; name: string; gradient: string }) {
+  const initials = name.split(" ").map((n) => n[0]).join("");
+  const [imgError, setImgError] = useState(false);
+  return (
+    <div className={`relative h-11 w-11 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-sm font-bold text-white shrink-0 overflow-hidden`}>
+      {!imgError && (
+        <Image
+          src={src}
+          alt={name}
+          width={44}
+          height={44}
+          className="absolute inset-0 w-full h-full object-cover rounded-full"
+          onError={() => setImgError(true)}
+        />
+      )}
+      <span className="relative z-0">{initials}</span>
+    </div>
+  );
+}
+
 export function Testimonials() {
   return (
     <section className="py-24 border-t border-white/5">
@@ -45,28 +109,36 @@ export function Testimonials() {
           <h2 className="text-3xl sm:text-4xl font-bold">
             Loved by <span className="gradient-text">creators</span>
           </h2>
-          <p className="mt-4 text-zinc-400 text-lg">
+          <p className="mt-4 text-slate-400 text-lg">
             Join thousands of creators who are reaching global audiences
           </p>
+          {/* Trustpilot rating */}
+          <div className="mt-6 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-5 py-2.5">
+            <div className="flex gap-0.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} className="h-4 w-4 fill-green-500 text-green-500" />
+              ))}
+            </div>
+            <span className="text-sm text-white font-semibold">4.8/5</span>
+            <span className="text-xs text-slate-400">Rated on Trustpilot &middot; 2,000+ reviews</span>
+          </div>
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {TESTIMONIALS.map((t) => (
             <div
               key={t.name}
-              className="rounded-2xl border border-white/10 bg-slate-800/40 p-6 hover:border-white/20 transition-all"
+              className="rounded-2xl border border-white/10 bg-slate-800/40 p-5 hover:border-white/20 transition-all flex flex-col"
             >
               <Stars />
-              <p className="mt-4 text-zinc-300 text-sm leading-relaxed">
+              <p className="mt-3 text-slate-300 text-sm leading-relaxed flex-1">
                 &ldquo;{t.quote}&rdquo;
               </p>
-              <div className="mt-6 flex items-center gap-3">
-                <div className={`h-10 w-10 rounded-full bg-gradient-to-br ${t.gradient} flex items-center justify-center text-sm font-bold text-white`}>
-                  {t.avatar}
-                </div>
+              <div className="mt-4 flex items-center gap-3 pt-4 border-t border-white/5">
+                <Avatar src={t.avatar} name={t.name} gradient={t.gradient} />
                 <div>
                   <p className="text-sm font-medium text-white">{t.name}</p>
-                  <p className="text-xs text-zinc-500">{t.role} &middot; {t.followers}</p>
+                  <p className="text-xs text-slate-500">{t.role} &middot; {t.detail}</p>
                 </div>
               </div>
             </div>

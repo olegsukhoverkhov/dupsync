@@ -41,19 +41,11 @@ export function Header() {
             <span className="text-lg font-bold text-white">DubSync</span>
           </Link>
 
-          <nav className="hidden sm:flex items-center gap-8">
-            <Link
-              href="#demo"
-              className="text-sm text-zinc-400 hover:text-white transition-colors"
-            >
-              Demo
-            </Link>
-            <Link
-              href="#pricing"
-              className="text-sm text-zinc-400 hover:text-white transition-colors"
-            >
-              Pricing
-            </Link>
+          <nav className="hidden sm:flex items-center gap-6">
+            <Link href="/features" className="text-sm text-zinc-400 hover:text-white transition-colors">Features</Link>
+            <Link href="#pricing" className="text-sm text-zinc-400 hover:text-white transition-colors">Pricing</Link>
+            <Link href="/blog" className="text-sm text-zinc-400 hover:text-white transition-colors">Blog</Link>
+            <Link href="/about" className="text-sm text-zinc-400 hover:text-white transition-colors">About</Link>
           </nav>
 
           {/* Desktop actions */}
@@ -90,20 +82,10 @@ export function Header() {
         {/* Mobile slide-down menu */}
         {mobileMenuOpen && (
           <div className="sm:hidden border-t border-white/5 py-4 space-y-1">
-            <Link
-              href="#demo"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block rounded-xl px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 transition-colors"
-            >
-              Demo
-            </Link>
-            <Link
-              href="#pricing"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block rounded-xl px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 transition-colors"
-            >
-              Pricing
-            </Link>
+            <Link href="/features" onClick={() => setMobileMenuOpen(false)} className="block rounded-xl px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 transition-colors">Features</Link>
+            <Link href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block rounded-xl px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 transition-colors">Pricing</Link>
+            <Link href="/blog" onClick={() => setMobileMenuOpen(false)} className="block rounded-xl px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 transition-colors">Blog</Link>
+            <Link href="/about" onClick={() => setMobileMenuOpen(false)} className="block rounded-xl px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 transition-colors">About</Link>
             <div className="px-4 py-3">
               <LanguageSwitcher current="en" />
             </div>

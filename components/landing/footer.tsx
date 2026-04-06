@@ -3,7 +3,7 @@ import { Languages } from "lucide-react";
 
 const LINKS = {
   Product: [
-    { label: "Features", href: "#demo" },
+    { label: "Features", href: "/features" },
     { label: "Pricing", href: "/pricing" },
     { label: "Changelog", href: "/changelog" },
   ],
