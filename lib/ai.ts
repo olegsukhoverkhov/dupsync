@@ -34,50 +34,87 @@ function getWhisperMimeType(filename: string): string {
   return mimeTypes[ext] || "video/mp4";
 }
 
-// Transcription via AssemblyAI (primary) — accepts ANY format including HEVC MOV
+// Transcription via AssemblyAI REST API — accepts ANY format including HEVC MOV
 export async function transcribeWithAssemblyAI(
   audioBuffer: Buffer,
   languageHint?: string
 ): Promise<{ segments: TranscriptSegment[]; language: string }> {
-  const { AssemblyAI } = await import("assemblyai");
-  const client = new AssemblyAI({ apiKey: process.env.ASSEMBLYAI_API_KEY! });
+  const apiKey = process.env.ASSEMBLYAI_API_KEY!;
 
+  // Step 1: Upload file
   console.log(`[ASSEMBLYAI] Uploading ${(audioBuffer.byteLength / 1024 / 1024).toFixed(2)}MB...`);
-
-  // Upload the file
-  const uploadUrl = await client.files.upload(audioBuffer);
-  console.log(`[ASSEMBLYAI] Uploaded: ${uploadUrl}`);
-
-  // Transcribe
-  const transcript = await client.transcripts.transcribe({
-    audio_url: uploadUrl,
-    language_code: languageHint && languageHint !== "auto" ? languageHint : undefined,
-    language_detection: !languageHint || languageHint === "auto",
+  const uploadRes = await fetch("https://api.assemblyai.com/v2/upload", {
+    method: "POST",
+    headers: {
+      Authorization: apiKey,
+      "Content-Type": "application/octet-stream",
+    },
+    body: new Uint8Array(audioBuffer),
   });
 
-  if (transcript.status === "error") {
-    throw new Error(`AssemblyAI error: ${transcript.error}`);
+  if (!uploadRes.ok) {
+    const err = await uploadRes.text().catch(() => "");
+    throw new Error(`AssemblyAI upload failed: ${uploadRes.status} ${err.slice(0, 200)}`);
   }
 
-  const segments: TranscriptSegment[] = (transcript.words || []).reduce((acc: TranscriptSegment[], word) => {
-    // Group words into segments by sentence boundaries or 5-second chunks
-    const lastSeg = acc[acc.length - 1];
-    const wordStart = (word.start || 0) / 1000;
-    const wordEnd = (word.end || 0) / 1000;
+  const { upload_url } = await uploadRes.json();
+  console.log(`[ASSEMBLYAI] Uploaded: ${upload_url}`);
 
-    if (!lastSeg || wordStart - lastSeg.end > 1.0 || wordEnd - lastSeg.start > 5.0) {
-      acc.push({ start: wordStart, end: wordEnd, text: word.text || "" });
-    } else {
-      lastSeg.end = wordEnd;
-      lastSeg.text += " " + (word.text || "");
+  // Step 2: Start transcription
+  const transcriptRes = await fetch("https://api.assemblyai.com/v2/transcript", {
+    method: "POST",
+    headers: {
+      Authorization: apiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      audio_url: upload_url,
+      language_code: languageHint && languageHint !== "auto" ? languageHint : undefined,
+      language_detection: !languageHint || languageHint === "auto",
+    }),
+  });
+
+  if (!transcriptRes.ok) throw new Error(`AssemblyAI create failed: ${transcriptRes.status}`);
+  const { id: transcriptId } = await transcriptRes.json();
+
+  // Step 3: Poll for completion
+  console.log(`[ASSEMBLYAI] Polling transcript ${transcriptId}...`);
+  for (let i = 0; i < 60; i++) {
+    await new Promise((r) => setTimeout(r, 3000));
+    const pollRes = await fetch(`https://api.assemblyai.com/v2/transcript/${transcriptId}`, {
+      headers: { Authorization: apiKey },
+    });
+    const data = await pollRes.json();
+
+    if (data.status === "completed") {
+      const segments: TranscriptSegment[] = (data.words || []).reduce(
+        (acc: TranscriptSegment[], word: { start: number; end: number; text: string }) => {
+          const lastSeg = acc[acc.length - 1];
+          const wStart = (word.start || 0) / 1000;
+          const wEnd = (word.end || 0) / 1000;
+
+          if (!lastSeg || wStart - lastSeg.end > 1.0 || wEnd - lastSeg.start > 5.0) {
+            acc.push({ start: wStart, end: wEnd, text: word.text || "" });
+          } else {
+            lastSeg.end = wEnd;
+            lastSeg.text += " " + (word.text || "");
+          }
+          return acc;
+        },
+        []
+      );
+
+      const lang = data.language_code || languageHint || "en";
+      console.log(`[ASSEMBLYAI] Done: ${segments.length} segments, lang=${lang}`);
+      return { segments, language: lang };
     }
-    return acc;
-  }, []);
 
-  const detectedLang = transcript.language_code || languageHint || "en";
-  console.log(`[ASSEMBLYAI] Done: ${segments.length} segments, lang=${detectedLang}`);
+    if (data.status === "error") {
+      throw new Error(`AssemblyAI error: ${data.error}`);
+    }
+  }
 
-  return { segments, language: detectedLang };
+  throw new Error("AssemblyAI transcription timed out");
 }
 
 // Transcription: Whisper (primary) → AssemblyAI (fallback for unsupported formats)
