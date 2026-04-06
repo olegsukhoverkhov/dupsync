@@ -6,68 +6,42 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { createClient } from "@/lib/supabase/client";
 
-// Extract audio track from video using Web Audio API
-// Fails gracefully on mobile/unsupported browsers
+// Extract audio from video using FFmpeg WASM (works with ALL formats including iPhone MOV/HEVC)
 async function extractAudioFromVideo(videoFile: globalThis.File): Promise<Blob> {
-  // Check if AudioContext is available (not on all mobile browsers)
-  if (typeof AudioContext === "undefined" && typeof (window as unknown as Record<string, unknown>).webkitAudioContext === "undefined") {
-    throw new Error("AudioContext not supported");
-  }
+  const { FFmpeg } = await import("@ffmpeg/ffmpeg");
+  const { fetchFile } = await import("@ffmpeg/util");
 
-  // Don't try on files > 50MB (mobile memory limits)
-  if (videoFile.size > 50 * 1024 * 1024) {
-    throw new Error("File too large for audio extraction");
-  }
+  const ffmpeg = new FFmpeg();
 
-  const AC = AudioContext || (window as unknown as Record<string, { new(opts?: { sampleRate: number }): AudioContext }>).webkitAudioContext;
-  const audioContext = new AC({ sampleRate: 16000 });
+  console.log("[FFMPEG] Loading FFmpeg WASM...");
+  await ffmpeg.load({
+    coreURL: "https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js",
+    wasmURL: "https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm",
+  });
 
-  try {
-    const arrayBuffer = await videoFile.arrayBuffer();
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+  const ext = videoFile.name.split(".").pop()?.toLowerCase() || "mp4";
+  const inputName = `input.${ext}`;
 
-    const duration = Math.min(audioBuffer.duration, 30);
-    const sampleRate = audioBuffer.sampleRate;
-    const numFrames = Math.floor(duration * sampleRate);
-    const channelData = audioBuffer.getChannelData(0);
-    const samples = channelData.slice(0, numFrames);
+  console.log(`[FFMPEG] Converting ${videoFile.name} (${(videoFile.size / 1024 / 1024).toFixed(1)}MB) to WAV...`);
+  await ffmpeg.writeFile(inputName, await fetchFile(videoFile));
 
-    const wavBuffer = encodeWav(samples, sampleRate);
-    return new Blob([wavBuffer], { type: "audio/wav" });
-  } finally {
-    audioContext.close();
-  }
-}
+  // Extract first 30 seconds of audio as 16kHz mono WAV
+  await ffmpeg.exec([
+    "-i", inputName,
+    "-vn",             // no video
+    "-ar", "16000",    // 16kHz sample rate
+    "-ac", "1",        // mono
+    "-t", "30",        // max 30 seconds
+    "-f", "wav",
+    "output.wav",
+  ]);
 
-function encodeWav(samples: Float32Array, sampleRate: number): ArrayBuffer {
-  const buffer = new ArrayBuffer(44 + samples.length * 2);
-  const view = new DataView(buffer);
+  const data = await ffmpeg.readFile("output.wav") as Uint8Array;
+  ffmpeg.terminate();
 
-  // WAV header
-  const writeString = (offset: number, str: string) => {
-    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
-  };
-  writeString(0, "RIFF");
-  view.setUint32(4, 36 + samples.length * 2, true);
-  writeString(8, "WAVE");
-  writeString(12, "fmt ");
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true); // PCM
-  view.setUint16(22, 1, true); // mono
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * 2, true);
-  view.setUint16(32, 2, true);
-  view.setUint16(34, 16, true);
-  writeString(36, "data");
-  view.setUint32(40, samples.length * 2, true);
-
-  // PCM data
-  for (let i = 0; i < samples.length; i++) {
-    const s = Math.max(-1, Math.min(1, samples[i]));
-    view.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true);
-  }
-
-  return buffer;
+  console.log(`[FFMPEG] Extracted WAV: ${data.length} bytes`);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return new Blob([data as any], { type: "audio/wav" });
 }
 
 interface VideoUploadProps {
