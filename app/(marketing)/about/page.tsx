@@ -22,7 +22,7 @@ export default function AboutPage() {
       <Header />
       <main className="pt-24 pb-16">
         <div className="mx-auto max-w-4xl px-6 lg:px-8">
-          <h1 className="text-4xl font-bold mb-6">About DubSync</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-6">About DubSync</h1>
 
           <section className="mb-12">
             <h2 className="text-2xl font-semibold mb-4">Our Mission</h2>

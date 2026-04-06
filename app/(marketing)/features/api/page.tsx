@@ -240,7 +240,7 @@ export default function ApiPage() {
           <h2 className="text-3xl sm:text-4xl font-bold text-center mb-8">
             Technical <span className="gradient-text">specs</span>
           </h2>
-          <div className="rounded-2xl border border-white/10 overflow-hidden">
+          <div className="rounded-2xl border border-white/10 overflow-x-auto">
             <table className="w-full text-sm">
               <tbody>
                 {TECH_SPECS.map((spec, i) => (

@@ -268,7 +268,7 @@ export default function FeaturesPage() {
           <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12">
             How <span className="gradient-text">DubSync</span> works
           </h2>
-          <div className="grid gap-8 sm:grid-cols-3">
+          <div className="grid gap-8 md:grid-cols-3">
             {STEPS.map((step) => (
               <div key={step.number} className="text-center">
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-500/20 to-blue-600/20">

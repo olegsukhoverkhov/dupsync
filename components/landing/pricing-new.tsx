@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, ArrowRight } from "lucide-react";
+import { Check, ArrowRight, HelpCircle } from "lucide-react";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { PlanType } from "@/lib/supabase/types";
 
@@ -23,7 +23,7 @@ export function PricingNew() {
           <h2 className="text-3xl sm:text-4xl font-bold">
             Simple, <span className="gradient-text">transparent</span> pricing
           </h2>
-          <p className="mt-4 text-zinc-400 text-lg">
+          <p className="mt-4 text-slate-400 text-lg">
             Start free. Scale as you grow. No hidden fees.
           </p>
 
@@ -31,7 +31,7 @@ export function PricingNew() {
           <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 p-1">
             <button
               onClick={() => setAnnual(false)}
-              className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
+              className={`rounded-full px-5 py-2 text-sm font-medium transition-all cursor-pointer ${
                 !annual ? "bg-white text-black" : "text-zinc-400 hover:text-white"
               }`}
             >
@@ -39,7 +39,7 @@ export function PricingNew() {
             </button>
             <button
               onClick={() => setAnnual(true)}
-              className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
+              className={`rounded-full px-5 py-2 text-sm font-medium transition-all cursor-pointer ${
                 annual ? "bg-white text-black" : "text-zinc-400 hover:text-white"
               }`}
             >
@@ -51,9 +51,9 @@ export function PricingNew() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {PLANS.map(({ key, popular }) => {
             const plan = PLAN_LIMITS[key];
-            const price = annual
-              ? Math.round(plan.price * 0.8 / 100)
-              : plan.price / 100;
+            const priceRaw = annual ? plan.priceAnnual : plan.price;
+            const price = (priceRaw / 100).toFixed(2);
+            const showDecimal = priceRaw > 0;
 
             return (
               <div
@@ -73,18 +73,25 @@ export function PricingNew() {
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-white">{plan.name}</h3>
                   <div className="mt-2">
-                    <span className="text-4xl font-bold text-white">${price}</span>
-                    {plan.price > 0 && (
-                      <span className="text-zinc-500 ml-1">/month</span>
+                    <span className="text-4xl font-bold text-white">
+                      ${showDecimal ? price : "0"}
+                    </span>
+                    {priceRaw > 0 && (
+                      <span className="text-slate-500 ml-1">/month</span>
                     )}
                   </div>
+                  {annual && priceRaw > 0 && (
+                    <p className="text-xs text-green-400 mt-1">
+                      Billed ${((priceRaw / 100) * 12).toFixed(2)}/year
+                    </p>
+                  )}
                 </div>
 
                 <ul className="space-y-3 flex-1">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2 text-sm">
                       <Check className="h-4 w-4 text-pink-400 mt-0.5 shrink-0" />
-                      <span className="text-zinc-300">{feature}</span>
+                      <span className="text-slate-300">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -103,6 +110,40 @@ export function PricingNew() {
               </div>
             );
           })}
+        </div>
+
+        {/* Credit system explanation */}
+        <div className="mt-12 max-w-2xl mx-auto">
+          <div className="rounded-2xl border border-white/10 bg-slate-800/30 p-6">
+            <div className="flex items-center gap-2 mb-3">
+              <HelpCircle className="h-4 w-4 text-pink-400" />
+              <h3 className="text-sm font-semibold text-white">How credits work</h3>
+            </div>
+            <p className="text-sm text-slate-400 mb-3">
+              1 credit = 1 minute of dubbed video in 1 target language.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-500">
+              <div className="rounded-lg bg-white/5 px-3 py-2">
+                5 min video × 1 lang = <span className="text-white font-medium">5 credits</span>
+              </div>
+              <div className="rounded-lg bg-white/5 px-3 py-2">
+                5 min video × 3 langs = <span className="text-white font-medium">15 credits</span>
+              </div>
+              <div className="rounded-lg bg-white/5 px-3 py-2">
+                10 min video × 2 langs = <span className="text-white font-medium">20 credits</span>
+              </div>
+            </div>
+            <p className="text-xs text-slate-600 mt-3">
+              Video duration rounds up to the nearest minute. Unused credits don&apos;t roll over.
+            </p>
+          </div>
+        </div>
+
+        {/* Compare link */}
+        <div className="text-center mt-8">
+          <Link href="/compare" className="text-sm text-pink-400 hover:text-pink-300 font-medium">
+            Compare with competitors →
+          </Link>
         </div>
       </div>
     </section>

@@ -81,9 +81,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
-  // 1 second of video = 5 credits per language
+  // 1 credit = 1 minute of dubbed video in 1 language
   const durationSec = project.duration_seconds || 0;
-  const requiredCredits = durationSec * 5 * languages.length;
+  const durationMin = Math.ceil(durationSec / 60);
+  const requiredCredits = durationMin * languages.length;
 
   if (
     planLimits.credits !== -1 &&
@@ -138,7 +139,7 @@ export async function POST(request: Request) {
       project_id: projectId,
       project_title: projData?.title || "Untitled",
       dub_language: lang,
-      credits_used: durationSec * 5,
+      credits_used: durationMin,
       video_seconds: durationSec,
     }));
 

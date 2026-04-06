@@ -43,7 +43,7 @@ export default function PricingPage() {
       <Header />
       <main className="pt-24 pb-16">
         <div className="mx-auto max-w-4xl px-6 lg:px-8 text-center mb-8">
-          <h1 className="text-4xl font-bold">
+          <h1 className="text-3xl sm:text-4xl font-bold">
             DubSync Pricing — AI Video Dubbing Plans for Every Creator
           </h1>
           <p className="mt-4 text-zinc-400 text-lg max-w-2xl mx-auto">

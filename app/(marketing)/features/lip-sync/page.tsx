@@ -192,7 +192,7 @@ export default function LipSyncPage() {
           <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12">
             How lip sync <span className="gradient-text">works</span>
           </h2>
-          <div className="grid gap-8 sm:grid-cols-3">
+          <div className="grid gap-8 md:grid-cols-3">
             {STEPS.map((step) => (
               <div
                 key={step.number}
@@ -224,7 +224,7 @@ export default function LipSyncPage() {
             Audio-only dubbing leaves a gap between what viewers hear and what
             they see. Lip sync closes that gap completely.
           </p>
-          <div className="grid gap-6 sm:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-3">
             {REASONS.map((reason) => (
               <div
                 key={reason.title}

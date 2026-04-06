@@ -247,7 +247,7 @@ export function Testimonials() {
             {[...TESTIMONIALS, ...TESTIMONIALS].map((t, idx) => (
               <div
                 key={`${t.name}-${idx}`}
-                className="shrink-0 w-[300px] sm:w-[340px] rounded-2xl border border-white/10 bg-slate-800/40 p-5 hover:border-white/20 transition-all flex flex-col select-none"
+                className="shrink-0 w-[280px] sm:w-[340px] rounded-2xl border border-white/10 bg-slate-800/40 p-5 hover:border-white/20 transition-all flex flex-col select-none"
               >
                 <Stars rating={t.rating} />
                 <p className="mt-3 text-slate-300 text-sm leading-relaxed flex-1">

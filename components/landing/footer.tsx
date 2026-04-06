@@ -5,6 +5,7 @@ const LINKS = {
   Product: [
     { label: "Features", href: "/features" },
     { label: "Pricing", href: "/pricing" },
+    { label: "Compare", href: "/compare" },
     { label: "Changelog", href: "/changelog" },
   ],
   Company: [
@@ -25,9 +26,9 @@ export function Footer() {
   return (
     <footer className="border-t border-white/5 pt-16 pb-8">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-8 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
           {/* Brand */}
-          <div className="col-span-2 sm:col-span-1">
+          <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-pink-500 to-blue-600 flex items-center justify-center">
                 <Languages className="h-4 w-4 text-white" />

@@ -9,7 +9,7 @@ export function FinalCta() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[128px]" />
 
       <div className="mx-auto max-w-3xl px-6 lg:px-8 text-center relative">
-        <h2 className="text-4xl sm:text-5xl font-bold">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
           Ready to go{" "}
           <span className="gradient-text">global</span>?
         </h2>
@@ -20,14 +20,14 @@ export function FinalCta() {
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href="/signup"
-            className="gradient-button inline-flex items-center justify-center gap-2 rounded-xl px-10 py-4 text-lg font-semibold"
+            className="gradient-button inline-flex items-center justify-center gap-2 rounded-xl px-10 py-4 text-lg font-semibold w-full sm:w-auto"
           >
             Start Dubbing Free
             <ArrowRight className="h-5 w-5" />
           </Link>
         </div>
         <p className="mt-4 text-sm text-zinc-600">
-          No credit card required &middot; 5 free minutes &middot; Cancel anytime
+          No credit card required &middot; 1 free video &middot; Cancel anytime
         </p>
       </div>
     </section>

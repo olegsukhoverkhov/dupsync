@@ -226,7 +226,7 @@ export default function VoiceCloningPage() {
           <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12">
             Key <span className="gradient-text">capabilities</span>
           </h2>
-          <div className="grid gap-6 sm:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-3">
             {CAPABILITIES.map((cap) => (
               <div
                 key={cap.title}
@@ -252,7 +252,7 @@ export default function VoiceCloningPage() {
             Use cases for{" "}
             <span className="gradient-text">voice cloning</span>
           </h2>
-          <div className="grid gap-6 sm:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-3">
             {USE_CASES.map((uc) => (
               <div
                 key={uc.title}

@@ -109,7 +109,7 @@ export default function CreditsPage() {
       <h1 className="text-2xl font-bold mb-8 text-white">Credits & Usage</h1>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-8">
         <Card className="border-white/10 bg-slate-800/50">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">

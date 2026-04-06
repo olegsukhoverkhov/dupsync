@@ -1,7 +1,6 @@
 import { PlanType } from "./types";
 
 export const SUPPORTED_LANGUAGES = [
-  // European
   { code: "en", name: "English", region: "Europe" },
   { code: "es", name: "Spanish", region: "Europe" },
   { code: "fr", name: "French", region: "Europe" },
@@ -20,7 +19,6 @@ export const SUPPORTED_LANGUAGES = [
   { code: "uk", name: "Ukrainian", region: "Europe" },
   { code: "hu", name: "Hungarian", region: "Europe" },
   { code: "bg", name: "Bulgarian", region: "Europe" },
-  // Asian
   { code: "zh", name: "Chinese (Mandarin)", region: "Asia" },
   { code: "ja", name: "Japanese", region: "Asia" },
   { code: "ko", name: "Korean", region: "Asia" },
@@ -30,11 +28,9 @@ export const SUPPORTED_LANGUAGES = [
   { code: "id", name: "Indonesian", region: "Asia" },
   { code: "ms", name: "Malay", region: "Asia" },
   { code: "tl", name: "Filipino", region: "Asia" },
-  // Middle East & Africa
   { code: "ar", name: "Arabic", region: "Middle East & Africa" },
   { code: "tr", name: "Turkish", region: "Middle East & Africa" },
   { code: "he", name: "Hebrew", region: "Middle East & Africa" },
-  // Americas
   { code: "pt-BR", name: "Portuguese (Brazilian)", region: "Americas" },
 ] as const;
 
@@ -48,79 +44,99 @@ export const PLAN_LIMITS: Record<
   PlanType,
   {
     name: string;
-    price: number;
-    credits: number; // credits per month (1sec video = 5 credits), -1 = unlimited
+    price: number; // cents monthly
+    priceAnnual: number; // cents monthly (annual billing)
+    credits: number; // minutes per month, -1 = unlimited
     maxFileSize: number; // MB
     maxLanguages: number;
-    maxProjects: number; // concurrent projects in dubbing
+    maxProjects: number;
+    maxVideoSeconds: number; // 0 = unlimited, 15 for free
+    resolution: string;
     features: string[];
   }
 > = {
   free: {
     name: "Free",
     price: 0,
-    credits: 1500,
+    priceAnnual: 0,
+    credits: 0, // special: 1 video up to 15 sec
     maxFileSize: 100,
-    maxLanguages: 2,
+    maxLanguages: 1,
     maxProjects: 1,
+    maxVideoSeconds: 15,
+    resolution: "720p",
     features: [
-      "1,500 credits/month",
-      "1 project at a time",
-      "2 target languages",
-      "100MB max file size",
+      "1 video up to 15 sec/month",
+      "1 target language",
       "720p output",
+      "100MB max file size",
+      "Voice cloning",
+      "Basic lip sync",
     ],
   },
   starter: {
     name: "Starter",
-    price: 2900,
-    credits: 18000,
+    price: 1999, // $19.99
+    priceAnnual: 1599, // $15.99
+    credits: 20,
     maxFileSize: 500,
-    maxLanguages: 10,
+    maxLanguages: 5,
     maxProjects: 3,
+    maxVideoSeconds: 0,
+    resolution: "1080p",
     features: [
-      "18,000 credits/month",
-      "3 concurrent projects",
-      "10 target languages",
-      "500MB max file size",
+      "20 credits/month",
+      "Up to 5 languages",
       "1080p output",
-      "Priority processing",
+      "500MB max file size",
+      "Voice cloning",
+      "Lip sync on all videos",
+      "Email support",
     ],
   },
   pro: {
     name: "Pro",
-    price: 7900,
-    credits: 90000,
+    price: 4999, // $49.99
+    priceAnnual: 3999, // $39.99
+    credits: 50,
     maxFileSize: 2000,
     maxLanguages: 30,
     maxProjects: 10,
+    maxVideoSeconds: 0,
+    resolution: "4K",
     features: [
-      "90,000 credits/month",
-      "10 concurrent projects",
+      "50 credits/month",
       "All 30+ languages",
-      "2GB max file size",
       "4K output",
-      "Priority processing",
+      "2GB max file size",
+      "Voice cloning",
+      "Lip sync on all videos",
       "API access",
+      "Priority processing",
     ],
   },
   enterprise: {
-    name: "Enterprise",
-    price: 19900,
-    credits: -1,
+    name: "Business",
+    price: 14999, // $149.99
+    priceAnnual: 11999, // $119.99
+    credits: 150,
     maxFileSize: 5000,
     maxLanguages: 30,
     maxProjects: 50,
+    maxVideoSeconds: 0,
+    resolution: "4K",
     features: [
-      "Unlimited credits",
-      "50 concurrent projects",
+      "150 credits/month",
       "All 30+ languages",
-      "5GB max file size",
       "4K output",
-      "Priority processing",
+      "5GB max file size",
+      "Voice cloning",
+      "Lip sync on all videos",
       "API access",
+      "Priority processing",
       "Custom voice profiles",
       "Dedicated support",
+      "Unlimited projects",
     ],
   },
 };

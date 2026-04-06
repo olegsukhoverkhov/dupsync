@@ -86,7 +86,7 @@ export default function ApiKeysPage() {
           {endpoints.map((ep) => (
             <div
               key={ep.path + ep.method}
-              className="rounded-xl bg-slate-800/80 border border-white/10 p-4 font-mono text-sm text-slate-300 overflow-x-auto flex items-start gap-3"
+              className="rounded-xl bg-slate-800/80 border border-white/10 p-4 font-mono text-sm text-slate-300 overflow-x-auto flex flex-col sm:flex-row items-start gap-2 sm:gap-3"
             >
               <span
                 className={
@@ -98,7 +98,7 @@ export default function ApiKeysPage() {
                 {ep.method}
               </span>
               <span>{ep.path}</span>
-              <span className="ml-auto text-slate-500 font-sans text-xs">
+              <span className="sm:ml-auto text-slate-500 font-sans text-xs">
                 {ep.description}
               </span>
             </div>

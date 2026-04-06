@@ -111,7 +111,7 @@ function HowItWorks({ dict }: { dict: Dictionary }) {
           <h2 className="text-3xl sm:text-4xl font-bold">{dict.howItWorks.title}</h2>
           <p className="mt-4 text-slate-400 text-lg max-w-2xl mx-auto">{dict.howItWorks.subtitle}</p>
         </div>
-        <div className="grid sm:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {steps.map((s) => (
             <div key={s.step} className="rounded-2xl border border-white/10 bg-slate-800/30 p-6">
               <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-pink-500/20 to-blue-600/20 flex items-center justify-center mb-4">
@@ -169,7 +169,7 @@ function FinalCTA({ dict }: { dict: Dictionary }) {
     <section className="py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-t from-blue-500/5 via-violet-500/5 to-transparent" />
       <div className="mx-auto max-w-3xl px-6 lg:px-8 text-center relative">
-        <h2 className="text-4xl sm:text-5xl font-bold">{dict.cta.title}</h2>
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">{dict.cta.title}</h2>
         <p className="mt-6 text-lg text-slate-400">{dict.cta.subtitle}</p>
         <Link href="/signup" className="mt-10 inline-flex items-center gap-2 gradient-button rounded-xl px-10 py-4 text-lg font-semibold">
           {dict.cta.button} <ArrowRight className="h-5 w-5" />
@@ -204,8 +204,8 @@ function Footer({ dict }: { dict: Dictionary }) {
   return (
     <footer className="border-t border-white/5 pt-16 pb-8">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-8 mb-12">
-          <div className="col-span-2 sm:col-span-1">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+          <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-pink-500 to-blue-600 flex items-center justify-center">
                 <span className="text-white text-xs font-bold">D</span>

@@ -63,12 +63,12 @@ export function DemoSection() {
         </div>
 
         {/* Tab buttons */}
-        <div className="flex items-center justify-center gap-2 mb-8">
+        <div className="flex items-center justify-start sm:justify-center gap-2 mb-8 overflow-x-auto pb-2 -mx-6 px-6 sm:mx-0 sm:px-0 sm:overflow-visible sm:pb-0">
           {TABS.map((tab, i) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(i)}
-              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-medium transition-all ${
+              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-medium transition-all shrink-0 ${
                 activeTab === i
                   ? "bg-white/10 text-white border border-white/10"
                   : "text-zinc-500 hover:text-zinc-300"

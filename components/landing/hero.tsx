@@ -44,7 +44,7 @@ export function Hero() {
             Three simple steps to reach a global audience
           </p>
 
-          <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-3">
+          <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
             <div className="relative flex flex-col items-center text-center">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
                 <Languages className="h-7 w-7 text-primary" />

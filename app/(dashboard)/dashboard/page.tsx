@@ -61,7 +61,7 @@ export default function DashboardPage() {
     <div>
       {/* Plan info bar */}
       {profile && (
-        <div className="mb-8 grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="rounded-xl border border-white/10 bg-slate-800/50 p-4">
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-lg bg-pink-500/10 flex items-center justify-center">

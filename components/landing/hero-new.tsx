@@ -39,7 +39,7 @@ export function HeroNew() {
               Now with AI lip-sync technology
             </div>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
+            <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
               AI Video Dubbing — <span className="gradient-text">Clone Voices & Sync Lips in 30+ Languages</span>
             </h1>
 
@@ -151,14 +151,14 @@ export function HeroNew() {
             </div>
 
             {/* Floating badges */}
-            <div className="absolute -top-2 -right-4 animate-badge-pop delay-500" style={{ opacity: 0 }}>
+            <div className="absolute -top-2 -right-4 animate-badge-pop delay-500 hidden sm:block" style={{ opacity: 0 }}>
               <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-900/90 backdrop-blur-sm px-3 py-2 shadow-xl">
                 <span className="text-lg">🇪🇸</span>
                 <span className="text-sm font-medium text-white">Spanish</span>
                 <span className="text-green-400 text-xs">✓</span>
               </div>
             </div>
-            <div className="absolute -bottom-2 -left-4 animate-badge-pop delay-1000" style={{ opacity: 0 }}>
+            <div className="absolute -bottom-2 -left-4 animate-badge-pop delay-1000 hidden sm:block" style={{ opacity: 0 }}>
               <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-900/90 backdrop-blur-sm px-3 py-2 shadow-xl">
                 <span className="text-lg">🇫🇷</span>
                 <span className="text-sm font-medium text-white">French</span>

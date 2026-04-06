@@ -11,7 +11,7 @@ export function LogoBar() {
         <p className="text-center text-sm text-zinc-500 mb-8">
           Trusted by creators and teams worldwide
         </p>
-        <div className="flex items-center justify-center gap-x-10 gap-y-4 flex-wrap">
+        <div className="flex items-center justify-center gap-x-6 sm:gap-x-10 gap-y-4 flex-wrap">
           {LOGOS.map((name) => (
             <div
               key={name}
