@@ -142,10 +142,33 @@ export function Testimonials() {
   }, [isUserScrolling]);
 
   // Pause auto-scroll on user interaction, resume after 3s
-  const handleInteractionStart = useCallback(() => {
+  const pauseAutoScroll = useCallback(() => {
     setIsUserScrolling(true);
     if (resumeTimer.current) clearTimeout(resumeTimer.current);
     resumeTimer.current = setTimeout(() => setIsUserScrolling(false), 3000);
+  }, []);
+
+  // Mouse drag to scroll
+  const isDragging = useRef(false);
+  const dragStartX = useRef(0);
+  const scrollStartX = useRef(0);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    isDragging.current = true;
+    dragStartX.current = e.clientX;
+    scrollStartX.current = scrollRef.current?.scrollLeft || 0;
+    pauseAutoScroll();
+  }, [pauseAutoScroll]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging.current || !scrollRef.current) return;
+    e.preventDefault();
+    const dx = e.clientX - dragStartX.current;
+    scrollRef.current.scrollLeft = scrollStartX.current - dx;
+  }, []);
+
+  const handleMouseUp = useCallback(() => {
+    isDragging.current = false;
   }, []);
 
   return (
@@ -180,9 +203,12 @@ export function Testimonials() {
           <div
             ref={scrollRef}
             className="flex gap-5 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing"
-            onMouseDown={handleInteractionStart}
-            onTouchStart={handleInteractionStart}
-            onWheel={handleInteractionStart}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={pauseAutoScroll}
+            onWheel={pauseAutoScroll}
           >
             {/* Duplicate cards for seamless loop */}
             {[...TESTIMONIALS, ...TESTIMONIALS].map((t, idx) => (
