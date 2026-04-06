@@ -19,6 +19,8 @@ export const TRANSLATED_SLUGS: Record<string, string> = {
   "voice-cloning-video-translation": "voice-cloning-video-translation",
   "how-to-clone-voice-for-video": "how-to-clone-voice-for-video",
   "ai-dubbing-pricing-comparison-2026": "ai-dubbing-pricing-comparison-2026",
+  "how-to-dub-instagram-reels": "how-to-dub-instagram-reels",
+  "social-media-video-localization-guide": "social-media-video-localization-guide",
 };
 
 type TranslationModule = { default: ArticleTranslation[] };

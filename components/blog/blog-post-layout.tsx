@@ -73,6 +73,22 @@ export const ALL_ARTICLES = [
     readingTime: "15 min read",
     category: "Guide",
   },
+  {
+    slug: "how-to-dub-instagram-reels",
+    title: "How to Dub Instagram Reels in 3 Minutes (Step-by-Step)",
+    excerpt: "Step-by-step tutorial: dub your Instagram Reels into any language with AI voice cloning and lip sync.",
+    date: "2026-04-06",
+    readingTime: "6 min read",
+    category: "Tutorial",
+  },
+  {
+    slug: "social-media-video-localization-guide",
+    title: "Social Media Video Localization: Complete Guide 2026",
+    excerpt: "Complete guide to localizing video content for YouTube, TikTok, Instagram, and Facebook with AI dubbing.",
+    date: "2026-04-06",
+    readingTime: "12 min read",
+    category: "Guide",
+  },
 ];
 
 /** Format ISO date to human-readable: "Oct 14, 2025" */

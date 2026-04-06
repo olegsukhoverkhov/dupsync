@@ -327,4 +327,18 @@
   <url><loc>https://dubsync.app/de/features/api</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
   <url><loc>https://dubsync.app/fr/features/api</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
   <url><loc>https://dubsync.app/ja/features/api</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
+  <!-- New blog articles -->
+  <url><loc>https://dubsync.app/blog/how-to-dub-instagram-reels</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/blog/social-media-video-localization-guide</loc><lastmod>2026-04-06</lastmod><priority>0.7</priority></url>
+  <!-- Translated versions -->
+  <url><loc>https://dubsync.app/es/blog/how-to-dub-instagram-reels</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/pt/blog/how-to-dub-instagram-reels</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/de/blog/how-to-dub-instagram-reels</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/fr/blog/how-to-dub-instagram-reels</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/ja/blog/how-to-dub-instagram-reels</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/es/blog/social-media-video-localization-guide</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/pt/blog/social-media-video-localization-guide</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/de/blog/social-media-video-localization-guide</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/fr/blog/social-media-video-localization-guide</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/ja/blog/social-media-video-localization-guide</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
 </urlset>
