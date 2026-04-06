@@ -1,17 +1,21 @@
 import { NextResponse } from "next/server";
 
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 export async function GET() {
   const results: Record<string, string> = {};
 
   try {
+    // Check env
+    results["ASSEMBLYAI_KEY"] = process.env.ASSEMBLYAI_API_KEY ? `set (${process.env.ASSEMBLYAI_API_KEY.slice(0, 6)}...)` : "MISSING";
+
     const { createClient } = await import("@supabase/supabase-js");
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    // Get latest error project
     const { data: project } = await supabase
       .from("projects")
       .select("original_video_url")
@@ -21,63 +25,88 @@ export async function GET() {
       .single();
 
     if (!project?.original_video_url) {
-      return NextResponse.json({ error: "no error projects" });
+      return NextResponse.json({ ...results, error: "no error projects" });
     }
 
+    // Download
     const { data: fileData } = await supabase.storage
       .from("videos")
       .download(project.original_video_url);
 
     if (!fileData) {
-      return NextResponse.json({ error: "download failed" });
+      return NextResponse.json({ ...results, error: "download failed" });
     }
 
     const buffer = Buffer.from(await fileData.arrayBuffer());
-    results["file"] = `${(buffer.byteLength / 1024 / 1024).toFixed(2)}MB`;
+    results["file_size"] = `${(buffer.byteLength / 1024 / 1024).toFixed(2)}MB`;
 
-    // Test GPT-4o audio directly
-    results["gpt4o_test"] = "starting...";
-    const base64Audio = buffer.toString("base64");
-    results["base64_size"] = `${(base64Audio.length / 1024 / 1024).toFixed(2)}MB`;
+    // Test AssemblyAI directly
+    const apiKey = process.env.ASSEMBLYAI_API_KEY!;
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Step 1: Upload
+    results["step"] = "uploading to AssemblyAI...";
+    const uploadRes = await fetch("https://api.assemblyai.com/v2/upload", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: apiKey,
+        "Content-Type": "application/octet-stream",
+      },
+      body: new Uint8Array(buffer),
+    });
+
+    if (!uploadRes.ok) {
+      const err = await uploadRes.text();
+      results["upload_error"] = `${uploadRes.status}: ${err.slice(0, 300)}`;
+      return NextResponse.json(results);
+    }
+
+    const { upload_url } = await uploadRes.json();
+    results["upload"] = `ok: ${upload_url}`;
+
+    // Step 2: Create transcript
+    const txRes = await fetch("https://api.assemblyai.com/v2/transcript", {
+      method: "POST",
+      headers: {
+        Authorization: apiKey,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-audio-preview",
-        messages: [
-          {
-            role: "system",
-            content: "Transcribe the audio. Return ONLY a JSON array: [{\"start\": 0.0, \"end\": 2.5, \"text\": \"Hello\"}]"
-          },
-          {
-            role: "user",
-            content: [
-              {
-                type: "input_audio",
-                input_audio: { data: base64Audio, format: "mp4" },
-              },
-              { type: "text", text: "Transcribe this audio in English." },
-            ],
-          },
-        ],
-        max_tokens: 2048,
+        audio_url: upload_url,
+        language_code: "en",
       }),
     });
 
-    if (response.ok) {
-      const data = await response.json();
-      const content = data.choices?.[0]?.message?.content || "";
-      results["gpt4o"] = `SUCCESS: ${content.slice(0, 300)}`;
-    } else {
-      const err = await response.text();
-      results["gpt4o"] = `FAILED ${response.status}: ${err.slice(0, 300)}`;
+    if (!txRes.ok) {
+      const err = await txRes.text();
+      results["transcript_create_error"] = `${txRes.status}: ${err.slice(0, 300)}`;
+      return NextResponse.json(results);
     }
+
+    const { id: txId } = await txRes.json();
+    results["transcript_id"] = txId;
+
+    // Step 3: Poll
+    for (let i = 0; i < 30; i++) {
+      await new Promise((r) => setTimeout(r, 3000));
+      const pollRes = await fetch(`https://api.assemblyai.com/v2/transcript/${txId}`, {
+        headers: { Authorization: apiKey },
+      });
+      const data = await pollRes.json();
+
+      if (data.status === "completed") {
+        results["assemblyai"] = `SUCCESS: ${data.words?.length || 0} words, text="${(data.text || "").slice(0, 200)}"`;
+        return NextResponse.json(results);
+      }
+      if (data.status === "error") {
+        results["assemblyai"] = `ERROR: ${data.error}`;
+        return NextResponse.json(results);
+      }
+      results["poll"] = `${i}: ${data.status}`;
+    }
+
+    results["assemblyai"] = "TIMEOUT after 90s";
   } catch (e) {
-    results["error"] = e instanceof Error ? e.message : String(e);
+    results["exception"] = e instanceof Error ? e.message : String(e);
   }
 
   return NextResponse.json(results);
