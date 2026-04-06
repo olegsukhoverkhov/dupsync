@@ -336,8 +336,10 @@ export async function textToSpeechWithSpeed(
         text,
         model_id: "eleven_multilingual_v2",
         voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
+          stability: 0.3,
+          similarity_boost: 0.95,
+          style: 0.4,
+          use_speaker_boost: true,
         },
         speed: clampedSpeed,
       }),
@@ -353,7 +355,108 @@ export async function textToSpeechWithSpeed(
   return Buffer.from(await response.arrayBuffer());
 }
 
-// Generate TTS as PCM and pad to exact duration as WAV
+// Generate per-segment TTS with exact timing matching original video
+// Each segment is placed at its original timestamp, speed-adjusted to fit
+export async function generateTimedAudio(
+  segments: TranscriptSegment[],
+  voiceId: string,
+  totalDurationSec: number
+): Promise<Buffer> {
+  const SAMPLE_RATE = 24000;
+  const totalSamples = Math.ceil(totalDurationSec * SAMPLE_RATE);
+  const pcmOutput = Buffer.alloc(totalSamples * 2); // 16-bit PCM = 2 bytes/sample
+
+  console.log(`[TTS_TIMED] ${segments.length} segments, total=${totalDurationSec}s, ${totalSamples} samples`);
+
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i];
+    if (!seg.text.trim()) continue;
+
+    const segStart = seg.start;
+    const segEnd = seg.end;
+    const segDuration = segEnd - segStart;
+    if (segDuration <= 0) continue;
+
+    // Estimate natural speech duration for this text
+    const estimatedSpeechSec = seg.text.length / 14; // ~14 chars/sec average
+    // Calculate speed to fit speech into segment duration
+    // If estimated > segment duration → speed up (max 1.5x)
+    // If estimated < segment duration → slow down (min 0.7x)
+    const speed = Math.max(0.7, Math.min(1.5, estimatedSpeechSec / segDuration));
+
+    try {
+      // Get PCM for this segment
+      const response = await fetch(
+        `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=pcm_24000`,
+        {
+          method: "POST",
+          headers: {
+            "xi-api-key": process.env.ELEVENLABS_API_KEY!,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: seg.text,
+            model_id: "eleven_multilingual_v2",
+            voice_settings: {
+              stability: 0.3,
+              similarity_boost: 0.95,
+              style: 0.4,
+              use_speaker_boost: true,
+            },
+            speed,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        console.warn(`[TTS_TIMED] Segment ${i} failed: ${response.status}`);
+        continue;
+      }
+
+      const segPcm = Buffer.from(await response.arrayBuffer());
+      const segSamples = segPcm.length / 2;
+
+      // Place PCM at the correct position in the output
+      const startSample = Math.floor(segStart * SAMPLE_RATE);
+      const maxSegSamples = Math.floor(segDuration * SAMPLE_RATE);
+      const copyBytes = Math.min(segPcm.length, maxSegSamples * 2);
+      const destOffset = startSample * 2;
+
+      if (destOffset >= 0 && destOffset + copyBytes <= pcmOutput.length) {
+        segPcm.copy(pcmOutput, destOffset, 0, copyBytes);
+      }
+
+      if (i % 5 === 0) {
+        console.log(`[TTS_TIMED] Segment ${i}/${segments.length}: "${seg.text.slice(0, 30)}..." at ${segStart}s, speed=${speed.toFixed(2)}`);
+      }
+    } catch (err) {
+      console.warn(`[TTS_TIMED] Segment ${i} exception:`, err);
+    }
+  }
+
+  // Build WAV with exact duration
+  const wavSize = 44 + totalSamples * 2;
+  const wav = Buffer.alloc(wavSize);
+  wav.write("RIFF", 0);
+  wav.writeUInt32LE(wavSize - 8, 4);
+  wav.write("WAVE", 8);
+  wav.write("fmt ", 12);
+  wav.writeUInt32LE(16, 16);
+  wav.writeUInt16LE(1, 20);
+  wav.writeUInt16LE(1, 22);
+  wav.writeUInt32LE(SAMPLE_RATE, 24);
+  wav.writeUInt32LE(SAMPLE_RATE * 2, 28);
+  wav.writeUInt16LE(2, 32);
+  wav.writeUInt16LE(16, 34);
+  wav.write("data", 36);
+  wav.writeUInt32LE(totalSamples * 2, 40);
+  pcmOutput.copy(wav, 44);
+
+  console.log(`[TTS_TIMED] WAV: ${(wavSize / 1024).toFixed(0)}KB, ${totalDurationSec}s exact`);
+  return wav;
+}
+
+// Generate TTS as PCM and pad to exact duration as WAV (legacy single-segment)
 export async function textToSpeechPadded(
   text: string,
   voiceId: string,

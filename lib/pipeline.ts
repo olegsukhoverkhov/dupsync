@@ -123,11 +123,19 @@ export async function runDubbingAudio(dubId: string) {
       voiceId = await ai.getMultilingualVoice();
     }
 
-    // TTS
+    // Per-segment TTS with exact timing matching original video
     const videoDuration = (project.duration_seconds as number) || 0;
-    const fullText = translatedSegments.map((s) => s.text).join(". ");
-    log(dubId, `TTS: ${fullText.length} chars, video=${videoDuration}s`);
-    const audioBuffer = await ai.textToSpeechPadded(fullText, voiceId, videoDuration, 0.85);
+    log(dubId, `TTS: ${translatedSegments.length} segments, video=${videoDuration}s`);
+
+    // Use original transcript timestamps for segment placement
+    const segmentsWithTiming = translatedSegments.map((seg, i) => ({
+      ...seg,
+      // Use original transcript timing if available
+      start: transcript[i]?.start ?? seg.start,
+      end: transcript[i]?.end ?? seg.end,
+    }));
+
+    const audioBuffer = await ai.generateTimedAudio(segmentsWithTiming, voiceId, videoDuration);
 
     // Upload audio
     const audioPath = `${project.user_id}/${project.id}/${dub.id}/dubbed-audio.wav`;
