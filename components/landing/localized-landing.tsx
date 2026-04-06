@@ -1601,24 +1601,20 @@ function Footer({ dict, lang }: { dict: Dictionary; lang: Locale }) {
 
 export function LocalizedLanding({ dict, lang }: { dict: Dictionary; lang: Locale }) {
   return (
-    <>
-      <Header dict={dict} lang={lang} />
-      <main>
-        <Hero dict={dict} />
-        <LocalizedLogoBar dict={dict} />
-        <HowItWorks dict={dict} />
-        <LocalizedDemoSection dict={dict} />
-        <LocalizedExamples dict={dict} />
-        <Features dict={dict} />
-        <UseCasesSection dict={dict} lang={lang} />
-        <RoiCalculatorSection dict={dict} />
-        <LocalizedComparisonBlock dict={dict} />
-        <LocalizedTestimonials dict={dict} />
-        <Pricing dict={dict} />
-        <FaqSection dict={dict} />
-        <FinalCTA dict={dict} />
-      </main>
-      <Footer dict={dict} lang={lang} />
-    </>
+    <main>
+      <Hero dict={dict} />
+      <LocalizedLogoBar dict={dict} />
+      <HowItWorks dict={dict} />
+      <LocalizedDemoSection dict={dict} />
+      <LocalizedExamples dict={dict} />
+      <Features dict={dict} />
+      <UseCasesSection dict={dict} lang={lang} />
+      <RoiCalculatorSection dict={dict} />
+      <LocalizedComparisonBlock dict={dict} />
+      <LocalizedTestimonials dict={dict} />
+      <Pricing dict={dict} />
+      <FaqSection dict={dict} />
+      <FinalCTA dict={dict} />
+    </main>
   );
 }

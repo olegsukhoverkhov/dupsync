@@ -4,8 +4,6 @@ import { notFound } from "next/navigation";
 import { ArrowRight, Upload, Languages, Download } from "lucide-react";
 import { FacebookIcon } from "@/components/platforms/icons";
 import { LOCALES, isValidLocale } from "@/lib/i18n/dictionaries";
-import { Header } from "@/components/landing/header";
-import { Footer } from "@/components/landing/footer";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 
 const TRANSLATIONS = {
@@ -194,7 +192,6 @@ export default async function LocalizedFacebookPage({
 
   return (
     <>
-      <Header />
       <BreadcrumbSchema
         items={[
           { name: t.breadcrumbPlatforms, url: `https://dubsync.app/${lang}/platforms` },
@@ -279,7 +276,6 @@ export default async function LocalizedFacebookPage({
         </section>
       </main>
 
-      <Footer />
     </>
   );
 }

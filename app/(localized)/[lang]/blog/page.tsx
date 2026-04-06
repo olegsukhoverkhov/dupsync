@@ -3,8 +3,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { isValidLocale, LOCALES } from "@/lib/i18n/dictionaries";
 import { getArticlesList } from "@/lib/i18n/blog/translations";
-import { Header } from "@/components/landing/header";
-import { Footer } from "@/components/landing/footer";
 import { ArrowRight, Clock } from "lucide-react";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 
@@ -42,8 +40,7 @@ export default async function LocalizedBlogListing({
   };
 
   return (
-    <div className="landing-dark bg-[#0F172A] text-white min-h-screen">
-      <Header />
+    <>
       <main className="pt-24 pb-16">
         <div className="mx-auto max-w-5xl px-6 lg:px-8">
           <div className="mb-12">
@@ -81,8 +78,7 @@ export default async function LocalizedBlogListing({
           </div>
         </div>
       </main>
-      <Footer />
       <BreadcrumbSchema items={[{ name: blogLabel[lang] || "Blog", url: `https://dubsync.app/${lang}/blog` }]} />
-    </div>
+    </>
   );
 }

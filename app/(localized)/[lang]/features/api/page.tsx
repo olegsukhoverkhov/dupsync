@@ -14,8 +14,6 @@ import {
   Lock,
 } from "lucide-react";
 import { LOCALES, isValidLocale } from "@/lib/i18n/dictionaries";
-import { Header } from "@/components/landing/header";
-import { Footer } from "@/components/landing/footer";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 
 const CODE_EXAMPLE = `curl -X POST https://api.dubsync.app/v1/dub \\
@@ -321,7 +319,6 @@ export default async function LocalizedApiPage({
 
   return (
     <>
-      <Header />
       <BreadcrumbSchema
         items={[
           { name: t.breadcrumbFeatures, url: `https://dubsync.app/${lang}/features` },
@@ -561,7 +558,6 @@ export default async function LocalizedApiPage({
         </section>
       </main>
 
-      <Footer />
     </>
   );
 }

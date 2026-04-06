@@ -17,8 +17,6 @@ import {
   Minus,
 } from "lucide-react";
 import { LOCALES, isValidLocale } from "@/lib/i18n/dictionaries";
-import { Header } from "@/components/landing/header";
-import { Footer } from "@/components/landing/footer";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 
 const TRANSLATIONS = {
@@ -578,7 +576,6 @@ export default async function LocalizedFeaturesPage({
 
   return (
     <>
-      <Header />
       <BreadcrumbSchema
         items={[
           {
@@ -785,7 +782,6 @@ export default async function LocalizedFeaturesPage({
         </section>
       </main>
 
-      <Footer />
     </>
   );
 }

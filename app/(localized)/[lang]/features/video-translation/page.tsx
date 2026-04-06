@@ -11,8 +11,6 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { LOCALES, isValidLocale } from "@/lib/i18n/dictionaries";
-import { Header } from "@/components/landing/header";
-import { Footer } from "@/components/landing/footer";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 
 const TRANSLATIONS = {
@@ -332,7 +330,6 @@ export default async function LocalizedVideoTranslationPage({
 
   return (
     <>
-      <Header />
       <BreadcrumbSchema
         items={[
           { name: t.breadcrumbFeatures, url: `https://dubsync.app/${lang}/features` },
@@ -535,7 +532,6 @@ export default async function LocalizedVideoTranslationPage({
         </section>
       </main>
 
-      <Footer />
     </>
   );
 }

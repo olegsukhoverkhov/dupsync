@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Header } from "@/components/landing/header";
-import { Footer } from "@/components/landing/footer";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 import { ArrowRight, Check, X, ChevronDown } from "lucide-react";
 import { LOCALES, isValidLocale, LOCALE_INFO } from "@/lib/i18n/dictionaries";
@@ -606,7 +604,6 @@ export default async function LocalizedComparePage({
 
   return (
     <>
-      <Header />
       <main className="pt-24 pb-16">
         {/* Hero */}
         <section className="mx-auto max-w-5xl px-6 lg:px-8 text-center mb-20">
@@ -1100,7 +1097,6 @@ export default async function LocalizedComparePage({
           </div>
         </section>
       </main>
-      <Footer />
 
       {/* Breadcrumb Schema */}
       <BreadcrumbSchema

@@ -1,8 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { LOCALES, isValidLocale, type Locale } from "@/lib/i18n/dictionaries";
-import { Header } from "@/components/landing/header";
-import { Footer } from "@/components/landing/footer";
 import { PricingNew } from "@/components/landing/pricing-new";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 
@@ -302,7 +300,6 @@ export default async function LocalizedPricingPage({
 
   return (
     <>
-      <Header />
       <main className="pt-24 pb-16">
         <div className="mx-auto max-w-4xl px-6 lg:px-8 text-center mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold">{loc.heading}</h1>
@@ -333,7 +330,6 @@ export default async function LocalizedPricingPage({
           </div>
         </div>
       </main>
-      <Footer />
       <BreadcrumbSchema
         items={[
           {
@@ -341,6 +337,25 @@ export default async function LocalizedPricingPage({
             url: `https://dubsync.app/${lang}/pricing`,
           },
         ]}
+      />
+
+      {/* FAQPage Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: loc.faqs.map((faq) => ({
+              "@type": "Question",
+              name: faq.q,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.a,
+              },
+            })),
+          }),
+        }}
       />
     </>
   );

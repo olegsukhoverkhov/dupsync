@@ -4,8 +4,6 @@ import Link from "next/link";
 import { isValidLocale, LOCALES } from "@/lib/i18n/dictionaries";
 import { getBlogHreflang } from "@/lib/seo/blog-hreflang";
 import { getArticleTranslation, TRANSLATED_SLUGS, type ArticleTranslation } from "@/lib/i18n/blog/translations";
-import { Header } from "@/components/landing/header";
-import { Footer } from "@/components/landing/footer";
 import { AuthorCardInline, AuthorCardFull } from "@/components/blog/author-card";
 import { CTABlock } from "@/components/blog/cta-block";
 import { ArticleSchema } from "@/components/blog/article-schema";
@@ -67,8 +65,7 @@ export default async function LocalizedBlogPost({
   if (!article) redirect(`/${lang}/blog`);
 
   return (
-    <div className="landing-dark bg-[#0F172A] text-white min-h-screen">
-      <Header />
+    <>
       <main className="pt-24 pb-16">
         <article className="mx-auto max-w-3xl px-6 lg:px-8">
           <Link
@@ -91,7 +88,6 @@ export default async function LocalizedBlogPost({
           <AuthorCardFull />
         </article>
       </main>
-      <Footer />
       <ArticleSchema
         title={article.title}
         description={article.excerpt}
@@ -104,6 +100,6 @@ export default async function LocalizedBlogPost({
           { name: article.title, url: `https://dubsync.app/${lang}/blog/${slug}` },
         ]}
       />
-    </div>
+    </>
   );
 }

@@ -1,4 +1,5 @@
 import { BlogPostLayout } from "@/components/blog/blog-post-layout";
+import { getBlogHreflang } from "@/lib/seo/blog-hreflang";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical:
       "https://dubsync.app/blog/social-media-video-localization-guide",
+    languages: getBlogHreflang("social-media-video-localization-guide"),
   },
   openGraph: {
     type: "article",
