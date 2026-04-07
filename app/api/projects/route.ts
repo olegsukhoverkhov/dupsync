@@ -4,7 +4,7 @@ import { runTranscription } from "@/lib/pipeline";
 
 export const maxDuration = 300;
 
-export async function GET() {
+export async function GET(request: Request) {
   const supabase = await createClient();
 
   const {
@@ -15,11 +15,26 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: projects, error } = await supabase
+  // ?view=active (default) → only non-archived projects
+  // ?view=archived → only archived projects
+  // ?view=all → everything
+  const url = new URL(request.url);
+  const view = url.searchParams.get("view") || "active";
+
+  let query = supabase
     .from("projects")
     .select("*, dubs(*)")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
+
+  if (view === "active") {
+    query = query.is("archived_at", null);
+  } else if (view === "archived") {
+    query = query.not("archived_at", "is", null);
+  }
+  // view=all → no filter
+
+  const { data: projects, error } = await query;
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

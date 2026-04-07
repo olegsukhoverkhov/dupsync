@@ -45,7 +45,7 @@ export function DashboardSidebar() {
       <aside className="hidden lg:flex h-full w-64 flex-col border-r border-white/5 bg-slate-900/50">
         {/* Logo */}
         <div className="flex h-16 items-center gap-2 border-b border-white/5 px-6">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/dashboard" className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-pink-500 to-blue-600 flex items-center justify-center">
               <Languages className="h-4 w-4 text-white" />
             </div>

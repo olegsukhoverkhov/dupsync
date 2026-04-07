@@ -49,6 +49,8 @@ export interface Project {
   duration_seconds: number | null;
   created_at: string;
   updated_at: string;
+  /** ISO timestamp when archived, or null if active */
+  archived_at: string | null;
 }
 
 export interface Dub {

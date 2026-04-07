@@ -1,39 +1,113 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ProjectCard } from "@/components/dashboard/project-card";
+import { ConfirmModal } from "@/components/ui/modal";
 import { createClient } from "@/lib/supabase/client";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { ProjectWithDubs, Profile } from "@/lib/supabase/types";
-import { Plus, FolderOpen, Clock, CreditCard, TrendingUp, ArrowRight } from "lucide-react";
+import {
+  Plus,
+  FolderOpen,
+  Clock,
+  CreditCard,
+  TrendingUp,
+  ArrowRight,
+  Archive,
+  ArchiveRestore,
+  Trash2,
+  X,
+  CheckSquare,
+} from "lucide-react";
+
+type DashboardView = "active" | "archived";
 
 export default function DashboardPage() {
   const [projects, setProjects] = useState<ProjectWithDubs[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [projRes] = await Promise.all([fetch("/api/projects")]);
-        if (projRes.ok) setProjects(await projRes.json());
+  // Tab + selection state
+  const [view, setView] = useState<DashboardView>("active");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-          if (data) setProfile(data as Profile);
-        }
-      } finally {
-        setLoading(false);
+  const fetchData = useCallback(async () => {
+    try {
+      const projRes = await fetch(`/api/projects?view=${view}`);
+      if (projRes.ok) setProjects(await projRes.json());
+
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+        if (data) setProfile(data as Profile);
       }
+    } finally {
+      setLoading(false);
     }
+  }, [view]);
 
+  useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
+  }, [fetchData]);
+
+  // When switching tabs, clear any in-progress selection
+  useEffect(() => {
+    setSelectedIds(new Set());
+    setSelectMode(false);
+  }, [view]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   }, []);
+
+  const selectAll = useCallback(() => {
+    setSelectedIds(new Set(projects.map((p) => p.id)));
+  }, [projects]);
+
+  const clearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+    setSelectMode(false);
+  }, []);
+
+  const runBulkAction = useCallback(
+    async (action: "delete" | "archive" | "unarchive") => {
+      if (selectedIds.size === 0) return;
+      setBulkLoading(true);
+      try {
+        const res = await fetch("/api/projects/bulk-action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ids: Array.from(selectedIds),
+            action,
+          }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          alert(`Failed: ${err.error || res.statusText}`);
+          return;
+        }
+        clearSelection();
+        await fetchData();
+      } finally {
+        setBulkLoading(false);
+        setShowDeleteConfirm(false);
+      }
+    },
+    [selectedIds, clearSelection, fetchData]
+  );
 
   if (loading) {
     return (
@@ -115,38 +189,160 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">Projects</h1>
-        <Link
-          href="/projects/new"
-          className="gradient-button inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold"
-        >
-          <Plus className="h-4 w-4" />
-          New Project
-        </Link>
+      {/* Tabs + actions header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-white">Projects</h1>
+          <div className="ml-2 inline-flex rounded-lg border border-white/10 bg-slate-800/40 p-1">
+            <button
+              onClick={() => setView("active")}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                view === "active"
+                  ? "bg-white/10 text-white"
+                  : "text-slate-500 hover:text-white"
+              }`}
+            >
+              Active
+            </button>
+            <button
+              onClick={() => setView("archived")}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                view === "archived"
+                  ? "bg-white/10 text-white"
+                  : "text-slate-500 hover:text-white"
+              }`}
+            >
+              Archive
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {projects.length > 0 && !selectMode && (
+            <button
+              onClick={() => setSelectMode(true)}
+              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white hover:bg-white/10 transition-colors"
+            >
+              <CheckSquare className="h-4 w-4" />
+              Select
+            </button>
+          )}
+          {view === "active" && (
+            <Link
+              href="/projects/new"
+              className="gradient-button inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold"
+            >
+              <Plus className="h-4 w-4" />
+              New Project
+            </Link>
+          )}
+        </div>
       </div>
+
+      {/* Selection action bar (sticky) */}
+      {selectMode && (
+        <div className="sticky top-0 z-10 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-pink-500/30 bg-slate-900/80 backdrop-blur px-4 py-3">
+          <div className="flex items-center gap-3 text-sm">
+            <span className="font-medium text-white">
+              {selectedIds.size} selected
+            </span>
+            <button
+              onClick={selectAll}
+              className="text-xs text-pink-400 hover:text-pink-300 transition-colors"
+            >
+              Select all
+            </button>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {view === "active" && (
+              <button
+                onClick={() => runBulkAction("archive")}
+                disabled={selectedIds.size === 0 || bulkLoading}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Archive className="h-3.5 w-3.5" />
+                Archive
+              </button>
+            )}
+            {view === "archived" && (
+              <button
+                onClick={() => runBulkAction("unarchive")}
+                disabled={selectedIds.size === 0 || bulkLoading}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <ArchiveRestore className="h-3.5 w-3.5" />
+                Restore
+              </button>
+            )}
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={selectedIds.size === 0 || bulkLoading}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete
+            </button>
+            <button
+              onClick={clearSelection}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-transparent px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white transition-colors"
+            >
+              <X className="h-3.5 w-3.5" />
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {projects.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 border-dashed bg-slate-800/30 py-20">
           <div className="h-16 w-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-            <FolderOpen className="h-8 w-8 text-slate-600" />
+            {view === "active" ? (
+              <FolderOpen className="h-8 w-8 text-slate-600" />
+            ) : (
+              <Archive className="h-8 w-8 text-slate-600" />
+            )}
           </div>
-          <h3 className="text-lg font-medium text-white">No projects yet</h3>
-          <p className="mt-1 text-sm text-slate-400">Upload your first video to get started</p>
-          <Link
-            href="/projects/new"
-            className="mt-6 gradient-button inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold"
-          >
-            <Plus className="h-4 w-4" /> Create Project
-          </Link>
+          <h3 className="text-lg font-medium text-white">
+            {view === "active" ? "No projects yet" : "No archived projects"}
+          </h3>
+          <p className="mt-1 text-sm text-slate-400">
+            {view === "active"
+              ? "Upload your first video to get started"
+              : "Projects you archive will appear here"}
+          </p>
+          {view === "active" && (
+            <Link
+              href="/projects/new"
+              className="mt-6 gradient-button inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold"
+            >
+              <Plus className="h-4 w-4" /> Create Project
+            </Link>
+          )}
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+            <ProjectCard
+              key={project.id}
+              project={project}
+              selectMode={selectMode}
+              selected={selectedIds.has(project.id)}
+              onToggleSelect={toggleSelect}
+            />
           ))}
         </div>
       )}
+
+      {/* Delete confirmation modal */}
+      <ConfirmModal
+        open={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={() => runBulkAction("delete")}
+        title={`Delete ${selectedIds.size} project${selectedIds.size === 1 ? "" : "s"}?`}
+        message="This will permanently delete the selected projects and all their dubs. This action cannot be undone."
+        confirmLabel={bulkLoading ? "Deleting..." : "Delete"}
+        destructive
+      />
     </div>
   );
 }
