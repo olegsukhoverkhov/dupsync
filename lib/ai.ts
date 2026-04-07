@@ -537,32 +537,22 @@ export async function generateTimedAudio(
     }
   }
 
-  // Total duration = the moment the LAST translated segment finishes speaking
-  // (+ a small tail buffer), NOT the full original video duration.
+  // Total duration = original video duration, ALWAYS.
   //
-  // Why: translations are usually shorter than the original speech window.
-  // If we pad the file to the full video length, the video's lip sync model
-  // sees the speaker's mouth still moving during the trailing silence, and
-  // produces output where the mouth keeps miming words after the voice stops.
+  // This gives every dubbed language the same output length as the source
+  // regardless of how long the translated speech actually takes. The lip
+  // sync model sees a full-length audio (voice segments placed at their
+  // original timestamps + silence in the gaps) and produces a full-length
+  // video. Quality differences between plans come from the lip sync model
+  // choice (latentsync vs sync-lipsync), NOT from output duration.
   //
-  // By trimming the audio to end shortly after the last voice segment,
-  // `sync_mode: "cut_off"` also cuts the video to match, so the output
-  // ends exactly when the voice ends — no silent mouth movements.
-  //
-  // Leading silence is still preserved (segments are placed at their real
-  // `originalStart` timestamps). Gaps between segments are also preserved.
-  // Only the tail silence of the original video is trimmed.
-  const TAIL_BUFFER = 0.3; // 300ms of natural silence after the last word
+  // Leading silence, gaps between segments, and trailing silence are all
+  // preserved exactly as in the original video.
   let lastVoiceEnd = 0;
   for (const g of generated) {
     lastVoiceEnd = Math.max(lastVoiceEnd, g.start + g.naturalSec);
   }
-  // Never exceed the original video duration — if a translation happens to
-  // overflow, we'd rather cut it than produce a video longer than original.
-  const totalSec = Math.min(
-    originalVideoDuration,
-    Math.max(lastVoiceEnd + TAIL_BUFFER, 0.5)
-  );
+  const totalSec = originalVideoDuration;
   const totalSamples = Math.ceil(totalSec * SAMPLE_RATE);
   const pcmOutput = Buffer.alloc(totalSamples * 2); // 16-bit silence
 
@@ -677,16 +667,23 @@ export async function textToSpeechPadded(
 }
 
 /**
- * fal.ai lip sync — routes to the model configured for the user's plan.
+ * fal.ai lip sync — routes to the model configured for the user's plan,
+ * with aggressive retries on transient failures.
  *
- * - Free / Starter: `fal-ai/latentsync`  (ByteDance LatentSync, included
- *   in lower tiers)
- * - Pro / Business: `fal-ai/sync-lipsync` with `lipsync-1.8.0`  (Sync Labs,
- *   higher quality, faster convergence, premium tier)
+ * Plan mapping:
+ * - Free / Starter → `fal-ai/latentsync` (ByteDance LatentSync)
+ * - Pro / Business → `fal-ai/sync-lipsync` with `lipsync-1.8.0` (Sync Labs)
  *
- * If the requested model fails (fal.ai timeout, rate limit, etc.) we fall
- * back to the OTHER model so the user still gets a result. Pro users get
- * latentsync as a degraded fallback rather than an outright failure.
+ * Retry strategy (up to 4 attempts total):
+ *   1. Primary model attempt 1
+ *   2. Primary model attempt 2 (only on transient errors)
+ *   3. Fallback model attempt 1
+ *   4. Fallback model attempt 2 (only on transient errors)
+ *
+ * This handles fal.ai's unreliability: the service periodically returns
+ * `downstream_service_unavailable`, 4-minute timeouts, and other transient
+ * failures. A single retry of each model dramatically reduces the chance
+ * of an audio-only output.
  */
 export async function lipSync(
   videoUrl: string,
@@ -697,39 +694,72 @@ export async function lipSync(
   const fallback: "fal-ai/sync-lipsync" | "fal-ai/latentsync" =
     primary === "fal-ai/sync-lipsync" ? "fal-ai/latentsync" : "fal-ai/sync-lipsync";
 
-  const primaryBody =
-    primary === "fal-ai/sync-lipsync"
-      ? {
-          video_url: videoUrl,
-          audio_url: audioUrl,
-          model: options?.modelVersion ?? "lipsync-1.8.0",
-          sync_mode: "cut_off",
-        }
-      : {
-          video_url: videoUrl,
-          audio_url: audioUrl,
-        };
-
-  try {
-    console.log(`[LIP_SYNC] Primary model: ${primary}`);
-    return await runLipSyncModel(primary, videoUrl, audioUrl, primaryBody);
-  } catch (err) {
-    const errMsg = err instanceof Error ? err.message : "unknown";
-    console.warn(`[LIP_SYNC] ${primary} failed: ${errMsg}, trying ${fallback}...`);
-    const fallbackBody =
-      fallback === "fal-ai/sync-lipsync"
-        ? {
-            video_url: videoUrl,
-            audio_url: audioUrl,
-            model: "lipsync-1.8.0",
-            sync_mode: "cut_off",
-          }
-        : {
-            video_url: videoUrl,
-            audio_url: audioUrl,
-          };
-    return await runLipSyncModel(fallback, videoUrl, audioUrl, fallbackBody);
+  function bodyFor(model: "fal-ai/sync-lipsync" | "fal-ai/latentsync") {
+    if (model === "fal-ai/sync-lipsync") {
+      return {
+        video_url: videoUrl,
+        audio_url: audioUrl,
+        model: options?.modelVersion ?? "lipsync-1.8.0",
+        sync_mode: "cut_off",
+      };
+    }
+    return { video_url: videoUrl, audio_url: audioUrl };
   }
+
+  function isTransient(err: unknown): boolean {
+    const msg = err instanceof Error ? err.message : String(err);
+    return (
+      /timed out/i.test(msg) ||
+      /downstream/i.test(msg) ||
+      /unavailable/i.test(msg) ||
+      /502|503|504/.test(msg) ||
+      /rate limit/i.test(msg) ||
+      /no video URL/i.test(msg)
+    );
+  }
+
+  // Retry chain: primary ×2, then fallback ×2
+  const attempts: Array<{
+    model: "fal-ai/sync-lipsync" | "fal-ai/latentsync";
+    attempt: number;
+  }> = [
+    { model: primary, attempt: 1 },
+    { model: primary, attempt: 2 },
+    { model: fallback, attempt: 1 },
+    { model: fallback, attempt: 2 },
+  ];
+
+  let lastError: unknown;
+  let skipModel: "fal-ai/sync-lipsync" | "fal-ai/latentsync" | null = null;
+  for (const { model, attempt } of attempts) {
+    // If a previous attempt on this model failed with a permanent error,
+    // skip further attempts of the same model and move to the next one.
+    if (skipModel === model) continue;
+    try {
+      console.log(`[LIP_SYNC] Attempt ${attempt} on ${model}`);
+      return await runLipSyncModel(model, videoUrl, audioUrl, bodyFor(model));
+    } catch (err) {
+      lastError = err;
+      const errMsg = err instanceof Error ? err.message : "unknown";
+      const transient = isTransient(err);
+      console.warn(
+        `[LIP_SYNC] ${model} attempt ${attempt} failed (${transient ? "transient" : "permanent"}): ${errMsg}`
+      );
+      if (!transient) {
+        // Permanent error (e.g. invalid input, auth) — retrying same model
+        // won't help. Jump directly to the other model.
+        skipModel = model;
+      }
+      // Reset skip flag when we move to a different model
+      if (skipModel && skipModel !== model) skipModel = null;
+      // Small backoff between attempts (only if we'll try again)
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Lip sync failed after all retries");
 }
 
 async function runLipSyncModel(
