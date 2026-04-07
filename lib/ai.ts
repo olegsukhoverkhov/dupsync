@@ -748,24 +748,24 @@ export async function textToSpeechPadded(
 }
 
 /**
- * fal.ai lip sync — routes to the model configured for the user's plan,
- * with aggressive retries on transient failures.
+ * fal.ai lip sync — routes to the model configured for the user's plan.
  *
  * Plan mapping:
  * - Free / Starter → `fal-ai/latentsync` (ByteDance LatentSync)
  * - Pro / Business → `fal-ai/sync-lipsync` with `lipsync-1.8.0` (Sync Labs)
  *
- * Retry strategy (up to 4 attempts total):
- *   1. Primary model attempt 1
- *   2. Primary model attempt 2 (only on transient errors)
- *   3. Fallback model attempt 1
- *   4. Fallback model attempt 2 (only on transient errors)
+ * Retry budget MUST fit within Vercel's 300s function timeout
+ * (the /api/dub/lipsync route uses `maxDuration = 300`). Each attempt is
+ * capped at 120s of polling, so we get exactly 2 attempts: primary first,
+ * then fallback model on failure. Total worst case ~242s, leaving headroom
+ * for the surrounding work (signed URLs, downloads, uploads).
  *
- * This handles fal.ai's unreliability: the service periodically returns
- * `downstream_service_unavailable`, 4-minute timeouts, and other transient
- * failures. A single retry of each model dramatically reduces the chance
- * of an audio-only output.
+ * If both models fail, the dub is left with audio-only and the client can
+ * manually retry. This is preferable to having Vercel kill the function
+ * mid-attempt and leaving the dub stuck in `lip_syncing` forever.
  */
+export const LIP_SYNC_POLL_TIMEOUT_MS = 120_000; // 2 minutes per attempt
+
 export async function lipSync(
   videoUrl: string,
   audioUrl: string,
@@ -787,60 +787,26 @@ export async function lipSync(
     return { video_url: videoUrl, audio_url: audioUrl };
   }
 
-  function isTransient(err: unknown): boolean {
-    const msg = err instanceof Error ? err.message : String(err);
-    return (
-      /timed out/i.test(msg) ||
-      /downstream/i.test(msg) ||
-      /unavailable/i.test(msg) ||
-      /502|503|504/.test(msg) ||
-      /rate limit/i.test(msg) ||
-      /no video URL/i.test(msg)
-    );
-  }
-
-  // Retry chain: primary ×2, then fallback ×2
-  const attempts: Array<{
-    model: "fal-ai/sync-lipsync" | "fal-ai/latentsync";
-    attempt: number;
-  }> = [
-    { model: primary, attempt: 1 },
-    { model: primary, attempt: 2 },
-    { model: fallback, attempt: 1 },
-    { model: fallback, attempt: 2 },
-  ];
+  // 2 attempts only — primary then fallback. No retries within a model.
+  // The Vercel function timeout (300s) doesn't allow more than this with
+  // a 120s per-attempt poll cap.
+  const models: Array<"fal-ai/sync-lipsync" | "fal-ai/latentsync"> = [primary, fallback];
 
   let lastError: unknown;
-  let skipModel: "fal-ai/sync-lipsync" | "fal-ai/latentsync" | null = null;
-  for (const { model, attempt } of attempts) {
-    // If a previous attempt on this model failed with a permanent error,
-    // skip further attempts of the same model and move to the next one.
-    if (skipModel === model) continue;
+  for (const model of models) {
     try {
-      console.log(`[LIP_SYNC] Attempt ${attempt} on ${model}`);
+      console.log(`[LIP_SYNC] Trying ${model}`);
       return await runLipSyncModel(model, videoUrl, audioUrl, bodyFor(model));
     } catch (err) {
       lastError = err;
       const errMsg = err instanceof Error ? err.message : "unknown";
-      const transient = isTransient(err);
-      console.warn(
-        `[LIP_SYNC] ${model} attempt ${attempt} failed (${transient ? "transient" : "permanent"}): ${errMsg}`
-      );
-      if (!transient) {
-        // Permanent error (e.g. invalid input, auth) — retrying same model
-        // won't help. Jump directly to the other model.
-        skipModel = model;
-      }
-      // Reset skip flag when we move to a different model
-      if (skipModel && skipModel !== model) skipModel = null;
-      // Small backoff between attempts (only if we'll try again)
-      await new Promise((r) => setTimeout(r, 1500));
+      console.warn(`[LIP_SYNC] ${model} failed: ${errMsg}`);
     }
   }
 
   throw lastError instanceof Error
     ? lastError
-    : new Error("Lip sync failed after all retries");
+    : new Error("Lip sync failed: both models exhausted");
 }
 
 async function runLipSyncModel(
@@ -869,8 +835,11 @@ async function runLipSyncModel(
   const { request_id } = await submitResponse.json();
   console.log(`[LIP_SYNC] ${modelPath} job submitted: ${request_id}`);
 
-  // Poll for result (max 4 minutes)
-  const maxAttempts = 120; // 120 * 2s = 4 minutes
+  // Poll for result. Cap at LIP_SYNC_POLL_TIMEOUT_MS (default 2 min) so the
+  // per-attempt budget × 2 model attempts fits within Vercel's 300s function
+  // timeout. Going longer here previously caused dubs to get stuck in
+  // `lip_syncing` forever when Vercel killed the function mid-poll.
+  const maxAttempts = Math.floor(LIP_SYNC_POLL_TIMEOUT_MS / 2000);
   for (let i = 0; i < maxAttempts; i++) {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -921,7 +890,7 @@ async function runLipSyncModel(
     }
   }
 
-  throw new Error(`${modelPath} timed out after 4 minutes`);
+  throw new Error(`${modelPath} timed out after ${Math.round(LIP_SYNC_POLL_TIMEOUT_MS / 1000)}s`);
 }
 
 /**
