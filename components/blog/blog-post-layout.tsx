@@ -5,6 +5,7 @@ import { AuthorCardInline, AuthorCardFull } from "./author-card";
 import { CTABlock } from "./cta-block";
 import { RelatedArticles } from "./related-articles";
 import { ArticleSchema } from "./article-schema";
+import { ViewCounter } from "./view-counter";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 import { ArrowLeft } from "lucide-react";
 
@@ -150,6 +151,9 @@ export function BlogPostLayout({
 
           {/* Author full */}
           <AuthorCardFull />
+
+          {/* View counter (unique visitors only) */}
+          <ViewCounter slug={slug} />
 
           {/* Related */}
           <RelatedArticles articles={ALL_ARTICLES} current={slug} />

@@ -7,6 +7,7 @@ import { getArticleTranslation, TRANSLATED_SLUGS, type ArticleTranslation } from
 import { AuthorCardInline, AuthorCardFull } from "@/components/blog/author-card";
 import { CTABlock } from "@/components/blog/cta-block";
 import { ArticleSchema } from "@/components/blog/article-schema";
+import { ViewCounter } from "@/components/blog/view-counter";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 import { ArrowLeft } from "lucide-react";
 
@@ -86,6 +87,17 @@ export default async function LocalizedBlogPost({
 
           <CTABlock />
           <AuthorCardFull />
+          <ViewCounter
+            slug={slug}
+            label={
+              lang === "es" ? "vistas" :
+              lang === "pt" ? "visualizações" :
+              lang === "de" ? "Aufrufe" :
+              lang === "fr" ? "vues" :
+              lang === "ja" ? "回閲覧" :
+              "views"
+            }
+          />
         </article>
       </main>
       <ArticleSchema
