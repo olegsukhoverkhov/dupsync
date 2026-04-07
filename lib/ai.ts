@@ -247,14 +247,8 @@ export async function translate(
   sourceLang: string,
   targetLang: string
 ): Promise<TranscriptSegment[]> {
-  // Include the duration of each segment so Claude can pace the translation
-  // to match the speaker's actual speech window. This avoids the situation
-  // where a short translation finishes while the speaker keeps talking.
   const text = segments
-    .map((s) => {
-      const dur = (s.end - s.start).toFixed(1);
-      return `[${s.start}-${s.end}] (${dur}s) ${s.text}`;
-    })
+    .map((s) => `[${s.start}-${s.end}] ${s.text}`)
     .join("\n");
 
   const response = await getAnthropic().messages.create({
@@ -264,28 +258,17 @@ export async function translate(
       {
         role: "user",
         content: `You are translating a video transcript from ${sourceLang} to ${targetLang} for AI dubbing.
-The dubbed audio must fill the same time window as the original speaker — not longer, not shorter.
-
-For each segment you'll see:
-[start-end] (durationS) original text
 
 CRITICAL REQUIREMENTS:
 1. Preserve the EXACT timestamp format [start-end] at the beginning of each line.
-2. The translation MUST take approximately the same time to speak as the original duration.
-   Average natural speech is ~2.5 words per second in most languages.
-   So a 5.0s segment needs ~12 words in ${targetLang}.
-3. If a literal translation is too short, EXPAND it naturally:
-   - Add conversational filler ("you know", "actually", "as I was saying")
-   - Use longer synonyms or fuller phrasing
-   - Restate or elaborate the same idea
-   - Use politer/more formal forms if appropriate for ${targetLang}
-   DO NOT add new information that wasn't in the original meaning.
-4. If a literal translation is too long, CONDENSE it:
-   - Use shorter synonyms
-   - Drop optional particles
-   - Combine short ideas
-5. Use natural, conversational ${targetLang}. Match the original tone.
-6. Output ONLY the translated lines in the same [start-end] format. No commentary.
+2. Translate LITERALLY and faithfully — do NOT add, expand, or paraphrase.
+   - Do NOT add information that isn't in the original (e.g. "яке я записую" when the source only said "my first test video").
+   - Do NOT add conversational filler ("you know", "actually").
+   - Do NOT restate the same idea in different words.
+   - If the translation is naturally shorter or longer than the original, that's fine — keep it faithful.
+3. Keep it CONCISE where possible. Use shorter synonyms over longer ones.
+4. Use natural, conversational ${targetLang}. Match the original tone and register.
+5. Output ONLY the translated lines in the same [start-end] format. No commentary.
 
 Segments to translate:
 ${text}`,
