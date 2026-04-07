@@ -11,8 +11,14 @@ import { createClient } from "@/lib/supabase/client";
 async function extractAudioViaMediaRecorder(videoFile: globalThis.File): Promise<Blob | null> {
   return new Promise((resolve) => {
     const video = document.createElement("video");
-    video.muted = false;
+    // Mute the playback element so the user does NOT hear the video while we
+    // extract audio from the captured stream. The MediaRecorder captures from
+    // the captureStream() which is independent of the element's volume — so
+    // muting here is purely cosmetic for the user.
+    video.muted = true;
+    video.volume = 0;
     video.playsInline = true;
+    video.style.display = "none";
     video.src = URL.createObjectURL(videoFile);
 
     video.onloadedmetadata = () => {

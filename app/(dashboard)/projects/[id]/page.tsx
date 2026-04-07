@@ -198,6 +198,21 @@ export default function ProjectDetailPage({
 
       if (dubsData) {
         setDubs(dubsData as Dub[]);
+
+        // Reconcile: if every dub is finished but the project is still "dubbing",
+        // patch the project status client-side. This handles the case where the
+        // server-side checkProjectComplete didn't run (e.g. Vercel killed the
+        // function before it could update the row).
+        const allFinished = dubsData.length > 0 && dubsData.every((d) =>
+          ["done", "error", "audio_ready"].includes((d as Dub).status)
+        );
+        if (allFinished && proj && (proj as Project).status === "dubbing") {
+          const anyDone = dubsData.some((d) => ["done", "audio_ready"].includes((d as Dub).status));
+          await supabase
+            .from("projects")
+            .update({ status: anyDone ? "done" : "error" })
+            .eq("id", id);
+        }
       }
 
       // Load profile for plan limits
@@ -226,6 +241,21 @@ export default function ProjectDetailPage({
   }, [id]);
 
   const [lipSyncTriggered, setLipSyncTriggered] = useState<Set<string>>(new Set());
+  const [autoSwitched, setAutoSwitched] = useState(false);
+
+  // Auto-switch tab to the first dub that is currently being processed.
+  // Runs once per session (until user manually changes tab).
+  useEffect(() => {
+    if (autoSwitched) return;
+    if (activeTab !== "original") return; // user already navigated
+    const inProgress = dubs.find(
+      (d) => !["done", "error"].includes(d.status)
+    );
+    if (inProgress) {
+      setActiveTab(inProgress.target_language);
+      setAutoSwitched(true);
+    }
+  }, [dubs, activeTab, autoSwitched]);
 
   // Auto-trigger lip sync for audio_ready dubs (Stage 2)
   useEffect(() => {

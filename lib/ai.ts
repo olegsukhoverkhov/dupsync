@@ -362,19 +362,24 @@ export async function textToSpeechWithSpeed(
 }
 
 /**
- * Two-pass TTS generation that aligns audio with the original speaker's timing.
+ * Generate per-segment TTS at NATURAL speed and place each segment at its
+ * original timestamp. Preserves the original video's timing exactly:
  *
- * Strategy per segment:
- *   1. First pass: TTS at natural speed (1.0) to measure how long the translation takes
- *   2. Compare to the original window (end - start)
- *   3. If natural <= window:
- *        - If difference is small (within 30%) → place naturally, accept small silence
- *        - If translation is much shorter → SLOW DOWN with `speed = naturalDuration/window`
- *          (clamped to 0.85 minimum to keep voice natural)
- *      → audio fills the original window, video duration stays the same, lip sync works
- *   4. If natural > window:
- *        - Apply cumulative shift (current behavior) — pushes subsequent segments later
- *        - Total audio may exceed original video → caller extends video via slowDownVideo
+ *   - If the original speaker is silent for the first 5s, the dub is silent
+ *     for the first 5s.
+ *   - Each translated segment plays at its natural speed starting at the
+ *     original `start` timestamp.
+ *   - If the dubbed segment is shorter than the original window, the
+ *     remaining time is filled with silence.
+ *   - If the dubbed segment is longer than its window, it overlaps the next
+ *     segment's window (rare; Claude is asked to keep translations concise).
+ *   - Final WAV duration = original video duration. No extra padding, no
+ *     time stretching, no audio shifting.
+ *
+ * This means the dubbed audio plays in sync with the original mouth movements
+ * even if the dubbed words finish slightly earlier than the original — which
+ * the user explicitly requested ("if the speaker is silent at the start, the
+ * dub should be silent at the start too").
  */
 export async function generateTimedAudio(
   segments: TranscriptSegment[],
@@ -382,29 +387,11 @@ export async function generateTimedAudio(
   originalVideoDuration: number
 ): Promise<{ wav: Buffer; durationSec: number }> {
   const SAMPLE_RATE = 24000;
-  console.log(`[TTS_TIMED] Generating ${segments.length} segments, video=${originalVideoDuration}s`);
+  console.log(
+    `[TTS_TIMED] Generating ${segments.length} segments at natural speed, video=${originalVideoDuration}s`
+  );
 
-  // -------- Pass 1: generate every segment at natural speed (speed=1.0) --------
-  const passOne: {
-    pcm: Buffer;
-    originalStart: number;
-    originalEnd: number;
-    text: string;
-    naturalSec: number;
-  }[] = [];
-
-  async function ttsForText(text: string, speed?: number): Promise<Buffer | null> {
-    const body: Record<string, unknown> = {
-      text,
-      model_id: "eleven_multilingual_v2",
-      voice_settings: {
-        stability: 0.3,
-        similarity_boost: 0.95,
-        style: 0.4,
-        use_speaker_boost: true,
-      },
-    };
-    if (speed !== undefined) body.speed = speed;
+  async function ttsNatural(text: string): Promise<Buffer | null> {
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=pcm_24000`,
       {
@@ -413,7 +400,17 @@ export async function generateTimedAudio(
           "xi-api-key": process.env.ELEVENLABS_API_KEY!,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          text,
+          model_id: "eleven_multilingual_v2",
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.95,
+            style: 0.3,
+            use_speaker_boost: true,
+          },
+          // No speed parameter — generate at the cloned voice's natural speed
+        }),
       }
     );
     if (!response.ok) {
@@ -424,110 +421,48 @@ export async function generateTimedAudio(
     return Buffer.from(await response.arrayBuffer());
   }
 
+  // Generate every segment at natural speed
+  const generated: { pcm: Buffer; start: number; naturalSec: number; text: string }[] = [];
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
     if (!seg.text.trim()) continue;
     try {
-      const pcm = await ttsForText(seg.text);
+      const pcm = await ttsNatural(seg.text);
       if (!pcm) continue;
       const naturalSec = pcm.length / 2 / SAMPLE_RATE;
-      passOne.push({
-        pcm,
-        originalStart: seg.start,
-        originalEnd: seg.end,
-        text: seg.text,
-        naturalSec,
-      });
+      generated.push({ pcm, start: seg.start, naturalSec, text: seg.text });
       if (i % 5 === 0) {
-        const window = seg.end - seg.start;
         console.log(
-          `[TTS_TIMED] Pass1 ${i}/${segments.length}: natural=${naturalSec.toFixed(2)}s, window=${window.toFixed(2)}s, "${seg.text.slice(0, 30)}..."`
+          `[TTS_TIMED] ${i + 1}/${segments.length}: ${naturalSec.toFixed(2)}s natural at ${seg.start.toFixed(2)}s "${seg.text.slice(0, 40)}..."`
         );
       }
     } catch (err) {
-      console.warn(`[TTS_TIMED] Pass1 segment ${i} exception:`, err);
+      console.warn(`[TTS_TIMED] Segment ${i} exception:`, err);
     }
   }
 
-  // -------- Pass 2: decide per-segment strategy --------
-  // For segments where natural is much shorter than the window, regenerate slower
-  // so the audio fills the speaker's mouth-movement window (better lip sync).
-  const FILL_THRESHOLD = 0.75; // if natural < 75% of window → slow down
-  const MIN_SPEED = 0.85; // never slower than 0.85x (keeps voice natural)
-
-  const finalSegments: { pcm: Buffer; originalStart: number; originalEnd: number; durationSec: number }[] = [];
-
-  for (let i = 0; i < passOne.length; i++) {
-    const seg = passOne[i];
-    const window = seg.originalEnd - seg.originalStart;
-    let pcm = seg.pcm;
-    let durationSec = seg.naturalSec;
-
-    if (window > 0 && seg.naturalSec / window < FILL_THRESHOLD) {
-      // Translation is much shorter than the original speech window.
-      // Regenerate with slow speed so the audio fills the window.
-      // ElevenLabs `speed` < 1 makes audio play SLOWER (longer duration).
-      // duration_new = duration_natural / speed → speed = naturalSec / targetSec
-      const idealSpeed = seg.naturalSec / window;
-      const clampedSpeed = Math.max(MIN_SPEED, idealSpeed);
-      console.log(
-        `[TTS_TIMED] Pass2 ${i}: window=${window.toFixed(2)}s, natural=${seg.naturalSec.toFixed(2)}s → slow to speed=${clampedSpeed.toFixed(2)}`
-      );
-      try {
-        const slowed = await ttsForText(seg.text, clampedSpeed);
-        if (slowed) {
-          pcm = slowed;
-          durationSec = pcm.length / 2 / SAMPLE_RATE;
-        }
-      } catch (err) {
-        console.warn(`[TTS_TIMED] Pass2 ${i} regenerate failed:`, err);
-      }
-    }
-
-    finalSegments.push({
-      pcm,
-      originalStart: seg.originalStart,
-      originalEnd: seg.originalEnd,
-      durationSec,
-    });
+  // Total duration = max of (original video, last segment end + small tail)
+  // This ensures we never truncate audio that overflows the video, but
+  // normally the file matches the original video length exactly.
+  let lastEnd = originalVideoDuration;
+  for (const g of generated) {
+    lastEnd = Math.max(lastEnd, g.start + g.naturalSec);
   }
-
-  // -------- Pass 3: place segments with cumulative shift for overflows --------
-  const placed: { pcm: Buffer; placedStart: number; durationSec: number }[] = [];
-  let cumulativeShift = 0;
-
-  for (let i = 0; i < finalSegments.length; i++) {
-    const seg = finalSegments[i];
-    const placedStart = seg.originalStart + cumulativeShift;
-    const window = seg.originalEnd - seg.originalStart;
-    placed.push({ pcm: seg.pcm, placedStart, durationSec: seg.durationSec });
-    if (seg.durationSec > window) {
-      cumulativeShift += seg.durationSec - window;
-    }
-  }
-
-  // -------- Build the final WAV --------
-  // Total duration = max(original video, last segment end) — no extra padding
-  let totalSec = Math.max(originalVideoDuration, originalVideoDuration + cumulativeShift);
-  if (placed.length > 0) {
-    const lastEnd = placed[placed.length - 1].placedStart + placed[placed.length - 1].durationSec;
-    totalSec = Math.max(totalSec, lastEnd);
-  }
-  // Add tiny tail buffer (100ms) to avoid abrupt cutoff
-  totalSec += 0.1;
-
+  const totalSec = Math.max(originalVideoDuration, lastEnd) + 0.1;
   const totalSamples = Math.ceil(totalSec * SAMPLE_RATE);
   const pcmOutput = Buffer.alloc(totalSamples * 2); // 16-bit silence
 
-  for (const { pcm, placedStart } of placed) {
-    const startSample = Math.floor(placedStart * SAMPLE_RATE);
+  // Place each segment at its ORIGINAL start timestamp
+  for (const g of generated) {
+    const startSample = Math.floor(g.start * SAMPLE_RATE);
     const destOffset = startSample * 2;
-    const copyBytes = Math.min(pcm.length, pcmOutput.length - destOffset);
+    const copyBytes = Math.min(g.pcm.length, pcmOutput.length - destOffset);
     if (destOffset >= 0 && copyBytes > 0) {
-      pcm.copy(pcmOutput, destOffset, 0, copyBytes);
+      g.pcm.copy(pcmOutput, destOffset, 0, copyBytes);
     }
   }
 
+  // Build WAV header
   const wavSize = 44 + totalSamples * 2;
   const wav = Buffer.alloc(wavSize);
   wav.write("RIFF", 0);
@@ -546,7 +481,7 @@ export async function generateTimedAudio(
   pcmOutput.copy(wav, 44);
 
   console.log(
-    `[TTS_TIMED] Done: ${(wavSize / 1024).toFixed(0)}KB, ${totalSec.toFixed(2)}s (original=${originalVideoDuration}s, shift=${cumulativeShift.toFixed(2)}s)`
+    `[TTS_TIMED] Done: ${(wavSize / 1024).toFixed(0)}KB, ${totalSec.toFixed(2)}s (original video=${originalVideoDuration}s)`
   );
   return { wav, durationSec: totalSec };
 }
@@ -627,69 +562,91 @@ export async function textToSpeechPadded(
   return wav;
 }
 
-// fal.ai lip sync using latentsync model
+// fal.ai lip sync — tries sync-labs first, falls back to latentsync.
+// sync-labs model is faster (~30s for short clips) and more reliable.
 export async function lipSync(
   videoUrl: string,
   audioUrl: string
 ): Promise<string> {
-  console.log("[LIP_SYNC] Submitting to fal-ai/latentsync...");
+  // Try sync-labs first (faster, more reliable)
+  try {
+    return await runLipSyncModel("fal-ai/sync-lipsync", videoUrl, audioUrl, {
+      video_url: videoUrl,
+      audio_url: audioUrl,
+      model: "lipsync-1.9.0-beta",
+      sync_mode: "loop",
+    });
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : "unknown";
+    console.warn(`[LIP_SYNC] sync-lipsync failed: ${errMsg}, trying latentsync...`);
+    return await runLipSyncModel("fal-ai/latentsync", videoUrl, audioUrl, {
+      video_url: videoUrl,
+      audio_url: audioUrl,
+    });
+  }
+}
 
-  const submitResponse = await fetch("https://queue.fal.run/fal-ai/latentsync", {
+async function runLipSyncModel(
+  modelPath: string,
+  videoUrl: string,
+  audioUrl: string,
+  body: Record<string, unknown>
+): Promise<string> {
+  console.log(`[LIP_SYNC] Submitting to ${modelPath}...`);
+
+  const submitResponse = await fetch(`https://queue.fal.run/${modelPath}`, {
     method: "POST",
     headers: {
       Authorization: `Key ${process.env.FAL_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      video_url: videoUrl,
-      audio_url: audioUrl,
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!submitResponse.ok) {
     const errBody = await submitResponse.text().catch(() => "");
-    console.error(`[LIP_SYNC] Submit failed ${submitResponse.status}: ${errBody}`);
+    console.error(`[LIP_SYNC] ${modelPath} submit failed ${submitResponse.status}: ${errBody}`);
     throw new Error(`fal.ai submit error: ${submitResponse.status} ${errBody.slice(0, 200)}`);
   }
 
   const { request_id } = await submitResponse.json();
-  console.log(`[LIP_SYNC] Job submitted: ${request_id}`);
+  console.log(`[LIP_SYNC] ${modelPath} job submitted: ${request_id}`);
 
-  // Poll for result (max 3 minutes to stay within Vercel after() limits)
-  const maxAttempts = 90; // 90 * 2s = 3 minutes
+  // Poll for result (max 4 minutes)
+  const maxAttempts = 120; // 120 * 2s = 4 minutes
   for (let i = 0; i < maxAttempts; i++) {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const statusResponse = await fetch(
-      `https://queue.fal.run/fal-ai/latentsync/requests/${request_id}/status`,
+      `https://queue.fal.run/${modelPath}/requests/${request_id}/status`,
       {
         headers: { Authorization: `Key ${process.env.FAL_KEY}` },
       }
     );
 
     const statusData = await statusResponse.json();
-    if (i % 5 === 0) console.log(`[LIP_SYNC] Poll ${i}: ${statusData.status}`);
+    if (i % 5 === 0) console.log(`[LIP_SYNC] ${modelPath} poll ${i}: ${statusData.status}`);
 
     if (statusData.status === "COMPLETED") {
       const resultResponse = await fetch(
-        `https://queue.fal.run/fal-ai/latentsync/requests/${request_id}`,
+        `https://queue.fal.run/${modelPath}/requests/${request_id}`,
         {
           headers: { Authorization: `Key ${process.env.FAL_KEY}` },
         }
       );
       const result = await resultResponse.json();
-      console.log(`[LIP_SYNC] Completed successfully`);
+      console.log(`[LIP_SYNC] ${modelPath} completed`);
       return result.video?.url || result.video;
     }
 
     if (statusData.status === "FAILED") {
       const detail = statusData.error || statusData.detail || "Unknown error";
-      console.error(`[LIP_SYNC] Failed: ${JSON.stringify(detail).slice(0, 300)}`);
+      console.error(`[LIP_SYNC] ${modelPath} failed: ${JSON.stringify(detail).slice(0, 300)}`);
       throw new Error(`Lip sync failed: ${typeof detail === "string" ? detail : JSON.stringify(detail).slice(0, 200)}`);
     }
   }
 
-  throw new Error("Lip sync timed out after 4 minutes");
+  throw new Error(`${modelPath} timed out after 4 minutes`);
 }
 
 /**

@@ -198,7 +198,7 @@ export async function runDubbingAudio(dubId: string) {
     const errMsg = error instanceof Error ? error.message : "Unknown error";
     log(dubId, `Stage 1 FAILED: ${errMsg}`);
     await supabase.from("dubs").update({ status: "error", error_message: errMsg }).eq("id", dubId);
-    checkProjectComplete(supabase, dub?.project_id, dubId);
+    await checkProjectComplete(supabase, dub?.project_id, dubId);
   }
 }
 
@@ -298,7 +298,8 @@ export async function runLipSync(dubId: string) {
     }).eq("id", dubId);
   }
 
-  checkProjectComplete(supabase, dub.project_id, dubId);
+  // Must AWAIT this — Vercel can kill the function before it runs otherwise
+  await checkProjectComplete(supabase, dub.project_id, dubId);
 }
 
 // Helper: check if all dubs finished and update project status
