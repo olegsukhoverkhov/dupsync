@@ -361,92 +361,165 @@ export async function textToSpeechWithSpeed(
   return Buffer.from(await response.arrayBuffer());
 }
 
-// Generate per-segment TTS at NATURAL speed with cumulative shift placement
-// If segments overflow, audio gets longer than original video — caller can extend video
+/**
+ * Two-pass TTS generation that aligns audio with the original speaker's timing.
+ *
+ * Strategy per segment:
+ *   1. First pass: TTS at natural speed (1.0) to measure how long the translation takes
+ *   2. Compare to the original window (end - start)
+ *   3. If natural <= window:
+ *        - If difference is small (within 30%) → place naturally, accept small silence
+ *        - If translation is much shorter → SLOW DOWN with `speed = naturalDuration/window`
+ *          (clamped to 0.85 minimum to keep voice natural)
+ *      → audio fills the original window, video duration stays the same, lip sync works
+ *   4. If natural > window:
+ *        - Apply cumulative shift (current behavior) — pushes subsequent segments later
+ *        - Total audio may exceed original video → caller extends video via slowDownVideo
+ */
 export async function generateTimedAudio(
   segments: TranscriptSegment[],
   voiceId: string,
   originalVideoDuration: number
 ): Promise<{ wav: Buffer; durationSec: number }> {
   const SAMPLE_RATE = 24000;
-  console.log(`[TTS_TIMED] Generating ${segments.length} segments at NATURAL speed, original=${originalVideoDuration}s`);
+  console.log(`[TTS_TIMED] Generating ${segments.length} segments, video=${originalVideoDuration}s`);
 
-  // Step 1: Generate PCM for each segment at natural speed
-  const segmentPcms: { pcm: Buffer; originalStart: number; originalEnd: number }[] = [];
+  // -------- Pass 1: generate every segment at natural speed (speed=1.0) --------
+  const passOne: {
+    pcm: Buffer;
+    originalStart: number;
+    originalEnd: number;
+    text: string;
+    naturalSec: number;
+  }[] = [];
+
+  async function ttsForText(text: string, speed?: number): Promise<Buffer | null> {
+    const body: Record<string, unknown> = {
+      text,
+      model_id: "eleven_multilingual_v2",
+      voice_settings: {
+        stability: 0.3,
+        similarity_boost: 0.95,
+        style: 0.4,
+        use_speaker_boost: true,
+      },
+    };
+    if (speed !== undefined) body.speed = speed;
+    const response = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=pcm_24000`,
+      {
+        method: "POST",
+        headers: {
+          "xi-api-key": process.env.ELEVENLABS_API_KEY!,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
+    if (!response.ok) {
+      const err = await response.text().catch(() => "");
+      console.warn(`[TTS_TIMED] TTS failed ${response.status}: ${err.slice(0, 200)}`);
+      return null;
+    }
+    return Buffer.from(await response.arrayBuffer());
+  }
 
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
     if (!seg.text.trim()) continue;
-
     try {
-      const response = await fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=pcm_24000`,
-        {
-          method: "POST",
-          headers: {
-            "xi-api-key": process.env.ELEVENLABS_API_KEY!,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            text: seg.text,
-            model_id: "eleven_multilingual_v2",
-            voice_settings: {
-              stability: 0.3,
-              similarity_boost: 0.95,
-              style: 0.4,
-              use_speaker_boost: true,
-            },
-            // NO speed parameter — natural speed only
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        console.warn(`[TTS_TIMED] Segment ${i} failed: ${response.status}`);
-        continue;
-      }
-
-      const pcm = Buffer.from(await response.arrayBuffer());
-      segmentPcms.push({ pcm, originalStart: seg.start, originalEnd: seg.end });
-
+      const pcm = await ttsForText(seg.text);
+      if (!pcm) continue;
+      const naturalSec = pcm.length / 2 / SAMPLE_RATE;
+      passOne.push({
+        pcm,
+        originalStart: seg.start,
+        originalEnd: seg.end,
+        text: seg.text,
+        naturalSec,
+      });
       if (i % 5 === 0) {
-        const naturalSec = pcm.length / 2 / SAMPLE_RATE;
-        const originalWindow = seg.end - seg.start;
-        console.log(`[TTS_TIMED] Segment ${i}/${segments.length}: ${naturalSec.toFixed(2)}s (window=${originalWindow.toFixed(2)}s) "${seg.text.slice(0, 30)}..."`);
+        const window = seg.end - seg.start;
+        console.log(
+          `[TTS_TIMED] Pass1 ${i}/${segments.length}: natural=${naturalSec.toFixed(2)}s, window=${window.toFixed(2)}s, "${seg.text.slice(0, 30)}..."`
+        );
       }
     } catch (err) {
-      console.warn(`[TTS_TIMED] Segment ${i} exception:`, err);
+      console.warn(`[TTS_TIMED] Pass1 segment ${i} exception:`, err);
     }
   }
 
-  // Step 2: Place segments with cumulative shift
-  const placedSegments: { pcm: Buffer; placedStart: number; durationSec: number }[] = [];
+  // -------- Pass 2: decide per-segment strategy --------
+  // For segments where natural is much shorter than the window, regenerate slower
+  // so the audio fills the speaker's mouth-movement window (better lip sync).
+  const FILL_THRESHOLD = 0.75; // if natural < 75% of window → slow down
+  const MIN_SPEED = 0.85; // never slower than 0.85x (keeps voice natural)
+
+  const finalSegments: { pcm: Buffer; originalStart: number; originalEnd: number; durationSec: number }[] = [];
+
+  for (let i = 0; i < passOne.length; i++) {
+    const seg = passOne[i];
+    const window = seg.originalEnd - seg.originalStart;
+    let pcm = seg.pcm;
+    let durationSec = seg.naturalSec;
+
+    if (window > 0 && seg.naturalSec / window < FILL_THRESHOLD) {
+      // Translation is much shorter than the original speech window.
+      // Regenerate with slow speed so the audio fills the window.
+      // ElevenLabs `speed` < 1 makes audio play SLOWER (longer duration).
+      // duration_new = duration_natural / speed → speed = naturalSec / targetSec
+      const idealSpeed = seg.naturalSec / window;
+      const clampedSpeed = Math.max(MIN_SPEED, idealSpeed);
+      console.log(
+        `[TTS_TIMED] Pass2 ${i}: window=${window.toFixed(2)}s, natural=${seg.naturalSec.toFixed(2)}s → slow to speed=${clampedSpeed.toFixed(2)}`
+      );
+      try {
+        const slowed = await ttsForText(seg.text, clampedSpeed);
+        if (slowed) {
+          pcm = slowed;
+          durationSec = pcm.length / 2 / SAMPLE_RATE;
+        }
+      } catch (err) {
+        console.warn(`[TTS_TIMED] Pass2 ${i} regenerate failed:`, err);
+      }
+    }
+
+    finalSegments.push({
+      pcm,
+      originalStart: seg.originalStart,
+      originalEnd: seg.originalEnd,
+      durationSec,
+    });
+  }
+
+  // -------- Pass 3: place segments with cumulative shift for overflows --------
+  const placed: { pcm: Buffer; placedStart: number; durationSec: number }[] = [];
   let cumulativeShift = 0;
 
-  for (let i = 0; i < segmentPcms.length; i++) {
-    const { pcm, originalStart } = segmentPcms[i];
-    const naturalDurationSec = pcm.length / 2 / SAMPLE_RATE;
-    const placedStart = originalStart + cumulativeShift;
-
-    // Window = time until next segment starts (in original timeline)
-    const nextOriginalStart = i + 1 < segmentPcms.length ? segmentPcms[i + 1].originalStart : originalVideoDuration;
-    const availableWindow = nextOriginalStart - originalStart;
-
-    placedSegments.push({ pcm, placedStart, durationSec: naturalDurationSec });
-
-    if (naturalDurationSec > availableWindow) {
-      cumulativeShift += naturalDurationSec - availableWindow;
+  for (let i = 0; i < finalSegments.length; i++) {
+    const seg = finalSegments[i];
+    const placedStart = seg.originalStart + cumulativeShift;
+    const window = seg.originalEnd - seg.originalStart;
+    placed.push({ pcm: seg.pcm, placedStart, durationSec: seg.durationSec });
+    if (seg.durationSec > window) {
+      cumulativeShift += seg.durationSec - window;
     }
   }
 
-  // Step 3: Build final WAV with new total duration
-  const lastSeg = placedSegments[placedSegments.length - 1];
-  const newTotalDuration = lastSeg ? Math.max(originalVideoDuration + cumulativeShift, lastSeg.placedStart + lastSeg.durationSec) + 0.5 : originalVideoDuration;
+  // -------- Build the final WAV --------
+  // Total duration = max(original video, last segment end) — no extra padding
+  let totalSec = Math.max(originalVideoDuration, originalVideoDuration + cumulativeShift);
+  if (placed.length > 0) {
+    const lastEnd = placed[placed.length - 1].placedStart + placed[placed.length - 1].durationSec;
+    totalSec = Math.max(totalSec, lastEnd);
+  }
+  // Add tiny tail buffer (100ms) to avoid abrupt cutoff
+  totalSec += 0.1;
 
-  const totalSamples = Math.ceil(newTotalDuration * SAMPLE_RATE);
+  const totalSamples = Math.ceil(totalSec * SAMPLE_RATE);
   const pcmOutput = Buffer.alloc(totalSamples * 2); // 16-bit silence
 
-  for (const { pcm, placedStart } of placedSegments) {
+  for (const { pcm, placedStart } of placed) {
     const startSample = Math.floor(placedStart * SAMPLE_RATE);
     const destOffset = startSample * 2;
     const copyBytes = Math.min(pcm.length, pcmOutput.length - destOffset);
@@ -455,7 +528,6 @@ export async function generateTimedAudio(
     }
   }
 
-  // Build WAV header
   const wavSize = 44 + totalSamples * 2;
   const wav = Buffer.alloc(wavSize);
   wav.write("RIFF", 0);
@@ -473,8 +545,10 @@ export async function generateTimedAudio(
   wav.writeUInt32LE(totalSamples * 2, 40);
   pcmOutput.copy(wav, 44);
 
-  console.log(`[TTS_TIMED] Done: ${(wavSize / 1024).toFixed(0)}KB, ${newTotalDuration.toFixed(2)}s (was ${originalVideoDuration}s, shift=${cumulativeShift.toFixed(2)}s)`);
-  return { wav, durationSec: newTotalDuration };
+  console.log(
+    `[TTS_TIMED] Done: ${(wavSize / 1024).toFixed(0)}KB, ${totalSec.toFixed(2)}s (original=${originalVideoDuration}s, shift=${cumulativeShift.toFixed(2)}s)`
+  );
+  return { wav, durationSec: totalSec };
 }
 
 // Generate TTS as PCM and pad to exact duration as WAV (legacy single-segment)

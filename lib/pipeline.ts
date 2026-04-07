@@ -252,17 +252,14 @@ export async function runLipSync(dubId: string) {
       log(dubId, `Audio duration: ${audioDurationSec.toFixed(2)}s, video duration: ${project.duration_seconds}s`);
     }
 
-    // If audio is significantly longer than video, slow down the video
-    let videoUrlForLipSync = videoSigned.signedUrl;
+    // The new TTS strategy keeps audio close to original video duration in most
+    // cases (it slows down short translations to fill the speaker's window).
+    // Audio may still be slightly longer when translations overflow — latentsync
+    // tolerates ~10% mismatch. Skip the experimental ffmpeg slowdown for now;
+    // it was causing silent failures on the fal-ai/ffmpeg-api endpoint.
+    const videoUrlForLipSync = videoSigned.signedUrl;
     const originalVideoDuration = (project.duration_seconds as number) || audioDurationSec;
-    if (audioDurationSec > originalVideoDuration * 1.05) {
-      log(dubId, `Audio longer than video, extending video duration`);
-      try {
-        videoUrlForLipSync = await ai.slowDownVideo(videoSigned.signedUrl, audioDurationSec, originalVideoDuration);
-      } catch (e) {
-        log(dubId, `Slow down failed, using original: ${e instanceof Error ? e.message : "unknown"}`);
-      }
-    }
+    log(dubId, `Audio: ${audioDurationSec.toFixed(2)}s, video: ${originalVideoDuration}s (ratio=${(audioDurationSec / originalVideoDuration).toFixed(2)})`);
 
     const syncedVideoUrl = await ai.lipSync(videoUrlForLipSync, audioSigned.signedUrl);
     clearInterval(progressTimer);
@@ -290,9 +287,15 @@ export async function runLipSync(dubId: string) {
     }
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : "Unknown error";
+    console.error(`[DUB:${dubId.slice(0, 8)}] Stage 2 FAILED:`, error);
     log(dubId, `Stage 2 FAILED: ${errMsg} — keeping audio-only`);
-    // Don't set error — keep audio_ready result, just mark as done
-    await supabase.from("dubs").update({ status: "done", progress: 100 }).eq("id", dubId);
+    // Don't set error status — keep audio result usable, but persist the
+    // lip sync failure reason so we can debug from the DB.
+    await supabase.from("dubs").update({
+      status: "done",
+      progress: 100,
+      error_message: `Lip sync failed: ${errMsg.slice(0, 500)}`,
+    }).eq("id", dubId);
   }
 
   checkProjectComplete(supabase, dub.project_id, dubId);
