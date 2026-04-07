@@ -512,13 +512,32 @@ export async function generateTimedAudio(
     }
   }
 
-  // Total duration = exactly the original video duration. We do NOT extend
-  // the file even if a translation overflows its window — Claude has been
-  // instructed to keep translations within the original duration, and a
-  // small overflow is acceptable (it gets cut off). This guarantees the
-  // dubbed file matches the video length 1:1, so the lip sync output is
-  // never longer than the original.
-  const totalSec = originalVideoDuration;
+  // Total duration = the moment the LAST translated segment finishes speaking
+  // (+ a small tail buffer), NOT the full original video duration.
+  //
+  // Why: translations are usually shorter than the original speech window.
+  // If we pad the file to the full video length, the video's lip sync model
+  // sees the speaker's mouth still moving during the trailing silence, and
+  // produces output where the mouth keeps miming words after the voice stops.
+  //
+  // By trimming the audio to end shortly after the last voice segment,
+  // `sync_mode: "cut_off"` also cuts the video to match, so the output
+  // ends exactly when the voice ends — no silent mouth movements.
+  //
+  // Leading silence is still preserved (segments are placed at their real
+  // `originalStart` timestamps). Gaps between segments are also preserved.
+  // Only the tail silence of the original video is trimmed.
+  const TAIL_BUFFER = 0.3; // 300ms of natural silence after the last word
+  let lastVoiceEnd = 0;
+  for (const g of generated) {
+    lastVoiceEnd = Math.max(lastVoiceEnd, g.start + g.naturalSec);
+  }
+  // Never exceed the original video duration — if a translation happens to
+  // overflow, we'd rather cut it than produce a video longer than original.
+  const totalSec = Math.min(
+    originalVideoDuration,
+    Math.max(lastVoiceEnd + TAIL_BUFFER, 0.5)
+  );
   const totalSamples = Math.ceil(totalSec * SAMPLE_RATE);
   const pcmOutput = Buffer.alloc(totalSamples * 2); // 16-bit silence
 
@@ -551,7 +570,7 @@ export async function generateTimedAudio(
   pcmOutput.copy(wav, 44);
 
   console.log(
-    `[TTS_TIMED] Done: ${(wavSize / 1024).toFixed(0)}KB, ${totalSec.toFixed(2)}s (original video=${originalVideoDuration}s)`
+    `[TTS_TIMED] Done: ${(wavSize / 1024).toFixed(0)}KB, ${totalSec.toFixed(2)}s (voice ends at ${lastVoiceEnd.toFixed(2)}s, original video=${originalVideoDuration}s)`
   );
   return { wav, durationSec: totalSec };
 }
