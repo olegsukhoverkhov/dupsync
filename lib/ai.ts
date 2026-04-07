@@ -546,7 +546,23 @@ export async function generateTimedAudio(
     `[TTS_TIMED] Generating ${segments.length} segments at natural speed, video=${originalVideoDuration}s`
   );
 
-  async function ttsNaturalOnce(text: string): Promise<Buffer> {
+  // ElevenLabs TTS with optional `speed` parameter (0.7 - 1.2 supported by
+  // eleven_multilingual_v2). Returns raw PCM 24kHz mono.
+  async function ttsAtSpeedOnce(text: string, speed: number): Promise<Buffer> {
+    const body: Record<string, unknown> = {
+      text,
+      model_id: "eleven_multilingual_v2",
+      voice_settings: {
+        stability: 0.5,
+        similarity_boost: 0.95,
+        style: 0.3,
+        use_speaker_boost: true,
+      },
+    };
+    // Only send speed if it's not 1.0 — keeps natural-speed calls clean
+    if (speed !== 1.0) {
+      body.voice_settings = { ...(body.voice_settings as object), speed };
+    }
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=pcm_24000`,
       {
@@ -555,84 +571,131 @@ export async function generateTimedAudio(
           "xi-api-key": process.env.ELEVENLABS_API_KEY!,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          text,
-          model_id: "eleven_multilingual_v2",
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.95,
-            style: 0.3,
-            use_speaker_boost: true,
-          },
-          // No speed parameter — generate at the cloned voice's natural speed
-        }),
+        body: JSON.stringify(body),
       }
     );
     if (!response.ok) {
       const err = await response.text().catch(() => "");
-      // Surface voice-permission failures up so the caller can swap the
-      // voice and retry. This is a PERMANENT error for the current voice
-      // (retrying with the same voice won't help).
       if (
         response.status === 400 &&
         /does not have permission|voice design/i.test(err)
       ) {
         throw new ElevenLabsVoicePermissionError(err.slice(0, 300));
       }
-      // Throw with status info so withRetry can detect transient errors
-      throw new Error(
-        `ElevenLabs TTS ${response.status}: ${err.slice(0, 200)}`
-      );
+      throw new Error(`ElevenLabs TTS ${response.status}: ${err.slice(0, 200)}`);
     }
     return Buffer.from(await response.arrayBuffer());
   }
 
-  async function ttsNatural(text: string): Promise<Buffer | null> {
+  async function ttsAtSpeed(text: string, speed: number): Promise<Buffer | null> {
     try {
-      return await withRetry(`tts(${text.slice(0, 20)})`, () => ttsNaturalOnce(text), 3);
+      return await withRetry(
+        `tts(${text.slice(0, 20)}, speed=${speed.toFixed(2)})`,
+        () => ttsAtSpeedOnce(text, speed),
+        3
+      );
     } catch (err) {
-      // Re-throw permission errors so the caller can swap voices
       if (err instanceof ElevenLabsVoicePermissionError) throw err;
       console.warn(`[TTS_TIMED] TTS giving up after retries: ${err instanceof Error ? err.message : "unknown"}`);
       return null;
     }
   }
 
-  // Generate every segment at natural speed
-  const generated: { pcm: Buffer; start: number; naturalSec: number; text: string }[] = [];
+  // -------- TWO-PASS TIME-ALIGNED TTS --------
+  //
+  // Goal: each translated segment should occupy EXACTLY the same time window
+  // as the original speech (so the dubbed audio aligns 1:1 with the speaker's
+  // mouth movements, and lip sync produces a clean result).
+  //
+  // Pass 1: generate every segment at speed=1.0 to MEASURE natural duration.
+  // Pass 2: for each segment, calculate `speed = naturalDuration/targetDuration`
+  //         (clamped to 0.75-1.25 to keep voice quality acceptable) and
+  //         regenerate. The regenerated audio fits the original window.
+  //
+  // Speed clamping rationale:
+  //   - 0.75x = 33% slower → noticeable but still natural
+  //   - 1.25x = 25% faster → noticeable but still natural
+  //   - Outside this range we accept residual mismatch (lip sync handles
+  //     small gaps with closed-mouth frames)
+  //
+  // We skip the regenerate call when natural duration is already within 5%
+  // of the target (no perceptible mismatch).
+  const SPEED_MIN = 0.75;
+  const SPEED_MAX = 1.25;
+  const SKIP_REGEN_THRESHOLD = 0.05; // 5%
+
+  // Pass 1: generate every segment at speed=1.0 and measure
+  const measured: {
+    seg: TranscriptSegment;
+    pcm: Buffer;
+    naturalSec: number;
+  }[] = [];
+
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
     if (!seg.text.trim()) continue;
     try {
-      const pcm = await ttsNatural(seg.text);
+      const pcm = await ttsAtSpeed(seg.text, 1.0);
       if (!pcm) continue;
       const naturalSec = pcm.length / 2 / SAMPLE_RATE;
-      generated.push({ pcm, start: seg.start, naturalSec, text: seg.text });
-      if (i % 5 === 0) {
-        console.log(
-          `[TTS_TIMED] ${i + 1}/${segments.length}: ${naturalSec.toFixed(2)}s natural at ${seg.start.toFixed(2)}s "${seg.text.slice(0, 40)}..."`
-        );
-      }
+      measured.push({ seg, pcm, naturalSec });
     } catch (err) {
-      console.warn(`[TTS_TIMED] Segment ${i} exception:`, err);
+      console.warn(`[TTS_TIMED] Pass1 segment ${i} exception:`, err);
     }
   }
 
-  // Total duration = original video duration, ALWAYS.
-  //
-  // This gives every dubbed language the same output length as the source
-  // regardless of how long the translated speech actually takes. The lip
-  // sync model sees a full-length audio (voice segments placed at their
-  // original timestamps + silence in the gaps) and produces a full-length
-  // video. Quality differences between plans come from the lip sync model
-  // choice (latentsync vs sync-lipsync), NOT from output duration.
-  //
-  // Leading silence, gaps between segments, and trailing silence are all
-  // preserved exactly as in the original video.
-  let lastVoiceEnd = 0;
-  for (const g of generated) {
-    lastVoiceEnd = Math.max(lastVoiceEnd, g.start + g.naturalSec);
+  // Pass 2: regenerate segments where natural duration doesn't match target
+  const generated: { pcm: Buffer; start: number; finalSec: number; text: string }[] = [];
+
+  for (let i = 0; i < measured.length; i++) {
+    const { seg, pcm: naturalPcm, naturalSec } = measured[i];
+    const targetSec = seg.end - seg.start;
+
+    if (targetSec <= 0) {
+      generated.push({ pcm: naturalPcm, start: seg.start, finalSec: naturalSec, text: seg.text });
+      continue;
+    }
+
+    // speedFactor > 1 means we need to SPEED UP (natural is longer than target).
+    // speedFactor < 1 means we need to SLOW DOWN (natural is shorter than target).
+    const idealSpeed = naturalSec / targetSec;
+    const drift = Math.abs(idealSpeed - 1.0);
+
+    if (drift < SKIP_REGEN_THRESHOLD) {
+      // Already close enough — skip the regen to save an API call
+      generated.push({ pcm: naturalPcm, start: seg.start, finalSec: naturalSec, text: seg.text });
+      console.log(
+        `[TTS_TIMED] ${i + 1}/${measured.length}: ${naturalSec.toFixed(2)}s ≈ ${targetSec.toFixed(2)}s target, no regen`
+      );
+      continue;
+    }
+
+    const clampedSpeed = Math.max(SPEED_MIN, Math.min(SPEED_MAX, idealSpeed));
+    console.log(
+      `[TTS_TIMED] ${i + 1}/${measured.length}: natural=${naturalSec.toFixed(2)}s, target=${targetSec.toFixed(2)}s, ideal speed=${idealSpeed.toFixed(2)} → clamped=${clampedSpeed.toFixed(2)}`
+    );
+
+    try {
+      const regenPcm = await ttsAtSpeed(seg.text, clampedSpeed);
+      if (regenPcm) {
+        const finalSec = regenPcm.length / 2 / SAMPLE_RATE;
+        generated.push({ pcm: regenPcm, start: seg.start, finalSec, text: seg.text });
+      } else {
+        // Regen failed — use the natural-speed version
+        generated.push({ pcm: naturalPcm, start: seg.start, finalSec: naturalSec, text: seg.text });
+      }
+    } catch (err) {
+      console.warn(`[TTS_TIMED] Pass2 regen ${i} exception:`, err);
+      generated.push({ pcm: naturalPcm, start: seg.start, finalSec: naturalSec, text: seg.text });
+    }
   }
+
+  // -------- BUILD WAV --------
+  //
+  // Total duration = original video duration. Each segment is placed at its
+  // ORIGINAL start timestamp. Because Pass 2 made every segment fit its
+  // window, segments don't overlap each other and there's natural silence
+  // in the gaps that the original speaker had between utterances.
   const totalSec = originalVideoDuration;
   const totalSamples = Math.ceil(totalSec * SAMPLE_RATE);
   const pcmOutput = Buffer.alloc(totalSamples * 2); // 16-bit silence
@@ -665,8 +728,12 @@ export async function generateTimedAudio(
   wav.writeUInt32LE(totalSamples * 2, 40);
   pcmOutput.copy(wav, 44);
 
+  const lastVoiceEnd = generated.reduce(
+    (max, g) => Math.max(max, g.start + g.finalSec),
+    0
+  );
   console.log(
-    `[TTS_TIMED] Done: ${(wavSize / 1024).toFixed(0)}KB, ${totalSec.toFixed(2)}s (voice ends at ${lastVoiceEnd.toFixed(2)}s, original video=${originalVideoDuration}s)`
+    `[TTS_TIMED] Done: ${(wavSize / 1024).toFixed(0)}KB, ${totalSec.toFixed(2)}s (last voice ends at ${lastVoiceEnd.toFixed(2)}s, ${generated.length} segments)`
   );
   return { wav, durationSec: totalSec };
 }

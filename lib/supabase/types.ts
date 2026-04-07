@@ -68,6 +68,9 @@ export interface Dub {
   fal_request_id: string | null;
   fal_model: string | null;
   fal_attempt: number;
+  /** Set by /api/cron/retry-failed-dubs once it has retried this dub.
+   *  Prevents infinite cron retry loops. */
+  cron_retried_at: string | null;
 }
 
 export interface Transaction {
