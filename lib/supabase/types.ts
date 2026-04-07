@@ -62,6 +62,10 @@ export interface Dub {
   error_message: string | null;
   created_at: string;
   updated_at: string;
+  // fal.ai async lip sync tracking (populated by Stage 2 submit, read by webhook)
+  fal_request_id: string | null;
+  fal_model: string | null;
+  fal_attempt: number;
 }
 
 export interface Transaction {

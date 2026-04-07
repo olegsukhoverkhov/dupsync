@@ -748,6 +748,120 @@ export async function textToSpeechPadded(
 }
 
 /**
+ * Submit a lip sync job to fal.ai with a webhook callback.
+ *
+ * Returns the fal request_id immediately — no polling. fal.ai will POST
+ * the result to `webhookUrl` when the job finishes (success or failure).
+ *
+ * Use this for the async webhook-based flow. The traditional `lipSync()`
+ * function below is kept for legacy/sync use cases.
+ */
+export async function submitLipSyncJob(
+  videoUrl: string,
+  audioUrl: string,
+  webhookUrl: string,
+  options: {
+    model: "fal-ai/sync-lipsync" | "fal-ai/latentsync";
+    modelVersion?: string;
+  }
+): Promise<{ requestId: string; model: string }> {
+  const body =
+    options.model === "fal-ai/sync-lipsync"
+      ? {
+          video_url: videoUrl,
+          audio_url: audioUrl,
+          model: options.modelVersion ?? "lipsync-1.8.0",
+          sync_mode: "cut_off",
+        }
+      : { video_url: videoUrl, audio_url: audioUrl };
+
+  // fal.ai accepts the webhook URL as a query parameter on the submit endpoint
+  const submitUrl = `https://queue.fal.run/${options.model}?fal_webhook=${encodeURIComponent(webhookUrl)}`;
+  console.log(`[LIP_SYNC] Submitting async to ${options.model}, webhook=${webhookUrl}`);
+
+  const response = await fetch(submitUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Key ${process.env.FAL_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errBody = await response.text().catch(() => "");
+    throw new Error(
+      `fal.ai submit error: ${response.status} ${errBody.slice(0, 200)}`
+    );
+  }
+
+  const data = await response.json();
+  if (!data.request_id) {
+    throw new Error(
+      `fal.ai submit returned no request_id: ${JSON.stringify(data).slice(0, 200)}`
+    );
+  }
+  console.log(`[LIP_SYNC] ${options.model} job submitted: ${data.request_id}`);
+  return { requestId: data.request_id, model: options.model };
+}
+
+/**
+ * Fetch a completed lip sync job's result from fal.ai. Used by the webhook
+ * handler to extract the final video URL when fal.ai posts the OK callback.
+ *
+ * Note: The webhook payload usually already contains the result, but for
+ * cases where the payload is incomplete or we need to re-fetch, this
+ * helper hits the queue result endpoint directly.
+ */
+export async function fetchLipSyncResult(
+  modelPath: string,
+  requestId: string
+): Promise<string> {
+  const response = await fetch(
+    `https://queue.fal.run/${modelPath}/requests/${requestId}`,
+    {
+      headers: { Authorization: `Key ${process.env.FAL_KEY}` },
+    }
+  );
+  if (!response.ok) {
+    throw new Error(`fal.ai result fetch ${response.status}`);
+  }
+  const result = await response.json();
+  const videoUrl =
+    (typeof result?.video === "string" && result.video) ||
+    (typeof result?.video?.url === "string" && result.video.url) ||
+    (typeof result?.url === "string" && result.url) ||
+    null;
+  if (!videoUrl) {
+    throw new Error(
+      `fal.ai result has no video URL: ${JSON.stringify(result).slice(0, 200)}`
+    );
+  }
+  return videoUrl;
+}
+
+/**
+ * Extract a video URL from a fal.ai webhook payload.
+ *
+ * Webhook bodies vary by model:
+ *   sync-lipsync → { payload: { video: { url: "..." } } }
+ *   latentsync   → { payload: { video: { url: "..." } } }
+ * Older shapes:   { payload: { video: "..." } }  or  { payload: { url: "..." } }
+ */
+export function extractVideoUrlFromWebhook(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") return null;
+  const p = payload as Record<string, unknown>;
+  const video = p.video;
+  if (typeof video === "string") return video;
+  if (video && typeof video === "object") {
+    const url = (video as Record<string, unknown>).url;
+    if (typeof url === "string") return url;
+  }
+  if (typeof p.url === "string") return p.url;
+  return null;
+}
+
+/**
  * fal.ai lip sync — routes to the model configured for the user's plan.
  *
  * Plan mapping:
