@@ -80,8 +80,12 @@ export default function CreditsPage() {
   if (!profile) return null;
 
   const planLimits = PLAN_LIMITS[profile.plan];
-  const creditsRemaining = Number(profile.credits_remaining) || 0;
+  const rawRemaining = Number(profile.credits_remaining) || 0;
   const totalCredits = planLimits.credits === -1 ? Infinity : planLimits.credits;
+  // Clamp display so a stale DB row with credits > plan total can never
+  // produce negative usage or > 100% bars.
+  const creditsRemaining =
+    totalCredits === Infinity ? rawRemaining : Math.min(rawRemaining, totalCredits);
   const usedCredits = totalCredits === Infinity ? 0 : Math.max(0, totalCredits - creditsRemaining);
   const usagePercent = totalCredits === Infinity ? 0 : Math.min(100, Math.round((usedCredits / totalCredits) * 100));
   const totalSpend = usedCredits; // Total spend = credits used from plan

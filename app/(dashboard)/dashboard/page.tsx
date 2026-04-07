@@ -128,8 +128,18 @@ export default function DashboardPage() {
 
   const plan = profile ? PLAN_LIMITS[profile.plan] : PLAN_LIMITS.free;
   const creditsTotal = plan.credits === -1 ? Infinity : plan.credits;
-  const creditsUsed = creditsTotal === Infinity ? 0 : creditsTotal - (profile?.credits_remaining ?? 0);
-  const usagePercent = creditsTotal === Infinity ? 0 : Math.round((creditsUsed / creditsTotal) * 100);
+  // Clamp remaining to plan total — defends against stale DB rows where
+  // credits_remaining could be > total (e.g. legacy users from old credit
+  // schemes). Without this clamp the "used" calc goes negative and the
+  // progress bar / percentage become nonsense.
+  const creditsRemainingClamped =
+    creditsTotal === Infinity
+      ? Number(profile?.credits_remaining ?? 0)
+      : Math.min(Number(profile?.credits_remaining ?? 0), creditsTotal);
+  const creditsUsed =
+    creditsTotal === Infinity ? 0 : Math.max(0, creditsTotal - creditsRemainingClamped);
+  const usagePercent =
+    creditsTotal === Infinity ? 0 : Math.round((creditsUsed / creditsTotal) * 100);
 
   return (
     <div>
@@ -155,7 +165,9 @@ export default function DashboardPage() {
               <div>
                 <p className="text-xs text-slate-500">Credits Left</p>
                 <p className="text-sm font-semibold text-white">
-                  {profile.credits_remaining === -1 ? "Unlimited" : `${profile.credits_remaining.toFixed(1)} credits`}
+                  {creditsTotal === Infinity
+                    ? "Unlimited"
+                    : `${Math.floor(creditsRemainingClamped)} / ${creditsTotal}`}
                 </p>
               </div>
             </div>
@@ -167,7 +179,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <p className="text-xs text-slate-500">Credits Used</p>
-                <p className="text-sm font-semibold text-white">{creditsUsed.toFixed(1)} credits</p>
+                <p className="text-sm font-semibold text-white">{Math.floor(creditsUsed)} credits</p>
               </div>
             </div>
           </div>

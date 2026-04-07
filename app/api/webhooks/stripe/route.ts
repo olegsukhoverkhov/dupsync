@@ -104,9 +104,11 @@ export async function POST(request: Request) {
       const subscription = event.data.object;
       const customerId = subscription.customer as string;
 
+      // When a subscription is cancelled the user falls back to the
+      // Free plan, which gets 1 credit (= 1 video × 1 language).
       await supabase
         .from("profiles")
-        .update({ plan: "free", credits_remaining: 5 })
+        .update({ plan: "free", credits_remaining: 1 })
         .eq("stripe_customer_id", customerId);
       break;
     }

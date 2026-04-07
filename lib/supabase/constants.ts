@@ -59,7 +59,7 @@ export const PLAN_LIMITS: Record<
     name: "Free",
     price: 0,
     priceAnnual: 0,
-    credits: 0, // special: 1 video up to 60 sec
+    credits: 1, // 1 free credit on signup = 1 video up to 1 min × 1 lang
     maxFileSize: 100,
     maxLanguages: 1,
     maxProjects: 1,

@@ -131,9 +131,9 @@ export default function SettingsPage() {
             <div>
               <p className="text-muted-foreground">Credits</p>
               <p className="font-medium">
-                {profile.credits_remaining === -1
+                {currentPlan.credits === -1
                   ? "Unlimited"
-                  : `${Math.floor(Number(profile.credits_remaining))} credits remaining`}
+                  : `${Math.floor(Math.min(Number(profile.credits_remaining), currentPlan.credits))} / ${currentPlan.credits} credits`}
               </p>
             </div>
             <div>
