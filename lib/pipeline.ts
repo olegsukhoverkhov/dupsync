@@ -302,13 +302,16 @@ export async function runLipSync(dubId: string) {
   await checkProjectComplete(supabase, dub.project_id, dubId);
 }
 
-// Helper: check if all dubs finished and update project status
+// Helper: check if all dubs finished and update project status.
+// Only "done" and "error" are TERMINAL states. "audio_ready" is intermediate
+// (Stage 1 finished, Stage 2 lip sync about to start) so we must NOT treat
+// it as finished — otherwise the project flips to "done" before lip sync runs.
 async function checkProjectComplete(supabase: Awaited<ReturnType<typeof createServiceClient>>, projectId: string | null, dubId: string) {
   if (!projectId) return;
   const { data: allDubs } = await supabase.from("dubs").select("status").eq("project_id", projectId);
-  const allFinished = allDubs?.every((d) => ["done", "error", "audio_ready"].includes(d.status));
+  const allFinished = allDubs?.every((d) => ["done", "error"].includes(d.status));
   if (allFinished) {
-    const anyDone = allDubs?.some((d) => d.status === "done" || d.status === "audio_ready");
+    const anyDone = allDubs?.some((d) => d.status === "done");
     await supabase.from("projects").update({ status: anyDone ? "done" : "error" }).eq("id", projectId);
     log(dubId, `All dubs finished — project: ${anyDone ? "done" : "error"}`);
   }

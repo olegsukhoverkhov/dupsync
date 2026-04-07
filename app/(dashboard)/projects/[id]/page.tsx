@@ -199,15 +199,19 @@ export default function ProjectDetailPage({
       if (dubsData) {
         setDubs(dubsData as Dub[]);
 
-        // Reconcile: if every dub is finished but the project is still "dubbing",
-        // patch the project status client-side. This handles the case where the
-        // server-side checkProjectComplete didn't run (e.g. Vercel killed the
-        // function before it could update the row).
+        // Reconcile: if every dub is in a TRULY terminal state but the project
+        // is still "dubbing", patch the project status client-side. This is a
+        // safety net for cases where the server-side checkProjectComplete
+        // didn't run (e.g. Vercel killed the function before it could update).
+        //
+        // NOTE: `audio_ready` is NOT terminal — it's the intermediate state
+        // between Stage 1 (TTS done) and Stage 2 (lip sync). Including it
+        // here would mark the project as "done" before lip sync even starts.
         const allFinished = dubsData.length > 0 && dubsData.every((d) =>
-          ["done", "error", "audio_ready"].includes((d as Dub).status)
+          ["done", "error"].includes((d as Dub).status)
         );
         if (allFinished && proj && (proj as Project).status === "dubbing") {
-          const anyDone = dubsData.some((d) => ["done", "audio_ready"].includes((d as Dub).status));
+          const anyDone = dubsData.some((d) => (d as Dub).status === "done");
           await supabase
             .from("projects")
             .update({ status: anyDone ? "done" : "error" })
