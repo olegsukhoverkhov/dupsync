@@ -1,6 +1,8 @@
 import { createServiceClient } from "./supabase/server";
 import * as ai from "./ai";
 import { LANGUAGE_MAP } from "./supabase/constants";
+import { getQualityTier } from "./quality-tiers";
+import type { PlanType } from "./supabase/types";
 
 
 function log(dubId: string, msg: string) {
@@ -253,15 +255,32 @@ export async function runLipSync(dubId: string) {
     }
 
     // The new TTS strategy keeps audio close to original video duration in most
-    // cases (it slows down short translations to fill the speaker's window).
-    // Audio may still be slightly longer when translations overflow — latentsync
-    // tolerates ~10% mismatch. Skip the experimental ffmpeg slowdown for now;
-    // it was causing silent failures on the fal-ai/ffmpeg-api endpoint.
+    // cases. Audio may still be slightly longer when translations overflow —
+    // both lip sync models tolerate small mismatches.
     const videoUrlForLipSync = videoSigned.signedUrl;
     const originalVideoDuration = (project.duration_seconds as number) || audioDurationSec;
     log(dubId, `Audio: ${audioDurationSec.toFixed(2)}s, video: ${originalVideoDuration}s (ratio=${(audioDurationSec / originalVideoDuration).toFixed(2)})`);
 
-    const syncedVideoUrl = await ai.lipSync(videoUrlForLipSync, audioSigned.signedUrl);
+    // Look up the owner's plan so we can route to the correct lip sync model.
+    // Free / Starter → fal-ai/latentsync
+    // Pro / Business → fal-ai/sync-lipsync (lipsync-1.8.0)
+    let plan: PlanType = "free";
+    const userId = project.user_id as string | undefined;
+    if (userId) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("plan")
+        .eq("id", userId)
+        .single();
+      if (profile?.plan) plan = profile.plan as PlanType;
+    }
+    const tier = getQualityTier(plan);
+    log(dubId, `Plan=${plan}, tier=${tier.label}, model=${tier.lipSyncModel}${tier.lipSyncModelVersion ? ` (${tier.lipSyncModelVersion})` : ""}`);
+
+    const syncedVideoUrl = await ai.lipSync(videoUrlForLipSync, audioSigned.signedUrl, {
+      model: tier.lipSyncModel,
+      modelVersion: tier.lipSyncModelVersion,
+    });
     clearInterval(progressTimer);
 
     log(dubId, "Lip sync done, uploading video...");

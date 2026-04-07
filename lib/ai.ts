@@ -651,31 +651,59 @@ export async function textToSpeechPadded(
   return wav;
 }
 
-// fal.ai lip sync — tries sync-labs first, falls back to latentsync.
-// sync-labs model is faster (~30s for short clips) and more reliable.
+/**
+ * fal.ai lip sync — routes to the model configured for the user's plan.
+ *
+ * - Free / Starter: `fal-ai/latentsync`  (ByteDance LatentSync, included
+ *   in lower tiers)
+ * - Pro / Business: `fal-ai/sync-lipsync` with `lipsync-1.8.0`  (Sync Labs,
+ *   higher quality, faster convergence, premium tier)
+ *
+ * If the requested model fails (fal.ai timeout, rate limit, etc.) we fall
+ * back to the OTHER model so the user still gets a result. Pro users get
+ * latentsync as a degraded fallback rather than an outright failure.
+ */
 export async function lipSync(
   videoUrl: string,
-  audioUrl: string
+  audioUrl: string,
+  options?: { model?: "fal-ai/sync-lipsync" | "fal-ai/latentsync"; modelVersion?: string }
 ): Promise<string> {
-  // Try sync-labs first (faster, more reliable)
-  // sync_mode="cut_off" → output length = min(audio, video). Crucial: this
-  // prevents the output from being longer than the original video. If audio
-  // overflows the video length, it's clipped. If audio is shorter, the
-  // remaining video frames are kept (speaker silent at the end).
+  const primary = options?.model ?? "fal-ai/latentsync";
+  const fallback: "fal-ai/sync-lipsync" | "fal-ai/latentsync" =
+    primary === "fal-ai/sync-lipsync" ? "fal-ai/latentsync" : "fal-ai/sync-lipsync";
+
+  const primaryBody =
+    primary === "fal-ai/sync-lipsync"
+      ? {
+          video_url: videoUrl,
+          audio_url: audioUrl,
+          model: options?.modelVersion ?? "lipsync-1.8.0",
+          sync_mode: "cut_off",
+        }
+      : {
+          video_url: videoUrl,
+          audio_url: audioUrl,
+        };
+
   try {
-    return await runLipSyncModel("fal-ai/sync-lipsync", videoUrl, audioUrl, {
-      video_url: videoUrl,
-      audio_url: audioUrl,
-      model: "lipsync-1.9.0-beta",
-      sync_mode: "cut_off",
-    });
+    console.log(`[LIP_SYNC] Primary model: ${primary}`);
+    return await runLipSyncModel(primary, videoUrl, audioUrl, primaryBody);
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : "unknown";
-    console.warn(`[LIP_SYNC] sync-lipsync failed: ${errMsg}, trying latentsync...`);
-    return await runLipSyncModel("fal-ai/latentsync", videoUrl, audioUrl, {
-      video_url: videoUrl,
-      audio_url: audioUrl,
-    });
+    console.warn(`[LIP_SYNC] ${primary} failed: ${errMsg}, trying ${fallback}...`);
+    const fallbackBody =
+      fallback === "fal-ai/sync-lipsync"
+        ? {
+            video_url: videoUrl,
+            audio_url: audioUrl,
+            model: "lipsync-1.8.0",
+            sync_mode: "cut_off",
+          }
+        : {
+            video_url: videoUrl,
+            audio_url: audioUrl,
+          };
+    return await runLipSyncModel(fallback, videoUrl, audioUrl, fallbackBody);
   }
 }
 
