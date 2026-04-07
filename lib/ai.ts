@@ -1,6 +1,21 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { TranscriptSegment } from "./supabase/types";
 
+/**
+ * Thrown when ElevenLabs returns a 400 with a voice-permission error
+ * ("The voice does not have permission to use the model..."). The caller
+ * should delete the cloned voice, fall back to a pre-made multilingual
+ * voice, and retry.
+ *
+ * TODO: remove the fallback once the ElevenLabs account quota is bumped.
+ */
+export class ElevenLabsVoicePermissionError extends Error {
+  constructor(body: string) {
+    super(`ElevenLabs voice permission: ${body}`);
+    this.name = "ElevenLabsVoicePermissionError";
+  }
+}
+
 let _anthropic: Anthropic | null = null;
 function getAnthropic() {
   if (!_anthropic) {
@@ -487,6 +502,16 @@ export async function generateTimedAudio(
     if (!response.ok) {
       const err = await response.text().catch(() => "");
       console.warn(`[TTS_TIMED] TTS failed ${response.status}: ${err.slice(0, 200)}`);
+      // Surface voice-permission failures up so the caller can swap the
+      // voice and retry. This usually happens when we clone a voice while
+      // the ElevenLabs account is at its quota and the clone doesn't get
+      // access to the multilingual model.
+      if (
+        response.status === 400 &&
+        /does not have permission|voice design/i.test(err)
+      ) {
+        throw new ElevenLabsVoicePermissionError(err.slice(0, 300));
+      }
       return null;
     }
     return Buffer.from(await response.arrayBuffer());
@@ -756,8 +781,26 @@ async function runLipSyncModel(
         }
       );
       const result = await resultResponse.json();
-      console.log(`[LIP_SYNC] ${modelPath} completed`);
-      return result.video?.url || result.video;
+      // Different fal.ai models return the video URL in different shapes:
+      //   sync-lipsync → { video: { url: "..." } }
+      //   latentsync   → { video: "..." }  OR  { video: { url: "..." } }
+      // Be defensive so a malformed response never becomes `fetch(undefined)`.
+      const videoUrl =
+        (typeof result?.video === "string" && result.video) ||
+        (typeof result?.video?.url === "string" && result.video.url) ||
+        (typeof result?.url === "string" && result.url) ||
+        null;
+      if (!videoUrl) {
+        console.error(
+          `[LIP_SYNC] ${modelPath} completed but returned no video URL. Response:`,
+          JSON.stringify(result).slice(0, 500)
+        );
+        throw new Error(
+          `${modelPath} returned no video URL: ${JSON.stringify(result).slice(0, 200)}`
+        );
+      }
+      console.log(`[LIP_SYNC] ${modelPath} completed → ${videoUrl.slice(0, 80)}`);
+      return videoUrl;
     }
 
     if (statusData.status === "FAILED") {

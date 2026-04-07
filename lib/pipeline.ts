@@ -173,7 +173,32 @@ export async function runDubbingAudio(dubId: string) {
       end: transcript[i]?.end ?? seg.end,
     }));
 
-    const { wav: audioBuffer, durationSec: newAudioDuration } = await ai.generateTimedAudio(segmentsWithTiming, voiceId, videoDuration);
+    // Run TTS. If the cloned voice doesn't have permission for the
+    // multilingual model (common when the ElevenLabs account is near quota),
+    // delete the clone and retry with a pre-made multilingual voice.
+    // This is a TEMPORARY workaround — remove once quota is expanded.
+    let audioBuffer: Buffer;
+    let newAudioDuration: number;
+    try {
+      const out = await ai.generateTimedAudio(segmentsWithTiming, voiceId, videoDuration);
+      audioBuffer = out.wav;
+      newAudioDuration = out.durationSec;
+    } catch (err) {
+      if (err instanceof ai.ElevenLabsVoicePermissionError) {
+        log(dubId, `Voice permission error on cloned voice — falling back to pre-made multilingual voice`);
+        // Clean up the unusable cloned voice
+        if (!["FGY2WhTYpPnrIDTdsKH5", "EXAVITQu4vr4xnSDxMaL", "XrExE9yKIg1WjnnlVkGX"].includes(voiceId)) {
+          try { await ai.deleteClonedVoice(voiceId); } catch { /* ignore */ }
+        }
+        voiceId = await ai.getMultilingualVoice();
+        log(dubId, `Retrying TTS with pre-made voice ${voiceId}`);
+        const out = await ai.generateTimedAudio(segmentsWithTiming, voiceId, videoDuration);
+        audioBuffer = out.wav;
+        newAudioDuration = out.durationSec;
+      } else {
+        throw err;
+      }
+    }
     log(dubId, `TTS done: audio=${newAudioDuration.toFixed(2)}s (was ${videoDuration}s)`);
 
     // Upload audio
