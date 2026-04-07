@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { SmoothDubProgress, SmoothDubBadge } from "@/components/project/smooth-dub-progress";
 import { TranscriptEditor } from "@/components/project/transcript-editor";
 import { createClient } from "@/lib/supabase/client";
 import { LANGUAGE_MAP } from "@/lib/supabase/constants";
@@ -497,13 +498,12 @@ export default function ProjectDetailPage({
             )}
 
             {!["done", "error"].includes(activeDub.status) && (
-              <div className="mb-6">
-                <div className="flex justify-between text-sm mb-2">
-                  <span>{STATUS_LABELS[activeDub.status]}</span>
-                  <span>{activeDub.progress}%</span>
-                </div>
-                <Progress value={activeDub.progress} />
-              </div>
+              <SmoothDubProgress
+                status={activeDub.status as Parameters<typeof SmoothDubProgress>[0]["status"]}
+                backendProgress={activeDub.progress}
+                videoDurationSec={project.duration_seconds || 30}
+                label={STATUS_LABELS[activeDub.status]}
+              />
             )}
 
             {activeDub.status === "error" && (
@@ -608,14 +608,12 @@ export default function ProjectDetailPage({
                         <span className="text-xs text-red-400">Failed</span>
                       )}
                       {isActive && (
-                        <span className="text-xs text-pink-400 flex items-center gap-1.5">
-                          {STATUS_LABELS[dub.status]} {dub.progress}%
-                          <span className="inline-flex gap-[3px]">
-                            <span className="h-1.5 w-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: "0ms", animationDuration: "0.8s" }} />
-                            <span className="h-1.5 w-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: "200ms", animationDuration: "0.8s" }} />
-                            <span className="h-1.5 w-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: "400ms", animationDuration: "0.8s" }} />
-                          </span>
-                        </span>
+                        <SmoothDubBadge
+                          status={dub.status as Parameters<typeof SmoothDubBadge>[0]["status"]}
+                          backendProgress={dub.progress}
+                          videoDurationSec={project.duration_seconds || 30}
+                          label={STATUS_LABELS[dub.status]}
+                        />
                       )}
                       {isPending && (
                         <span className="text-xs text-slate-500 flex items-center gap-1.5">
