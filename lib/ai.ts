@@ -135,6 +135,11 @@ export async function transcribe(
   );
   formData.append("model", "whisper-1");
   formData.append("response_format", "verbose_json");
+  // Word-level granularity gives us precise per-word start/end timestamps.
+  // Whisper's segment-level timestamps tend to round and PAD silence at the
+  // ends — e.g. a 5s clip with speech only at 1.5–4s comes back as [0–5].
+  // We rebuild segments from words using their real boundaries.
+  formData.append("timestamp_granularities[]", "word");
   formData.append("timestamp_granularities[]", "segment");
   if (languageHint && languageHint !== "auto") {
     formData.append("language", languageHint);
@@ -166,14 +171,73 @@ export async function transcribe(
 
   const data = await response.json();
 
-  const segments: TranscriptSegment[] = (data.segments || []).map(
-    (s: { start: number; end: number; text: string }) => ({
+  // Prefer word-level timestamps when available — they give precise speech
+  // boundaries instead of Whisper's padded segment boundaries.
+  type WhisperWord = { word: string; start: number; end: number };
+  type WhisperSeg = { id?: number; start: number; end: number; text: string };
+  const words: WhisperWord[] = data.words || [];
+  const rawSegments: WhisperSeg[] = data.segments || [];
+
+  let segments: TranscriptSegment[];
+
+  if (words.length > 0 && rawSegments.length > 0) {
+    // Match each segment's word range and rebuild start/end from words.
+    // We iterate through `words` once, assigning to segments by text-content
+    // alignment. To keep this simple and robust, we walk in order and pick
+    // the words whose midpoint falls within the segment's [start, end].
+    let wordIdx = 0;
+    segments = rawSegments
+      .map((seg) => {
+        const segWords: WhisperWord[] = [];
+        // Skip words that ended before this segment started
+        while (wordIdx < words.length && words[wordIdx].end <= seg.start) {
+          wordIdx++;
+        }
+        // Collect words that lie within (or overlap) the segment window
+        while (wordIdx < words.length && words[wordIdx].start < seg.end) {
+          segWords.push(words[wordIdx]);
+          wordIdx++;
+        }
+        if (segWords.length === 0) {
+          // Fall back to the segment timestamps if Whisper didn't align
+          // any words to this segment (rare).
+          return {
+            start: seg.start,
+            end: seg.end,
+            text: seg.text.trim(),
+          };
+        }
+        return {
+          start: segWords[0].start,
+          end: segWords[segWords.length - 1].end,
+          text: seg.text.trim(),
+        };
+      })
+      .filter((s) => s.text.length > 0);
+  } else if (words.length > 0) {
+    // No segment data — group words into utterances by silence gaps (>1s)
+    segments = [];
+    let cur: TranscriptSegment | null = null;
+    for (const w of words) {
+      if (!cur || w.start - cur.end > 1.0) {
+        if (cur) segments.push(cur);
+        cur = { start: w.start, end: w.end, text: w.word.trim() };
+      } else {
+        cur.end = w.end;
+        cur.text += " " + w.word.trim();
+      }
+    }
+    if (cur) segments.push(cur);
+  } else {
+    // Final fallback — original Whisper segment timestamps (may be padded)
+    segments = rawSegments.map((s) => ({
       start: s.start,
       end: s.end,
       text: s.text.trim(),
-    })
-  );
+    }));
+  }
 
+  console.log(`[WHISPER] ${segments.length} segments from ${words.length} words`);
   return { segments, language: data.language || "en" };
 }
 
