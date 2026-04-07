@@ -312,14 +312,19 @@ export default function NewProjectPage() {
             </div>
 
             <div>
-              <Label htmlFor="language">Source Language</Label>
+              <Label htmlFor="language">
+                What language is the speaker in your video using?
+              </Label>
+              <p className="mt-1 text-xs text-slate-500">
+                This is the <strong className="text-slate-300">original</strong> language of the speech in your video — not the language you want to translate it to. You&apos;ll choose target languages in the next step.
+              </p>
               <select
                 id="language"
                 value={sourceLanguage}
                 onChange={(e) => setSourceLanguage(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-pink-500/50 focus:outline-none focus:ring-1 focus:ring-pink-500/50"
+                className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-pink-500/50 focus:outline-none focus:ring-1 focus:ring-pink-500/50"
               >
-                <option value="auto">Auto-detect</option>
+                <option value="auto">Auto-detect (recommended)</option>
                 <option value="en">English</option>
                 <option value="es">Spanish</option>
                 <option value="fr">French</option>
