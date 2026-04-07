@@ -627,22 +627,33 @@ export async function generateTimedAudio(
   // as the original speech (so the dubbed audio aligns 1:1 with the speaker's
   // mouth movements, and lip sync produces a clean result).
   //
-  // Pass 1: generate every segment at speed=1.0 to MEASURE natural duration.
-  // Pass 2: for each segment, calculate `speed = naturalDuration/targetDuration`
-  //         (clamped to 0.75-1.25 to keep voice quality acceptable) and
-  //         regenerate. The regenerated audio fits the original window.
+  // STRATEGY DEPENDS ON VIDEO LENGTH:
   //
-  // Speed clamping rationale:
-  //   - 0.75x = 33% slower → noticeable but still natural
-  //   - 1.25x = 25% faster → noticeable but still natural
-  //   - Outside this range we accept residual mismatch (lip sync handles
-  //     small gaps with closed-mouth frames)
+  // Short videos (≤20s, usually 1-2 segments):
+  //   Two-pass time alignment with ElevenLabs `speed` parameter.
+  //   - Pass 1: TTS at speed=1.0, measure naturalDuration
+  //   - Pass 2: regenerate with speed=natural/target (clamped 0.75-1.25)
+  //   The slowdown is barely noticeable on a single short clip and gives
+  //   us a perfect timing match for clean lip sync.
   //
-  // We skip the regenerate call when natural duration is already within 5%
-  // of the target (no perceptible mismatch).
+  // Long videos (>20s, usually 5+ segments):
+  //   Single-pass natural-speed TTS only.
+  //   - On long videos, slowdowns from Pass 2 ACCUMULATE across segments
+  //     and the whole audio sounds noticeably slow/dragged.
+  //   - Better trade-off: each segment plays at its natural speed and is
+  //     placed at its original timestamp. Some segments may finish before
+  //     their window ends → small silent gaps. Lip sync handles those with
+  //     closed-mouth frames.
+  //   - Final file duration still equals original video duration.
+  const SHORT_VIDEO_THRESHOLD_SEC = 20;
+  const useTimeAlignment = originalVideoDuration <= SHORT_VIDEO_THRESHOLD_SEC;
   const SPEED_MIN = 0.75;
   const SPEED_MAX = 1.25;
   const SKIP_REGEN_THRESHOLD = 0.05; // 5%
+
+  console.log(
+    `[TTS_TIMED] Strategy: ${useTimeAlignment ? "two-pass time alignment" : "single-pass natural speed"} (video=${originalVideoDuration}s, threshold=${SHORT_VIDEO_THRESHOLD_SEC}s)`
+  );
 
   // Pass 1: generate every segment at speed=1.0 and measure
   const measured: {
@@ -665,48 +676,58 @@ export async function generateTimedAudio(
   }
 
   // Pass 2: regenerate segments where natural duration doesn't match target
+  // (only for short videos — long videos use natural-speed Pass 1 output)
   const generated: { pcm: Buffer; start: number; finalSec: number; text: string }[] = [];
 
-  for (let i = 0; i < measured.length; i++) {
-    const { seg, pcm: naturalPcm, naturalSec } = measured[i];
-    const targetSec = seg.end - seg.start;
-
-    if (targetSec <= 0) {
+  if (!useTimeAlignment) {
+    // Long video — skip Pass 2 entirely. Just use natural-speed PCM.
+    for (const { seg, pcm: naturalPcm, naturalSec } of measured) {
       generated.push({ pcm: naturalPcm, start: seg.start, finalSec: naturalSec, text: seg.text });
-      continue;
     }
+    console.log(`[TTS_TIMED] Long video → using ${generated.length} natural-speed segments`);
+  } else {
+    // Short video — apply Pass 2 time alignment
+    for (let i = 0; i < measured.length; i++) {
+      const { seg, pcm: naturalPcm, naturalSec } = measured[i];
+      const targetSec = seg.end - seg.start;
 
-    // speedFactor > 1 means we need to SPEED UP (natural is longer than target).
-    // speedFactor < 1 means we need to SLOW DOWN (natural is shorter than target).
-    const idealSpeed = naturalSec / targetSec;
-    const drift = Math.abs(idealSpeed - 1.0);
+      if (targetSec <= 0) {
+        generated.push({ pcm: naturalPcm, start: seg.start, finalSec: naturalSec, text: seg.text });
+        continue;
+      }
 
-    if (drift < SKIP_REGEN_THRESHOLD) {
-      // Already close enough — skip the regen to save an API call
-      generated.push({ pcm: naturalPcm, start: seg.start, finalSec: naturalSec, text: seg.text });
+      // speedFactor > 1 means we need to SPEED UP (natural is longer than target).
+      // speedFactor < 1 means we need to SLOW DOWN (natural is shorter than target).
+      const idealSpeed = naturalSec / targetSec;
+      const drift = Math.abs(idealSpeed - 1.0);
+
+      if (drift < SKIP_REGEN_THRESHOLD) {
+        // Already close enough — skip the regen to save an API call
+        generated.push({ pcm: naturalPcm, start: seg.start, finalSec: naturalSec, text: seg.text });
+        console.log(
+          `[TTS_TIMED] ${i + 1}/${measured.length}: ${naturalSec.toFixed(2)}s ≈ ${targetSec.toFixed(2)}s target, no regen`
+        );
+        continue;
+      }
+
+      const clampedSpeed = Math.max(SPEED_MIN, Math.min(SPEED_MAX, idealSpeed));
       console.log(
-        `[TTS_TIMED] ${i + 1}/${measured.length}: ${naturalSec.toFixed(2)}s ≈ ${targetSec.toFixed(2)}s target, no regen`
+        `[TTS_TIMED] ${i + 1}/${measured.length}: natural=${naturalSec.toFixed(2)}s, target=${targetSec.toFixed(2)}s, ideal speed=${idealSpeed.toFixed(2)} → clamped=${clampedSpeed.toFixed(2)}`
       );
-      continue;
-    }
 
-    const clampedSpeed = Math.max(SPEED_MIN, Math.min(SPEED_MAX, idealSpeed));
-    console.log(
-      `[TTS_TIMED] ${i + 1}/${measured.length}: natural=${naturalSec.toFixed(2)}s, target=${targetSec.toFixed(2)}s, ideal speed=${idealSpeed.toFixed(2)} → clamped=${clampedSpeed.toFixed(2)}`
-    );
-
-    try {
-      const regenPcm = await ttsAtSpeed(seg.text, clampedSpeed);
-      if (regenPcm) {
-        const finalSec = regenPcm.length / 2 / SAMPLE_RATE;
-        generated.push({ pcm: regenPcm, start: seg.start, finalSec, text: seg.text });
-      } else {
-        // Regen failed — use the natural-speed version
+      try {
+        const regenPcm = await ttsAtSpeed(seg.text, clampedSpeed);
+        if (regenPcm) {
+          const finalSec = regenPcm.length / 2 / SAMPLE_RATE;
+          generated.push({ pcm: regenPcm, start: seg.start, finalSec, text: seg.text });
+        } else {
+          // Regen failed — use the natural-speed version
+          generated.push({ pcm: naturalPcm, start: seg.start, finalSec: naturalSec, text: seg.text });
+        }
+      } catch (err) {
+        console.warn(`[TTS_TIMED] Pass2 regen ${i} exception:`, err);
         generated.push({ pcm: naturalPcm, start: seg.start, finalSec: naturalSec, text: seg.text });
       }
-    } catch (err) {
-      console.warn(`[TTS_TIMED] Pass2 regen ${i} exception:`, err);
-      generated.push({ pcm: naturalPcm, start: seg.start, finalSec: naturalSec, text: seg.text });
     }
   }
 
