@@ -245,33 +245,55 @@ export default function ProjectDetailPage({
   }, [id]);
 
   const [lipSyncTriggered, setLipSyncTriggered] = useState<Set<string>>(new Set());
-  const [autoSwitched, setAutoSwitched] = useState(false);
+  const [userSwitchedTab, setUserSwitchedTab] = useState(false);
 
-  // Auto-switch tab to the first dub that is currently being processed.
-  // Runs once per session (until user manually changes tab).
+  // Auto-follow the currently-processing dub as it moves through the queue.
+  // We process dubs sequentially (server Stage 1 + client Stage 2), so the
+  // "active" dub is the first one that is not yet done/error. As each
+  // language finishes and the next begins, the tab follows along — unless
+  // the user has manually clicked a different tab (then we stop).
   useEffect(() => {
-    if (autoSwitched) return;
-    if (activeTab !== "original") return; // user already navigated
-    const inProgress = dubs.find(
-      (d) => !["done", "error"].includes(d.status)
+    if (userSwitchedTab) return;
+    const sorted = [...dubs].sort((a, b) =>
+      a.created_at.localeCompare(b.created_at)
     );
-    if (inProgress) {
-      setActiveTab(inProgress.target_language);
-      setAutoSwitched(true);
+    const active = sorted.find((d) => !["done", "error"].includes(d.status));
+    if (active && active.target_language !== activeTab) {
+      setActiveTab(active.target_language);
     }
-  }, [dubs, activeTab, autoSwitched]);
+  }, [dubs, activeTab, userSwitchedTab]);
 
-  // Auto-trigger lip sync for audio_ready dubs (Stage 2)
+  // Auto-trigger lip sync for audio_ready dubs, STRICTLY one at a time.
+  //
+  // Previously this effect fired /api/dub/lipsync for every audio_ready
+  // dub without waiting — so multiple languages ran lip sync in parallel
+  // on fal.ai and the progress bar showed them all at once. Now we:
+  //   1. Process dubs in creation order (= order the user picked languages)
+  //   2. Only fire a new lip sync when NO other dub is in lip_syncing or
+  //      merging status, AND nothing we already triggered is still pending.
+  //   3. Consider triggered-but-not-yet-lip_syncing dubs as "in progress"
+  //      so we don't accidentally fire a second one during the brief window
+  //      while the server is updating the status.
   useEffect(() => {
-    const audioReadyDubs = dubs.filter(
+    // Is any dub actively being processed (server-confirmed OR just fired)?
+    const anyInFlight = dubs.some((d) => {
+      if (d.status === "lip_syncing" || d.status === "merging") return true;
+      // Triggered by us but server hasn't moved it past audio_ready yet
+      if (d.status === "audio_ready" && lipSyncTriggered.has(d.id)) return true;
+      return false;
+    });
+    if (anyInFlight) return;
+
+    // Pick the NEXT audio_ready dub in user-selected order (= creation order)
+    const sorted = [...dubs].sort((a, b) =>
+      a.created_at.localeCompare(b.created_at)
+    );
+    const nextDub = sorted.find(
       (d) => d.status === "audio_ready" && !lipSyncTriggered.has(d.id)
     );
-    if (audioReadyDubs.length === 0) return;
+    if (!nextDub) return;
 
-    // Trigger lip sync one at a time (sequential)
-    const nextDub = audioReadyDubs[0];
     setLipSyncTriggered((prev) => new Set(prev).add(nextDub.id));
-
     fetch("/api/dub/lipsync", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -449,7 +471,10 @@ export default function ProjectDetailPage({
         <Button
           variant={activeTab === "original" ? "default" : "outline"}
           size="sm"
-          onClick={() => setActiveTab("original")}
+          onClick={() => {
+            setActiveTab("original");
+            setUserSwitchedTab(true);
+          }}
           className="shrink-0"
         >
           Original
@@ -459,7 +484,10 @@ export default function ProjectDetailPage({
             key={dub.id}
             variant={activeTab === dub.target_language ? "default" : "outline"}
             size="sm"
-            onClick={() => setActiveTab(dub.target_language)}
+            onClick={() => {
+              setActiveTab(dub.target_language);
+              setUserSwitchedTab(true);
+            }}
             className="gap-2 shrink-0"
           >
             {LANGUAGE_MAP[dub.target_language] || dub.target_language}
