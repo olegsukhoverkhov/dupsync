@@ -450,7 +450,7 @@ export default function ProjectDetailPage({
         <div>
           <h1 className="text-2xl font-bold">{project.title}</h1>
           <p className="text-sm text-muted-foreground">
-            Original language:{" "}
+            Speaker&apos;s language (original):{" "}
             {LANGUAGE_MAP[project.original_language] || project.original_language}
           </p>
         </div>
