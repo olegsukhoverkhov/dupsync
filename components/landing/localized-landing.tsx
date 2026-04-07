@@ -564,7 +564,7 @@ function RoiCalculatorSection({ dict }: { dict: Dictionary }) {
 
 function translateFeature(feature: string, dict: Dictionary): string {
   const featureMap: Record<string, string> = {
-    "1 video up to 15 sec/month": d(dict, "pricing.videoUpTo", feature),
+    "1 video": d(dict, "pricing.oneVideo", feature),
     "1 target language": d(dict, "pricing.targetLanguage", feature),
     "720p output": d(dict, "pricing.output720", feature),
     "1080p output": d(dict, "pricing.output1080", feature),
@@ -574,8 +574,8 @@ function translateFeature(feature: string, dict: Dictionary): string {
     "2GB max file size": d(dict, "pricing.maxFile2gb", feature),
     "5GB max file size": d(dict, "pricing.maxFile5gb", feature),
     "Voice cloning": d(dict, "pricing.voiceCloning", feature),
-    "Basic lip sync": d(dict, "pricing.basicLipSync", feature),
-    "Lip sync on all videos": d(dict, "pricing.lipSyncAll", feature),
+    "Lip sync included": d(dict, "pricing.lipSyncIncludedFeature", feature),
+    "No watermark": d(dict, "pricing.noWatermarkFeature", feature),
     "Email support": d(dict, "pricing.emailSupport", feature),
     "API access": d(dict, "pricing.apiAccess", feature),
     "Priority processing": d(dict, "pricing.priorityProcessing", feature),
