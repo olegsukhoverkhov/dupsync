@@ -169,8 +169,13 @@ export async function transcribeWithAssemblyAI(
         []
       );
 
-      const lang = data.language_code || languageHint || "en";
-      console.log(`[ASSEMBLYAI] Done: ${segments.length} segments, lang=${lang}`);
+      // AssemblyAI returns regional codes like "en_us", "en_uk", "en_au".
+      // We normalize to plain ISO 639-1 ("en") so downstream lookups in
+      // LANGUAGE_MAP succeed and we don't pass weird strings to APIs that
+      // expect BCP 47 format.
+      const rawLang = (data.language_code || languageHint || "en") as string;
+      const lang = rawLang.toLowerCase().split(/[_-]/)[0];
+      console.log(`[ASSEMBLYAI] Done: ${segments.length} segments, lang=${lang} (raw=${rawLang})`);
       return { segments, language: lang };
     }
 
@@ -301,8 +306,23 @@ export async function transcribe(
     }));
   }
 
-  console.log(`[WHISPER] ${segments.length} segments from ${words.length} words`);
-  return { segments, language: data.language || "en" };
+  // Whisper returns language as a full English word ("english", "spanish",
+  // "ukrainian"). Normalize to ISO 639-1 codes so the rest of the pipeline
+  // can do LANGUAGE_MAP lookups consistently.
+  const WHISPER_LANG_MAP: Record<string, string> = {
+    english: "en", spanish: "es", french: "fr", german: "de", portuguese: "pt",
+    italian: "it", japanese: "ja", korean: "ko", chinese: "zh", hindi: "hi",
+    arabic: "ar", russian: "ru", ukrainian: "uk", polish: "pl", dutch: "nl",
+    swedish: "sv", turkish: "tr", danish: "da", finnish: "fi", norwegian: "no",
+    czech: "cs", greek: "el", romanian: "ro", hungarian: "hu", bulgarian: "bg",
+    thai: "th", vietnamese: "vi", indonesian: "id", malay: "ms", filipino: "tl",
+    hebrew: "he",
+  };
+  const rawWhisperLang = (data.language || "en").toString().toLowerCase();
+  const normalizedLang =
+    WHISPER_LANG_MAP[rawWhisperLang] || rawWhisperLang.split(/[_-]/)[0];
+  console.log(`[WHISPER] ${segments.length} segments from ${words.length} words, lang=${normalizedLang} (raw=${rawWhisperLang})`);
+  return { segments, language: normalizedLang };
 }
 
 // Translation via Claude (with automatic retry on transient errors)

@@ -152,7 +152,28 @@ export async function POST(request: Request) {
     try {
       await runDubbing(dub.id);
     } catch (err) {
-      console.error(`Dubbing failed for ${dub.id}:`, err);
+      // Capture full error details (stack, name, message) so we can debug
+      // mysterious failures from prod logs.
+      const errInfo = {
+        dubId: dub.id,
+        target: dub.target_language,
+        name: err instanceof Error ? err.name : typeof err,
+        message: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack?.slice(0, 1500) : undefined,
+      };
+      console.error(`[DUB] Stage 1 failed:`, JSON.stringify(errInfo, null, 2));
+      // Persist a clear error message on the dub itself so the UI can show it
+      try {
+        await supabase
+          .from("dubs")
+          .update({
+            status: "error",
+            error_message: `${errInfo.name}: ${errInfo.message}`.slice(0, 500),
+          })
+          .eq("id", dub.id);
+      } catch {
+        // ignore — DB update errors will surface elsewhere
+      }
     }
   }
 
