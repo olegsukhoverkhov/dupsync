@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { runTranscription } from "@/lib/pipeline";
+import { PLAN_LIMITS } from "@/lib/supabase/constants";
+import type { PlanType } from "@/lib/supabase/types";
 
 export const maxDuration = 300;
 
@@ -64,6 +66,45 @@ export async function POST(request: Request) {
     );
   }
 
+  // Load the user's plan to know their limits. The client may try to bypass
+  // its own checks by uploading a larger/longer file directly to storage,
+  // so we MUST verify on the server before creating the project.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("plan")
+    .eq("id", user.id)
+    .single();
+  const plan: PlanType = (profile?.plan as PlanType) || "free";
+  const planLimits = PLAN_LIMITS[plan];
+
+  // -------- File-size enforcement --------
+  // Verify the actual size of the uploaded file via the Storage API. We
+  // can't trust the client to send the real size in the request body.
+  try {
+    const dirPath = videoPath.split("/").slice(0, -1).join("/");
+    const fileName = videoPath.split("/").pop();
+    const { data: listing } = await supabase.storage
+      .from("videos")
+      .list(dirPath, { limit: 100, search: fileName });
+    const fileMeta = listing?.find((f) => f.name === fileName);
+    const sizeBytes = (fileMeta?.metadata as { size?: number } | undefined)?.size ?? 0;
+    if (sizeBytes > planLimits.maxFileSize * 1024 * 1024) {
+      // Clean up the oversize upload
+      await supabase.storage.from("videos").remove([videoPath]);
+      const sizeMB = (sizeBytes / (1024 * 1024)).toFixed(0);
+      return NextResponse.json(
+        {
+          error: `File too large (${sizeMB}MB). The ${planLimits.name} plan allows max ${planLimits.maxFileSize}MB. Upgrade your plan to upload larger files.`,
+        },
+        { status: 413 }
+      );
+    }
+  } catch (err) {
+    console.warn("[PROJECTS] File size check failed (non-fatal):", err);
+    // Don't block the upload if the Storage API fails — duration check
+    // will catch most cases anyway.
+  }
+
   // Check for duplicate project name
   const { data: existing } = await supabase
     .from("projects")
@@ -97,7 +138,6 @@ export async function POST(request: Request) {
   }
 
   // Run transcription synchronously — client polls for status
-  // Using after() was unreliable on some Vercel deployments
   try {
     await runTranscription(project.id);
   } catch (err) {
@@ -105,12 +145,41 @@ export async function POST(request: Request) {
     // Project status already set to "error" by pipeline
   }
 
-  // Re-fetch project with updated status
+  // Re-fetch project with updated status + duration
   const { data: updatedProject } = await supabase
     .from("projects")
     .select("*")
     .eq("id", project.id)
     .single();
+
+  // -------- Duration enforcement (post-transcription) --------
+  // Whisper sets duration_seconds. If the plan has a duration cap and the
+  // video exceeds it, delete the project + storage and return 413. We do
+  // this AFTER transcription because we don't have ffprobe on Vercel.
+  if (
+    updatedProject &&
+    planLimits.maxVideoSeconds > 0 &&
+    updatedProject.duration_seconds &&
+    updatedProject.duration_seconds > planLimits.maxVideoSeconds
+  ) {
+    const dur = updatedProject.duration_seconds;
+    const limitLabel =
+      planLimits.maxVideoSeconds >= 60
+        ? `${(planLimits.maxVideoSeconds / 60).toFixed(0)} min`
+        : `${planLimits.maxVideoSeconds} sec`;
+
+    // Clean up: delete the project, its dubs (cascade), and the uploaded file
+    await supabase.from("dubs").delete().eq("project_id", project.id);
+    await supabase.from("projects").delete().eq("id", project.id);
+    await supabase.storage.from("videos").remove([videoPath]);
+
+    return NextResponse.json(
+      {
+        error: `Video too long (${dur.toFixed(1)}s). The ${planLimits.name} plan allows max ${limitLabel}. Upgrade your plan to dub longer videos.`,
+      },
+      { status: 413 }
+    );
+  }
 
   return NextResponse.json(updatedProject || project, { status: 201 });
 }

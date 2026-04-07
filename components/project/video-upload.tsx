@@ -88,12 +88,43 @@ async function extractAudioViaMediaRecorder(videoFile: globalThis.File): Promise
 interface VideoUploadProps {
   userId: string;
   maxSizeMB: number;
+  /** Plan limit on video duration in seconds. 0 = unlimited. */
+  maxDurationSec?: number;
+  /** Plan name for error messages, e.g. "Free" */
+  planName?: string;
   onUploadComplete: (path: string, file: globalThis.File) => void;
+}
+
+/**
+ * Read a video file's duration (in seconds) by loading its metadata.
+ * Resolves with the duration or null if it can't be determined.
+ */
+function probeVideoDuration(file: globalThis.File): Promise<number | null> {
+  return new Promise((resolve) => {
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.muted = true;
+    video.src = URL.createObjectURL(file);
+    video.onloadedmetadata = () => {
+      const dur = video.duration;
+      URL.revokeObjectURL(video.src);
+      video.remove();
+      resolve(Number.isFinite(dur) && dur > 0 ? dur : null);
+    };
+    video.onerror = () => {
+      URL.revokeObjectURL(video.src);
+      resolve(null);
+    };
+    // Safety timeout in case metadata never loads
+    setTimeout(() => resolve(null), 8000);
+  });
 }
 
 export function VideoUpload({
   userId,
   maxSizeMB,
+  maxDurationSec = 0,
+  planName = "your",
   onUploadComplete,
 }: VideoUploadProps) {
   const [file, setFile] = useState<globalThis.File | null>(null);
@@ -104,11 +135,14 @@ export function VideoUpload({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const handleFile = useCallback(
-    (f: globalThis.File) => {
+    async (f: globalThis.File) => {
       setError(null);
 
       if (f.size > maxSizeMB * 1024 * 1024) {
-        setError(`File too large. Max size is ${maxSizeMB}MB.`);
+        const sizeMB = (f.size / (1024 * 1024)).toFixed(0);
+        setError(
+          `File too large (${sizeMB}MB). The ${planName} plan allows max ${maxSizeMB}MB. Upgrade your plan to upload larger files.`
+        );
         return;
       }
 
@@ -124,12 +158,28 @@ export function VideoUpload({
         return;
       }
 
+      // Check video duration against the plan limit (0 = unlimited)
+      if (maxDurationSec > 0) {
+        const duration = await probeVideoDuration(f);
+        if (duration !== null && duration > maxDurationSec) {
+          const dur = duration.toFixed(1);
+          const limit =
+            maxDurationSec >= 60
+              ? `${(maxDurationSec / 60).toFixed(0)} min`
+              : `${maxDurationSec} sec`;
+          setError(
+            `Video too long (${dur}s). The ${planName} plan allows max ${limit}. Upgrade your plan to dub longer videos.`
+          );
+          return;
+        }
+      }
+
       setFile(f);
       // Create preview URL
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       setPreviewUrl(URL.createObjectURL(f));
     },
-    [maxSizeMB]
+    [maxSizeMB, maxDurationSec, planName, previewUrl]
   );
 
   async function handleUpload() {

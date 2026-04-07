@@ -342,6 +342,8 @@ export default function NewProjectPage() {
               <VideoUpload
                 userId={profile.id}
                 maxSizeMB={planLimits.maxFileSize}
+                maxDurationSec={planLimits.maxVideoSeconds}
+                planName={planLimits.name}
                 onUploadComplete={handleUploadComplete}
               />
             )}

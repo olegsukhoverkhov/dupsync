@@ -59,11 +59,11 @@ export const PLAN_LIMITS: Record<
     name: "Free",
     price: 0,
     priceAnnual: 0,
-    credits: 0, // special: 1 video up to 15 sec
+    credits: 0, // special: 1 video up to 60 sec
     maxFileSize: 100,
     maxLanguages: 1,
     maxProjects: 1,
-    maxVideoSeconds: 15,
+    maxVideoSeconds: 60,
     resolution: "720p",
     features: [
       "1 video",
