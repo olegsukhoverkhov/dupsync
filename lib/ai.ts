@@ -183,7 +183,15 @@ export async function translate(
   sourceLang: string,
   targetLang: string
 ): Promise<TranscriptSegment[]> {
-  const text = segments.map((s) => `[${s.start}-${s.end}] ${s.text}`).join("\n");
+  // Include the duration of each segment so Claude can pace the translation
+  // to match the speaker's actual speech window. This avoids the situation
+  // where a short translation finishes while the speaker keeps talking.
+  const text = segments
+    .map((s) => {
+      const dur = (s.end - s.start).toFixed(1);
+      return `[${s.start}-${s.end}] (${dur}s) ${s.text}`;
+    })
+    .join("\n");
 
   const response = await getAnthropic().messages.create({
     model: "claude-sonnet-4-20250514",
@@ -191,16 +199,31 @@ export async function translate(
     messages: [
       {
         role: "user",
-        content: `Translate the following transcript segments from ${sourceLang} to ${targetLang}.
+        content: `You are translating a video transcript from ${sourceLang} to ${targetLang} for AI dubbing.
+The dubbed audio must fill the same time window as the original speaker — not longer, not shorter.
+
+For each segment you'll see:
+[start-end] (durationS) original text
 
 CRITICAL REQUIREMENTS:
-1. Preserve the exact timestamp format [start-end] at the beginning of each line
-2. Keep the translation CONCISE — try to match the original word count as closely as possible
-3. Aim for similar speaking duration (in ${targetLang}, NOT longer than the original)
-4. Use natural, conversational language matching the original tone
-5. Prefer shorter synonyms when available
-6. Only output the translated segments, nothing else
+1. Preserve the EXACT timestamp format [start-end] at the beginning of each line.
+2. The translation MUST take approximately the same time to speak as the original duration.
+   Average natural speech is ~2.5 words per second in most languages.
+   So a 5.0s segment needs ~12 words in ${targetLang}.
+3. If a literal translation is too short, EXPAND it naturally:
+   - Add conversational filler ("you know", "actually", "as I was saying")
+   - Use longer synonyms or fuller phrasing
+   - Restate or elaborate the same idea
+   - Use politer/more formal forms if appropriate for ${targetLang}
+   DO NOT add new information that wasn't in the original meaning.
+4. If a literal translation is too long, CONDENSE it:
+   - Use shorter synonyms
+   - Drop optional particles
+   - Combine short ideas
+5. Use natural, conversational ${targetLang}. Match the original tone.
+6. Output ONLY the translated lines in the same [start-end] format. No commentary.
 
+Segments to translate:
 ${text}`,
       },
     ],
@@ -212,7 +235,8 @@ ${text}`,
   const lines = content.text.trim().split("\n");
   return lines
     .map((line) => {
-      const match = line.match(/^\[(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)\]\s*(.+)$/);
+      // Accept optional "(Xs)" duration prefix that Claude might echo back
+      const match = line.match(/^\[(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)\]\s*(?:\([^)]*\)\s*)?(.+)$/);
       if (!match) return null;
       return {
         start: parseFloat(match[1]),
@@ -441,14 +465,13 @@ export async function generateTimedAudio(
     }
   }
 
-  // Total duration = max of (original video, last segment end + small tail)
-  // This ensures we never truncate audio that overflows the video, but
-  // normally the file matches the original video length exactly.
-  let lastEnd = originalVideoDuration;
-  for (const g of generated) {
-    lastEnd = Math.max(lastEnd, g.start + g.naturalSec);
-  }
-  const totalSec = Math.max(originalVideoDuration, lastEnd) + 0.1;
+  // Total duration = exactly the original video duration. We do NOT extend
+  // the file even if a translation overflows its window — Claude has been
+  // instructed to keep translations within the original duration, and a
+  // small overflow is acceptable (it gets cut off). This guarantees the
+  // dubbed file matches the video length 1:1, so the lip sync output is
+  // never longer than the original.
+  const totalSec = originalVideoDuration;
   const totalSamples = Math.ceil(totalSec * SAMPLE_RATE);
   const pcmOutput = Buffer.alloc(totalSamples * 2); // 16-bit silence
 
@@ -569,12 +592,16 @@ export async function lipSync(
   audioUrl: string
 ): Promise<string> {
   // Try sync-labs first (faster, more reliable)
+  // sync_mode="cut_off" → output length = min(audio, video). Crucial: this
+  // prevents the output from being longer than the original video. If audio
+  // overflows the video length, it's clipped. If audio is shorter, the
+  // remaining video frames are kept (speaker silent at the end).
   try {
     return await runLipSyncModel("fal-ai/sync-lipsync", videoUrl, audioUrl, {
       video_url: videoUrl,
       audio_url: audioUrl,
       model: "lipsync-1.9.0-beta",
-      sync_mode: "loop",
+      sync_mode: "cut_off",
     });
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : "unknown";
