@@ -192,9 +192,14 @@ export async function translate(
       {
         role: "user",
         content: `Translate the following transcript segments from ${sourceLang} to ${targetLang}.
-Preserve the exact timestamp format [start-end] at the beginning of each line.
-Keep the translation natural and conversational, matching the tone of the original.
-Only output the translated segments, nothing else.
+
+CRITICAL REQUIREMENTS:
+1. Preserve the exact timestamp format [start-end] at the beginning of each line
+2. Keep the translation CONCISE — try to match the original word count as closely as possible
+3. Aim for similar speaking duration (in ${targetLang}, NOT longer than the original)
+4. Use natural, conversational language matching the original tone
+5. Prefer shorter synonyms when available
+6. Only output the translated segments, nothing else
 
 ${text}`,
       },
@@ -252,12 +257,13 @@ export async function cloneVoice(
 ): Promise<string> {
   const ext = fileExt.toLowerCase();
   const mimeMap: Record<string, string> = {
-    mp4: "video/mp4", mp3: "audio/mpeg", wav: "audio/wav",
-    m4a: "audio/mp4", webm: "video/webm", mov: "video/mp4",
+    mp4: "audio/mp4", mp3: "audio/mpeg", wav: "audio/wav",
+    m4a: "audio/mp4", webm: "audio/webm", mov: "video/mp4",
     avi: "video/mp4", mkv: "video/mp4",
   };
   const mimeType = mimeMap[ext] || "video/mp4";
-  const fileName = `sample.${WHISPER_FORMATS.has(ext) ? ext : "mp4"}`;
+  const audioExtensions = new Set(["wav", "mp3", "m4a", "webm", "mp4"]);
+  const fileName = audioExtensions.has(ext) ? `voice.${ext}` : "voice.mp3";
 
   const formData = new FormData();
   formData.append("name", `dubsync-${name.slice(0, 8)}-${Date.now()}`);
@@ -355,37 +361,24 @@ export async function textToSpeechWithSpeed(
   return Buffer.from(await response.arrayBuffer());
 }
 
-// Generate per-segment TTS with exact timing matching original video
-// Each segment is placed at its original timestamp, speed-adjusted to fit
+// Generate per-segment TTS at NATURAL speed with cumulative shift placement
+// If segments overflow, audio gets longer than original video — caller can extend video
 export async function generateTimedAudio(
   segments: TranscriptSegment[],
   voiceId: string,
-  totalDurationSec: number
-): Promise<Buffer> {
+  originalVideoDuration: number
+): Promise<{ wav: Buffer; durationSec: number }> {
   const SAMPLE_RATE = 24000;
-  const totalSamples = Math.ceil(totalDurationSec * SAMPLE_RATE);
-  const pcmOutput = Buffer.alloc(totalSamples * 2); // 16-bit PCM = 2 bytes/sample
+  console.log(`[TTS_TIMED] Generating ${segments.length} segments at NATURAL speed, original=${originalVideoDuration}s`);
 
-  console.log(`[TTS_TIMED] ${segments.length} segments, total=${totalDurationSec}s, ${totalSamples} samples`);
+  // Step 1: Generate PCM for each segment at natural speed
+  const segmentPcms: { pcm: Buffer; originalStart: number; originalEnd: number }[] = [];
 
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
     if (!seg.text.trim()) continue;
 
-    const segStart = seg.start;
-    const segEnd = seg.end;
-    const segDuration = segEnd - segStart;
-    if (segDuration <= 0) continue;
-
-    // Estimate natural speech duration for this text
-    const estimatedSpeechSec = seg.text.length / 14; // ~14 chars/sec average
-    // Calculate speed to fit speech into segment duration
-    // If estimated > segment duration → speed up (max 1.5x)
-    // If estimated < segment duration → slow down (min 0.7x)
-    const speed = Math.max(0.7, Math.min(1.5, estimatedSpeechSec / segDuration));
-
     try {
-      // Get PCM for this segment
       const response = await fetch(
         `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=pcm_24000`,
         {
@@ -403,7 +396,7 @@ export async function generateTimedAudio(
               style: 0.4,
               use_speaker_boost: true,
             },
-            speed,
+            // NO speed parameter — natural speed only
           }),
         }
       );
@@ -413,28 +406,56 @@ export async function generateTimedAudio(
         continue;
       }
 
-      const segPcm = Buffer.from(await response.arrayBuffer());
-      const segSamples = segPcm.length / 2;
-
-      // Place PCM at the correct position in the output
-      const startSample = Math.floor(segStart * SAMPLE_RATE);
-      const maxSegSamples = Math.floor(segDuration * SAMPLE_RATE);
-      const copyBytes = Math.min(segPcm.length, maxSegSamples * 2);
-      const destOffset = startSample * 2;
-
-      if (destOffset >= 0 && destOffset + copyBytes <= pcmOutput.length) {
-        segPcm.copy(pcmOutput, destOffset, 0, copyBytes);
-      }
+      const pcm = Buffer.from(await response.arrayBuffer());
+      segmentPcms.push({ pcm, originalStart: seg.start, originalEnd: seg.end });
 
       if (i % 5 === 0) {
-        console.log(`[TTS_TIMED] Segment ${i}/${segments.length}: "${seg.text.slice(0, 30)}..." at ${segStart}s, speed=${speed.toFixed(2)}`);
+        const naturalSec = pcm.length / 2 / SAMPLE_RATE;
+        const originalWindow = seg.end - seg.start;
+        console.log(`[TTS_TIMED] Segment ${i}/${segments.length}: ${naturalSec.toFixed(2)}s (window=${originalWindow.toFixed(2)}s) "${seg.text.slice(0, 30)}..."`);
       }
     } catch (err) {
       console.warn(`[TTS_TIMED] Segment ${i} exception:`, err);
     }
   }
 
-  // Build WAV with exact duration
+  // Step 2: Place segments with cumulative shift
+  const placedSegments: { pcm: Buffer; placedStart: number; durationSec: number }[] = [];
+  let cumulativeShift = 0;
+
+  for (let i = 0; i < segmentPcms.length; i++) {
+    const { pcm, originalStart } = segmentPcms[i];
+    const naturalDurationSec = pcm.length / 2 / SAMPLE_RATE;
+    const placedStart = originalStart + cumulativeShift;
+
+    // Window = time until next segment starts (in original timeline)
+    const nextOriginalStart = i + 1 < segmentPcms.length ? segmentPcms[i + 1].originalStart : originalVideoDuration;
+    const availableWindow = nextOriginalStart - originalStart;
+
+    placedSegments.push({ pcm, placedStart, durationSec: naturalDurationSec });
+
+    if (naturalDurationSec > availableWindow) {
+      cumulativeShift += naturalDurationSec - availableWindow;
+    }
+  }
+
+  // Step 3: Build final WAV with new total duration
+  const lastSeg = placedSegments[placedSegments.length - 1];
+  const newTotalDuration = lastSeg ? Math.max(originalVideoDuration + cumulativeShift, lastSeg.placedStart + lastSeg.durationSec) + 0.5 : originalVideoDuration;
+
+  const totalSamples = Math.ceil(newTotalDuration * SAMPLE_RATE);
+  const pcmOutput = Buffer.alloc(totalSamples * 2); // 16-bit silence
+
+  for (const { pcm, placedStart } of placedSegments) {
+    const startSample = Math.floor(placedStart * SAMPLE_RATE);
+    const destOffset = startSample * 2;
+    const copyBytes = Math.min(pcm.length, pcmOutput.length - destOffset);
+    if (destOffset >= 0 && copyBytes > 0) {
+      pcm.copy(pcmOutput, destOffset, 0, copyBytes);
+    }
+  }
+
+  // Build WAV header
   const wavSize = 44 + totalSamples * 2;
   const wav = Buffer.alloc(wavSize);
   wav.write("RIFF", 0);
@@ -452,8 +473,8 @@ export async function generateTimedAudio(
   wav.writeUInt32LE(totalSamples * 2, 40);
   pcmOutput.copy(wav, 44);
 
-  console.log(`[TTS_TIMED] WAV: ${(wavSize / 1024).toFixed(0)}KB, ${totalDurationSec}s exact`);
-  return wav;
+  console.log(`[TTS_TIMED] Done: ${(wavSize / 1024).toFixed(0)}KB, ${newTotalDuration.toFixed(2)}s (was ${originalVideoDuration}s, shift=${cumulativeShift.toFixed(2)}s)`);
+  return { wav, durationSec: newTotalDuration };
 }
 
 // Generate TTS as PCM and pad to exact duration as WAV (legacy single-segment)
@@ -595,4 +616,75 @@ export async function lipSync(
   }
 
   throw new Error("Lip sync timed out after 4 minutes");
+}
+
+/**
+ * Slow down a video to match a target duration using fal.ai ffmpeg.
+ * Returns a URL to the slowed video.
+ */
+export async function slowDownVideo(
+  videoUrl: string,
+  targetDurationSec: number,
+  originalDurationSec: number
+): Promise<string> {
+  const speedFactor = originalDurationSec / targetDurationSec;
+  console.log(`[FFMPEG] Slowing video from ${originalDurationSec}s to ${targetDurationSec}s (speed=${speedFactor.toFixed(3)})`);
+
+  if (speedFactor >= 0.95) {
+    console.log(`[FFMPEG] Speed factor too small, returning original`);
+    return videoUrl;
+  }
+
+  const submitResponse = await fetch("https://queue.fal.run/fal-ai/ffmpeg-api/compose", {
+    method: "POST",
+    headers: {
+      Authorization: `Key ${process.env.FAL_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      tracks: [
+        {
+          id: "v1",
+          type: "video",
+          keyframes: [
+            {
+              url: videoUrl,
+              timestamp: 0,
+              duration: targetDurationSec,
+            },
+          ],
+        },
+      ],
+    }),
+  });
+
+  if (!submitResponse.ok) {
+    const err = await submitResponse.text().catch(() => "");
+    console.warn(`[FFMPEG] Submit failed: ${submitResponse.status} ${err.slice(0, 200)}`);
+    return videoUrl; // fallback to original
+  }
+
+  const { request_id } = await submitResponse.json();
+
+  // Poll for result
+  for (let i = 0; i < 60; i++) {
+    await new Promise((r) => setTimeout(r, 2000));
+    const statusRes = await fetch(`https://queue.fal.run/fal-ai/ffmpeg-api/requests/${request_id}/status`, {
+      headers: { Authorization: `Key ${process.env.FAL_KEY}` },
+    });
+    const status = await statusRes.json();
+    if (status.status === "COMPLETED") {
+      const resultRes = await fetch(`https://queue.fal.run/fal-ai/ffmpeg-api/requests/${request_id}`, {
+        headers: { Authorization: `Key ${process.env.FAL_KEY}` },
+      });
+      const result = await resultRes.json();
+      console.log(`[FFMPEG] Slowed video ready`);
+      return result.video_url || result.video?.url || result.url || videoUrl;
+    }
+    if (status.status === "FAILED") {
+      console.warn(`[FFMPEG] Failed: ${JSON.stringify(status).slice(0, 200)}`);
+      return videoUrl;
+    }
+  }
+  return videoUrl;
 }

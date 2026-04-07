@@ -102,25 +102,61 @@ export async function runDubbingAudio(dubId: string) {
     log(dubId, `Translation done: ${translatedSegments.length} segments`);
     await supabase.from("dubs").update({ translated_transcript: translatedSegments, progress: 30 }).eq("id", dubId);
 
-    // Voice clone
+    // Voice clone — use extracted audio, not full video
     await supabase.from("dubs").update({ status: "generating_voice", progress: 35 }).eq("id", dubId);
     let voiceId: string;
-    try {
-      const videoDir = (project.original_video_url as string).split("/").slice(0, -1).join("/");
-      const { data: audioData, error: audioErr } = await supabase.storage.from("videos").download(`${videoDir}/voice-sample.wav`);
-      if (audioData && !audioErr) {
-        voiceId = await ai.cloneVoice(Buffer.from(await audioData.arrayBuffer()), dub.id, "wav");
-        log(dubId, `Voice cloned: ${voiceId}`);
-      } else {
+
+    const videoDir = (project.original_video_url as string).split("/").slice(0, -1).join("/");
+
+    // Try extracted audio formats in order of preference
+    const audioCandidates = ["extracted-audio.webm", "extracted-audio.mp4", "voice-sample.wav"];
+    let sampleBuffer: Buffer | null = null;
+    let sampleExt = "webm";
+
+    for (const candidate of audioCandidates) {
+      try {
+        const { data, error } = await supabase.storage.from("videos").download(`${videoDir}/${candidate}`);
+        if (data && !error) {
+          sampleBuffer = Buffer.from(await data.arrayBuffer());
+          sampleExt = candidate.split(".").pop() || "webm";
+          log(dubId, `Found voice sample: ${candidate} (${(sampleBuffer.length / 1024).toFixed(0)}KB)`);
+          break;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    if (sampleBuffer && sampleBuffer.length > 1000 && sampleBuffer.length < 11 * 1024 * 1024) {
+      try {
+        voiceId = await ai.cloneVoice(sampleBuffer, dub.id, sampleExt);
+        log(dubId, `Voice cloned from extracted audio: ${voiceId}`);
+      } catch (cloneErr) {
+        log(dubId, `Clone from extracted audio failed: ${cloneErr instanceof Error ? cloneErr.message : "unknown"}`);
+        voiceId = await ai.getMultilingualVoice();
+        log(dubId, `Using pre-made voice: ${voiceId}`);
+      }
+    } else {
+      log(dubId, `No usable extracted audio (size=${sampleBuffer?.length || 0})`);
+      // Try cloning from video file directly as last resort (if size permits)
+      try {
         const { data: videoData } = await supabase.storage.from("videos").download(project.original_video_url as string);
         if (videoData) {
-          const ext = ((project.original_video_url as string).split(".").pop() || "mp4").toLowerCase();
-          voiceId = await ai.cloneVoice(Buffer.from(await videoData.arrayBuffer()), dub.id, ext);
-        } else throw new Error("No source");
+          const videoBuffer = Buffer.from(await videoData.arrayBuffer());
+          if (videoBuffer.length < 11 * 1024 * 1024) {
+            const ext = ((project.original_video_url as string).split(".").pop() || "mp4").toLowerCase();
+            voiceId = await ai.cloneVoice(videoBuffer, dub.id, ext);
+            log(dubId, `Voice cloned from video file: ${voiceId}`);
+          } else {
+            throw new Error(`Video too large for cloning: ${(videoBuffer.length / 1024 / 1024).toFixed(1)}MB`);
+          }
+        } else {
+          throw new Error("Could not download video");
+        }
+      } catch (fallbackErr) {
+        log(dubId, `Fallback clone failed: ${fallbackErr instanceof Error ? fallbackErr.message : "unknown"}`);
+        voiceId = await ai.getMultilingualVoice();
       }
-    } catch (cloneErr) {
-      log(dubId, `Clone failed: ${cloneErr instanceof Error ? cloneErr.message : "unknown"}, using pre-made`);
-      voiceId = await ai.getMultilingualVoice();
     }
 
     // Per-segment TTS with exact timing matching original video
@@ -135,7 +171,8 @@ export async function runDubbingAudio(dubId: string) {
       end: transcript[i]?.end ?? seg.end,
     }));
 
-    const audioBuffer = await ai.generateTimedAudio(segmentsWithTiming, voiceId, videoDuration);
+    const { wav: audioBuffer, durationSec: newAudioDuration } = await ai.generateTimedAudio(segmentsWithTiming, voiceId, videoDuration);
+    log(dubId, `TTS done: audio=${newAudioDuration.toFixed(2)}s (was ${videoDuration}s)`);
 
     // Upload audio
     const audioPath = `${project.user_id}/${project.id}/${dub.id}/dubbed-audio.wav`;
@@ -203,7 +240,31 @@ export async function runLipSync(dubId: string) {
       }
     }, 5000);
 
-    const syncedVideoUrl = await ai.lipSync(videoSigned.signedUrl, audioSigned.signedUrl);
+    // Get audio duration from WAV header
+    const { data: audioFile } = await supabase.storage.from("videos").download(audioPath);
+    let audioDurationSec = (project.duration_seconds as number) || 0;
+    if (audioFile) {
+      const audioBuf = Buffer.from(await audioFile.arrayBuffer());
+      // WAV: bytes 24-28 = sample rate, 40-44 = data size (16-bit mono)
+      const sampleRate = audioBuf.readUInt32LE(24);
+      const dataSize = audioBuf.readUInt32LE(40);
+      audioDurationSec = dataSize / 2 / sampleRate;
+      log(dubId, `Audio duration: ${audioDurationSec.toFixed(2)}s, video duration: ${project.duration_seconds}s`);
+    }
+
+    // If audio is significantly longer than video, slow down the video
+    let videoUrlForLipSync = videoSigned.signedUrl;
+    const originalVideoDuration = (project.duration_seconds as number) || audioDurationSec;
+    if (audioDurationSec > originalVideoDuration * 1.05) {
+      log(dubId, `Audio longer than video, extending video duration`);
+      try {
+        videoUrlForLipSync = await ai.slowDownVideo(videoSigned.signedUrl, audioDurationSec, originalVideoDuration);
+      } catch (e) {
+        log(dubId, `Slow down failed, using original: ${e instanceof Error ? e.message : "unknown"}`);
+      }
+    }
+
+    const syncedVideoUrl = await ai.lipSync(videoUrlForLipSync, audioSigned.signedUrl);
     clearInterval(progressTimer);
 
     log(dubId, "Lip sync done, uploading video...");
