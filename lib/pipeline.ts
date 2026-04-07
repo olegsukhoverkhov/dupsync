@@ -78,7 +78,14 @@ export async function runTranscription(projectId: string) {
   }
 }
 
-// Stage 1: Translate + TTS + upload audio (~30-60s per language)
+// Stage 1: Translate + TTS + upload audio (~30-60s per language).
+//
+// Wraps the actual work in an outer retry loop (up to 2 attempts) on
+// transient errors. The internal API calls (translate, cloneVoice,
+// ttsNatural) ALSO have their own per-call retries, so a single
+// transient hiccup is recovered without coming up to this layer. The
+// outer retry catches cases where the whole stage fails partway and
+// needs to start over.
 export async function runDubbingAudio(dubId: string) {
   const supabase = await createServiceClient();
   const { data: dub } = await supabase
@@ -87,16 +94,63 @@ export async function runDubbingAudio(dubId: string) {
     .eq("id", dubId)
     .single();
 
-  try {
-    log(dubId, "Stage 1: Translate + TTS");
-    if (!dub) throw new Error("Dub not found");
+  const MAX_ATTEMPTS = 2;
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      if (attempt > 1) {
+        log(dubId, `Stage 1 retry ${attempt}/${MAX_ATTEMPTS}`);
+        // Reset progress + status before retrying so the UI shows we
+        // restarted from the beginning of Stage 1.
+        await supabase
+          .from("dubs")
+          .update({ status: "translating", progress: 5, error_message: null })
+          .eq("id", dubId);
+        // Small backoff so transient API issues have time to resolve
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+      await runDubbingAudioOnce(dubId, dub, supabase);
+      return; // success
+    } catch (error) {
+      lastError = error;
+      const errMsg = error instanceof Error ? error.message : "Unknown error";
+      const transient = ai.isTransientError(error);
+      log(
+        dubId,
+        `Stage 1 attempt ${attempt} failed (${transient ? "transient" : "permanent"}): ${errMsg}`
+      );
+      if (!transient) break; // permanent — don't retry
+    }
+  }
+
+  // All attempts failed — record the final error
+  const errMsg = lastError instanceof Error ? lastError.message : "Unknown error";
+  log(dubId, `Stage 1 FAILED after retries: ${errMsg}`);
+  await supabase
+    .from("dubs")
+    .update({ status: "error", error_message: errMsg })
+    .eq("id", dubId);
+  await checkProjectComplete(supabase, dub?.project_id, dubId);
+}
+
+// Inner Stage 1 worker — runs the actual TTS + upload pipeline once.
+// Throws on any failure so the outer wrapper can decide whether to retry.
+async function runDubbingAudioOnce(
+  dubId: string,
+  dub: Record<string, unknown> | null,
+  supabase: Awaited<ReturnType<typeof createServiceClient>>
+) {
+  log(dubId, "Stage 1: Translate + TTS");
+  if (!dub) throw new Error("Dub not found");
 
     const project = (dub as Record<string, unknown>).projects as Record<string, unknown>;
     if (!project?.transcript) throw new Error("No transcript found");
 
     const transcript = project.transcript as { start: number; end: number; text: string }[];
     const sourceLang = LANGUAGE_MAP[project.original_language as string] || "English";
-    const targetLang = LANGUAGE_MAP[dub.target_language] || dub.target_language;
+    const targetLanguageCode = dub.target_language as string;
+    const targetLang = LANGUAGE_MAP[targetLanguageCode] || targetLanguageCode;
 
     // Translate
     await supabase.from("dubs").update({ status: "translating", progress: 10 }).eq("id", dubId);
@@ -131,7 +185,7 @@ export async function runDubbingAudio(dubId: string) {
 
     if (sampleBuffer && sampleBuffer.length > 1000 && sampleBuffer.length < 11 * 1024 * 1024) {
       try {
-        voiceId = await ai.cloneVoice(sampleBuffer, dub.id, sampleExt);
+        voiceId = await ai.cloneVoice(sampleBuffer, dub.id as string, sampleExt);
         log(dubId, `Voice cloned from extracted audio: ${voiceId}`);
       } catch (cloneErr) {
         log(dubId, `Clone from extracted audio failed: ${cloneErr instanceof Error ? cloneErr.message : "unknown"}`);
@@ -147,7 +201,7 @@ export async function runDubbingAudio(dubId: string) {
           const videoBuffer = Buffer.from(await videoData.arrayBuffer());
           if (videoBuffer.length < 11 * 1024 * 1024) {
             const ext = ((project.original_video_url as string).split(".").pop() || "mp4").toLowerCase();
-            voiceId = await ai.cloneVoice(videoBuffer, dub.id, ext);
+            voiceId = await ai.cloneVoice(videoBuffer, dub.id as string, ext);
             log(dubId, `Voice cloned from video file: ${voiceId}`);
           } else {
             throw new Error(`Video too large for cloning: ${(videoBuffer.length / 1024 / 1024).toFixed(1)}MB`);
@@ -217,15 +271,9 @@ export async function runDubbingAudio(dubId: string) {
 
     log(dubId, "Stage 1 COMPLETE — audio ready");
 
-    // Clean up cloned voice
-    if (voiceId && !["FGY2WhTYpPnrIDTdsKH5", "EXAVITQu4vr4xnSDxMaL", "XrExE9yKIg1WjnnlVkGX"].includes(voiceId)) {
-      await ai.deleteClonedVoice(voiceId);
-    }
-  } catch (error) {
-    const errMsg = error instanceof Error ? error.message : "Unknown error";
-    log(dubId, `Stage 1 FAILED: ${errMsg}`);
-    await supabase.from("dubs").update({ status: "error", error_message: errMsg }).eq("id", dubId);
-    await checkProjectComplete(supabase, dub?.project_id, dubId);
+  // Clean up cloned voice
+  if (voiceId && !["FGY2WhTYpPnrIDTdsKH5", "EXAVITQu4vr4xnSDxMaL", "XrExE9yKIg1WjnnlVkGX"].includes(voiceId)) {
+    await ai.deleteClonedVoice(voiceId);
   }
 }
 

@@ -16,6 +16,55 @@ export class ElevenLabsVoicePermissionError extends Error {
   }
 }
 
+/**
+ * Heuristic — does an error look like a transient/retryable failure?
+ * Used by withRetry() to decide whether to back off and retry, or to
+ * fail fast on permanent errors (e.g. invalid input, quota exceeded).
+ */
+export function isTransientError(err: unknown): boolean {
+  if (err instanceof ElevenLabsVoicePermissionError) return false; // permanent
+  const msg = err instanceof Error ? err.message : String(err);
+  return (
+    /timed out|timeout/i.test(msg) ||
+    /rate.?limit|429/i.test(msg) ||
+    /5\d\d/.test(msg) || // 500/502/503/504
+    /downstream|unavailable/i.test(msg) ||
+    /econn|enetdown|epipe|fetch failed/i.test(msg) ||
+    /overloaded/i.test(msg)
+  );
+}
+
+/**
+ * Generic retry wrapper. Retries a function up to `attempts` times on
+ * transient errors with exponential backoff. Throws permanent errors
+ * immediately so we don't waste time and credits retrying invalid input.
+ */
+export async function withRetry<T>(
+  label: string,
+  fn: () => Promise<T>,
+  attempts = 3
+): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      const transient = isTransientError(err);
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(
+        `[RETRY] ${label} attempt ${i}/${attempts} failed (${transient ? "transient" : "permanent"}): ${msg.slice(0, 200)}`
+      );
+      if (!transient) throw err;
+      if (i < attempts) {
+        const backoffMs = 1000 * Math.pow(2, i - 1); // 1s, 2s, 4s
+        await new Promise((r) => setTimeout(r, backoffMs));
+      }
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error(`${label} failed after ${attempts} attempts`);
+}
+
 let _anthropic: Anthropic | null = null;
 function getAnthropic() {
   if (!_anthropic) {
@@ -256,8 +305,18 @@ export async function transcribe(
   return { segments, language: data.language || "en" };
 }
 
-// Translation via Claude
+// Translation via Claude (with automatic retry on transient errors)
 export async function translate(
+  segments: TranscriptSegment[],
+  sourceLang: string,
+  targetLang: string
+): Promise<TranscriptSegment[]> {
+  return withRetry(`translate(${targetLang})`, () =>
+    translateOnce(segments, sourceLang, targetLang)
+  );
+}
+
+async function translateOnce(
   segments: TranscriptSegment[],
   sourceLang: string,
   targetLang: string
@@ -335,11 +394,21 @@ export async function getMultilingualVoice(): Promise<string> {
   return PREMADE_VOICES[0];
 }
 
-// ElevenLabs voice cloning with high-quality settings
+// ElevenLabs voice cloning with high-quality settings (with retry)
 export async function cloneVoice(
   fileBuffer: Buffer,
   name: string,
   fileExt: string = "mp4"
+): Promise<string> {
+  return withRetry(`cloneVoice(${name.slice(0, 8)})`, () =>
+    cloneVoiceOnce(fileBuffer, name, fileExt)
+  );
+}
+
+async function cloneVoiceOnce(
+  fileBuffer: Buffer,
+  name: string,
+  fileExt: string
 ): Promise<string> {
   const ext = fileExt.toLowerCase();
   const mimeMap: Record<string, string> = {
@@ -378,7 +447,7 @@ export async function cloneVoice(
   if (!response.ok) {
     const errBody = await response.text().catch(() => "");
     console.error(`[VOICE_CLONE] Error ${response.status}: ${errBody}`);
-    throw new Error(`ElevenLabs clone error: ${response.status} ${response.statusText}`);
+    throw new Error(`ElevenLabs clone error: ${response.status} ${response.statusText} ${errBody.slice(0, 200)}`);
   }
 
   const data = await response.json();
@@ -477,7 +546,7 @@ export async function generateTimedAudio(
     `[TTS_TIMED] Generating ${segments.length} segments at natural speed, video=${originalVideoDuration}s`
   );
 
-  async function ttsNatural(text: string): Promise<Buffer | null> {
+  async function ttsNaturalOnce(text: string): Promise<Buffer> {
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=pcm_24000`,
       {
@@ -501,20 +570,32 @@ export async function generateTimedAudio(
     );
     if (!response.ok) {
       const err = await response.text().catch(() => "");
-      console.warn(`[TTS_TIMED] TTS failed ${response.status}: ${err.slice(0, 200)}`);
       // Surface voice-permission failures up so the caller can swap the
-      // voice and retry. This usually happens when we clone a voice while
-      // the ElevenLabs account is at its quota and the clone doesn't get
-      // access to the multilingual model.
+      // voice and retry. This is a PERMANENT error for the current voice
+      // (retrying with the same voice won't help).
       if (
         response.status === 400 &&
         /does not have permission|voice design/i.test(err)
       ) {
         throw new ElevenLabsVoicePermissionError(err.slice(0, 300));
       }
-      return null;
+      // Throw with status info so withRetry can detect transient errors
+      throw new Error(
+        `ElevenLabs TTS ${response.status}: ${err.slice(0, 200)}`
+      );
     }
     return Buffer.from(await response.arrayBuffer());
+  }
+
+  async function ttsNatural(text: string): Promise<Buffer | null> {
+    try {
+      return await withRetry(`tts(${text.slice(0, 20)})`, () => ttsNaturalOnce(text), 3);
+    } catch (err) {
+      // Re-throw permission errors so the caller can swap voices
+      if (err instanceof ElevenLabsVoicePermissionError) throw err;
+      console.warn(`[TTS_TIMED] TTS giving up after retries: ${err instanceof Error ? err.message : "unknown"}`);
+      return null;
+    }
   }
 
   // Generate every segment at natural speed
