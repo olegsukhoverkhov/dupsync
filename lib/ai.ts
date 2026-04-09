@@ -1454,6 +1454,21 @@ export async function submitShotstackBurnJob(
   // "end" stretches it to the full video length, and start:0 aligns
   // it to the very first frame. Video `length: "auto"` means "use
   // the source video's natural length as the final output length".
+  // Shotstack CaptionAsset schema notes (learned the hard way):
+  //  - `stroke` + `strokeWidth` live INSIDE `font`, NOT at the top
+  //    level of the asset. Passing them at the top throws a 400
+  //    "unknown_property" validation error.
+  //  - `margin` supports only `top / left / right`. There is no
+  //    `bottom` — to push captions toward the bottom of the frame
+  //    you set a large `top` (e.g. 0.75 = 75% down from the top).
+  //  - `font.opacity` is valid and useful for hover / fade effects.
+  //  - `background.borderRadius` is valid; `background.padding` is
+  //    in pixels.
+  //
+  // Styling tuned for short-form social video: large white text
+  // with a black stroke so it reads on any background, anchored
+  // near the bottom 80% mark so it clears TikTok / Reels UI
+  // chrome but still leaves a few percent of breathing room below.
   const body = {
     timeline: {
       background: "#000000",
@@ -1464,19 +1479,14 @@ export async function submitShotstackBurnJob(
               asset: {
                 type: "caption",
                 src: srtUrl,
-                // Styling tuned for short-form social video: large
-                // white text with a dark stroke so it reads on any
-                // background, anchored near the bottom of the frame
-                // so it clears the TikTok / Reels UI chrome.
                 font: {
-                  color: "#ffffff",
                   family: "Montserrat ExtraBold",
+                  color: "#ffffff",
+                  opacity: 1,
                   size: 38,
-                  lineHeight: 1,
-                },
-                stroke: {
-                  color: "#000000",
-                  width: 3,
+                  lineHeight: 0.9,
+                  stroke: "#000000",
+                  strokeWidth: 3,
                 },
                 background: {
                   color: "#000000",
@@ -1484,8 +1494,13 @@ export async function submitShotstackBurnJob(
                   padding: 14,
                   borderRadius: 8,
                 },
+                // Large top margin pushes the caption block down
+                // to the bottom zone. left/right 5% keeps text away
+                // from the safe-area edges on portrait videos.
                 margin: {
-                  bottom: 0.08,
+                  top: 0.8,
+                  left: 0.05,
+                  right: 0.05,
                 },
               },
               start: 0,
