@@ -37,10 +37,16 @@ export type VisitContext = {
  */
 export async function trackVisit(ctx: VisitContext): Promise<void> {
   try {
+    console.log(`[trackVisit] invoked ip=${ctx.ip?.slice(0, 12)} path=${ctx.path} ua=${ctx.userAgent?.slice(0, 30)}`);
     const salt = process.env.SITE_VISIT_SALT;
-    if (!salt) return;
-
-    if (!ctx.ip) return;
+    if (!salt) {
+      console.warn("[trackVisit] no salt");
+      return;
+    }
+    if (!ctx.ip) {
+      console.warn("[trackVisit] no ip");
+      return;
+    }
 
     // Skip obvious bots so the counter reflects real humans. Naive UA
     // filter; anything claiming to be a browser gets through.
