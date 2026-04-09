@@ -30,6 +30,8 @@ import { LanguageSwitcher } from "./language-switcher";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { PlanType } from "@/lib/supabase/types";
 import Image from "next/image";
+import { DubVideoPlayer } from "./dub-video-player";
+import { LANDING_DUB_LANGUAGES } from "@/lib/landing-dubs";
 
 /* -------------------------------------------------------------------------- */
 /*  Helpers                                                                   */
@@ -170,71 +172,77 @@ function Header({ dict, lang }: { dict: Dictionary; lang: Locale }) {
 
 function Hero({ dict }: { dict: Dictionary }) {
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-pink-500/20 rounded-full blur-[128px]" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/15 rounded-full blur-[128px]" />
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 py-20">
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-slate-400 mb-8">
-            <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-            {dict.hero.badge}
-          </div>
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-            {dict.hero.title1} <span className="gradient-text">{dict.hero.title2}</span>
-          </h1>
-          <p className="mt-6 text-lg sm:text-xl text-slate-400 max-w-xl leading-relaxed">
-            {dict.hero.subtitle}
-          </p>
-          <div className="mt-10 flex flex-col sm:flex-row gap-4">
-            <Link
-              href="/signup"
-              className="gradient-button inline-flex items-center justify-center gap-2 rounded-xl px-8 py-4 text-base font-semibold"
+    <section className="relative overflow-hidden pt-20">
+      {/* Background gradient orbs — pointer-events-none so the blurred orbs
+          don't swallow clicks on the hero player tabs. */}
+      <div className="pointer-events-none absolute top-1/4 left-1/4 w-96 h-96 bg-pink-500/20 rounded-full blur-[128px]" />
+      <div className="pointer-events-none absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/15 rounded-full blur-[128px]" />
+
+      <div className="mx-auto max-w-7xl px-6 lg:px-8 min-h-[calc(100svh-5rem)] flex items-center py-4 sm:py-8 lg:py-10">
+        <div className="w-full grid lg:grid-cols-[1.05fr_1fr] gap-6 lg:gap-12 items-center">
+          {/* LEFT: copy + CTA stack */}
+          <div className="min-w-0 text-center lg:text-left animate-slide-up">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] sm:text-sm text-slate-300 mb-3 sm:mb-6">
+              <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+              {dict.hero.badge}
+            </div>
+            <h1 className="text-[26px] sm:text-5xl lg:text-[3.25rem] xl:text-6xl font-bold tracking-tight leading-[1.05]">
+              {dict.hero.title1}{" "}
+              <span className="gradient-text">{dict.hero.title2}</span>
+            </h1>
+            <p className="mt-3 sm:mt-5 text-sm sm:text-lg text-slate-400 leading-relaxed max-w-xl mx-auto lg:mx-0">
+              {dict.hero.subtitle}
+            </p>
+            <div className="mt-5 sm:mt-7 flex flex-col sm:flex-row gap-2.5 sm:gap-4 justify-center lg:justify-start">
+              <Link
+                href="/signup"
+                className="gradient-button inline-flex items-center justify-center gap-2 rounded-xl px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-semibold"
+              >
+                {d(dict, "hero.ctaPrimary", "Dub Your First Video Free")} <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="#demo"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-semibold text-white hover:bg-white/10 transition-colors"
+              >
+                <Play className="h-4 w-4" /> {dict.hero.ctaSecondary}
+              </Link>
+            </div>
+
+            {/* Trust badges — hidden on narrow mobile to save fold space */}
+            <ul
+              className="hidden sm:flex mt-5 flex-wrap items-center gap-x-5 gap-y-2 justify-center lg:justify-start text-sm text-slate-400"
+              aria-label="Product benefits"
             >
-              {d(dict, "hero.ctaPrimary", "Dub Your First Video Free")} <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="#demo"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-8 py-4 text-base font-semibold text-white hover:bg-white/10 transition-colors"
-            >
-              <Play className="h-4 w-4" /> {dict.hero.ctaSecondary}
-            </Link>
+              <li className="flex items-center gap-1.5">
+                <Check className="h-4 w-4 text-green-400" aria-hidden="true" />
+                {d(dict, "hero.noWatermark", "No watermark")}
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Check className="h-4 w-4 text-green-400" aria-hidden="true" />
+                {d(dict, "hero.lipSyncIncluded", "Lip sync included")}
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Check className="h-4 w-4 text-green-400" aria-hidden="true" />
+                {d(dict, "hero.noCreditCard", "No credit card required")}
+              </li>
+            </ul>
           </div>
 
-          {/* Trust badges */}
-          <div className="mt-6 flex flex-wrap items-center gap-6 text-sm text-slate-400">
-            <span className="inline-flex items-center gap-1.5">
-              <Check className="h-4 w-4 text-green-500" />
-              {d(dict, "hero.noWatermark", "No watermark")}
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Check className="h-4 w-4 text-green-500" />
-              {d(dict, "hero.lipSyncIncluded", "Lip sync included")}
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Check className="h-4 w-4 text-green-500" />
-              {d(dict, "hero.noCreditCard", "No credit card required")}
-            </span>
-          </div>
-
-          <div className="mt-8 flex items-center gap-8 text-sm text-slate-500">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span>
-                <strong className="text-slate-300">2,000+</strong> {dict.hero.creators}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              <span>
-                <strong className="text-slate-300">50M+</strong> {dict.hero.minDubbed}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Globe className="h-4 w-4" />
-              <span>
-                <strong className="text-slate-300">30+</strong> {dict.hero.languages}
-              </span>
-            </div>
+          {/* RIGHT: live demo player with language switcher */}
+          <div className="min-w-0 w-full mx-auto lg:mx-0 max-w-[640px]">
+            <DubVideoPlayer
+              languages={LANDING_DUB_LANGUAGES.map((l) => ({
+                code: l.code,
+                label: l.label,
+                flag: l.flag,
+                url: l.url,
+                poster: l.poster,
+              }))}
+              aspectClass="aspect-video"
+            />
+            <p className="mt-2 sm:mt-3 text-center text-[11px] sm:text-xs text-slate-500">
+              {d(dict, "hero.demoCaption", "Real DubSync output — switch languages to compare")}
+            </p>
           </div>
         </div>
       </div>
@@ -999,30 +1007,54 @@ function LocalizedDemoSection({ dict }: { dict: Dictionary }) {
 /* -------------------------------------------------------------------------- */
 
 function LocalizedExamples({ dict }: { dict: Dictionary }) {
-  const EXAMPLES = [
+  const ORIGINAL = LANDING_DUB_LANGUAGES.find((l) => l.code === "original")!;
+  const ES = LANDING_DUB_LANGUAGES.find((l) => l.code === "es")!;
+  const FR = LANDING_DUB_LANGUAGES.find((l) => l.code === "fr")!;
+  const JA = LANDING_DUB_LANGUAGES.find((l) => l.code === "ja")!;
+
+  const CARDS: Array<{
+    title: string;
+    badgeTop: string;
+    badgeBottom?: string;
+    duration: string;
+    accuracy: string;
+    url: string;
+    poster: string;
+  }> = [
     {
-      title: d(dict, "examples.youtubeTitle", "YouTube Tutorial"),
-      original: d(dict, "examples.youtubeOriginal", "\uD83C\uDDFA\uD83C\uDDF8 English"),
-      dubbed: d(dict, "examples.youtubeDubbed", "\uD83C\uDDEA\uD83C\uDDF8 Spanish"),
-      duration: d(dict, "examples.youtubeDuration", "Dubbed in 3 min"),
-      accuracy: d(dict, "examples.youtubeAccuracy", "98% voice match"),
-      gradient: "from-blue-500/20 to-cyan-500/20",
+      title: d(dict, "examples.originalTitle", "Creator — original"),
+      badgeTop: `${ORIGINAL.flag} English (source)`,
+      duration: d(dict, "examples.originalDuration", "0:13 sample"),
+      accuracy: d(dict, "examples.originalAccuracy", "Untouched original"),
+      url: ORIGINAL.url,
+      poster: ORIGINAL.poster,
     },
     {
-      title: d(dict, "examples.productTitle", "Product Demo"),
-      original: d(dict, "examples.productOriginal", "\uD83C\uDDFA\uD83C\uDDF8 English"),
-      dubbed: d(dict, "examples.productDubbed", "\uD83C\uDDEB\uD83C\uDDF7 French"),
-      duration: d(dict, "examples.productDuration", "Dubbed in 2 min"),
-      accuracy: d(dict, "examples.productAccuracy", "97% voice match"),
-      gradient: "from-violet-500/20 to-pink-500/20",
+      title: d(dict, "examples.spanishTitle", "Dubbed to Spanish"),
+      badgeTop: `${ORIGINAL.flag} English`,
+      badgeBottom: `${ES.flag} Spanish`,
+      duration: d(dict, "examples.spanishDuration", "Dubbed in 3 min"),
+      accuracy: d(dict, "examples.spanishAccuracy", "Lip-sync 2 Pro"),
+      url: ES.url,
+      poster: ES.poster,
     },
     {
-      title: d(dict, "examples.courseTitle", "Online Course"),
-      original: d(dict, "examples.courseOriginal", "\uD83C\uDDFA\uD83C\uDDF8 English"),
-      dubbed: d(dict, "examples.courseDubbed", "\uD83C\uDDEF\uD83C\uDDF5 Japanese"),
-      duration: d(dict, "examples.courseDuration", "Dubbed in 5 min"),
-      accuracy: d(dict, "examples.courseAccuracy", "96% voice match"),
-      gradient: "from-amber-500/20 to-orange-500/20",
+      title: d(dict, "examples.frenchTitle", "Dubbed to French"),
+      badgeTop: `${ORIGINAL.flag} English`,
+      badgeBottom: `${FR.flag} French`,
+      duration: d(dict, "examples.frenchDuration", "Dubbed in 3 min"),
+      accuracy: d(dict, "examples.frenchAccuracy", "Lip-sync 2 Pro"),
+      url: FR.url,
+      poster: FR.poster,
+    },
+    {
+      title: d(dict, "examples.japaneseTitle", "Dubbed to Japanese"),
+      badgeTop: `${ORIGINAL.flag} English`,
+      badgeBottom: `${JA.flag} Japanese`,
+      duration: d(dict, "examples.japaneseDuration", "Dubbed in 3 min"),
+      accuracy: d(dict, "examples.japaneseAccuracy", "Lip-sync 2 Pro"),
+      url: JA.url,
+      poster: JA.poster,
     },
   ];
 
@@ -1034,54 +1066,85 @@ function LocalizedExamples({ dict }: { dict: Dictionary }) {
             <span className="gradient-text">{d(dict, "examples.title", "Real results")}</span>
           </h2>
           <p className="mt-4 text-zinc-400 text-lg">
-            {d(dict, "examples.subtitle", "See how creators use DubSync to reach global audiences")}
+            {d(dict, "examples.subtitle", "One creator, four languages — all AI-dubbed with voice cloning and lip sync")}
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {EXAMPLES.map((ex) => (
-            <div
-              key={ex.title}
-              className="group rounded-2xl border border-white/10 bg-slate-800/50 overflow-hidden hover:border-white/20 transition-all"
-            >
-              {/* Video thumbnail */}
-              <div className={`relative aspect-video bg-gradient-to-br ${ex.gradient}`}>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-14 w-14 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Play className="h-6 w-6 text-white ml-0.5" />
-                  </div>
-                </div>
-                {/* Language transform indicator */}
-                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                  <span className="text-xs bg-black/60 backdrop-blur-sm rounded-md px-2 py-1 text-white">
-                    {ex.original}
-                  </span>
-                  <ArrowRight className="h-4 w-4 text-white/50" />
-                  <span className="text-xs bg-black/60 backdrop-blur-sm rounded-md px-2 py-1 text-white">
-                    {ex.dubbed}
-                  </span>
-                </div>
-              </div>
-
-              {/* Info */}
-              <div className="p-4">
-                <h3 className="font-semibold text-white">{ex.title}</h3>
-                <div className="mt-3 flex items-center gap-4 text-xs text-zinc-500">
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {ex.duration}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Mic className="h-3 w-3" />
-                    {ex.accuracy}
-                  </span>
-                </div>
-              </div>
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {CARDS.map((card) => (
+            <LocalizedRealResultCard key={card.title} {...card} />
           ))}
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * Real video card used in LocalizedExamples. Matches the `RealResultCard`
+ * in `examples.tsx` one-for-one so both language variants look identical.
+ */
+function LocalizedRealResultCard({
+  title,
+  badgeTop,
+  badgeBottom,
+  duration,
+  accuracy,
+  url,
+  poster,
+}: {
+  title: string;
+  badgeTop: string;
+  badgeBottom?: string;
+  duration: string;
+  accuracy: string;
+  url: string;
+  poster: string;
+}) {
+  return (
+    <div className="group rounded-2xl border border-white/10 bg-slate-800/50 overflow-hidden hover:border-white/20 transition-all flex flex-col w-full max-w-[640px] mx-auto">
+      <div className="relative">
+        <DubVideoPlayer
+          languages={[
+            {
+              code: "single",
+              label: badgeBottom ?? badgeTop,
+              flag: "",
+              url,
+              poster,
+            },
+          ]}
+          aspectClass="aspect-video"
+          compact
+        />
+        <div className="pointer-events-none absolute bottom-3 left-3 right-3 flex items-center justify-between">
+          <span className="text-[10px] sm:text-xs bg-black/70 backdrop-blur-sm rounded-md px-2 py-1 text-white">
+            {badgeTop}
+          </span>
+          {badgeBottom && (
+            <>
+              <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 text-white/60" />
+              <span className="text-[10px] sm:text-xs bg-black/70 backdrop-blur-sm rounded-md px-2 py-1 text-white">
+                {badgeBottom}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+      <div className="p-4">
+        <h3 className="font-semibold text-white">{title}</h3>
+        <div className="mt-3 flex items-center gap-4 text-xs text-zinc-500">
+          <span className="flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            {duration}
+          </span>
+          <span className="flex items-center gap-1">
+            <Mic className="h-3 w-3" />
+            {accuracy}
+          </span>
+        </div>
+      </div>
+    </div>
   );
 }
 
