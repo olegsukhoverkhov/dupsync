@@ -366,7 +366,14 @@ export default function ProjectDetailPage({
         const msg =
           data.error ||
           t("dashboard.projectDetail.failedToRestartDubbing", "Failed to restart dubbing");
-        if (data.code === "insufficient_credits") {
+        // Detect insufficient credits both by structured code (preferred)
+        // and by the stable English message prefix so this still works
+        // even if an older cached chunk from the API doesn't include the
+        // code field yet.
+        const isInsufficient =
+          data.code === "insufficient_credits" ||
+          (typeof msg === "string" && msg.startsWith("Insufficient credits"));
+        if (isInsufficient) {
           setCreditsAlertMessage(msg);
           setCreditsAlertOpen(true);
         } else {
@@ -399,7 +406,14 @@ export default function ProjectDetailPage({
         // buy credits CTAs, matching the new-project wizard. Other
         // errors stay inline so the user keeps their language
         // selection and can adjust.
-        if (data.code === "insufficient_credits") {
+        // Detect insufficient credits both by structured code (preferred)
+        // and by the stable English message prefix so this still works
+        // even if an older cached chunk from the API doesn't include the
+        // code field yet.
+        const isInsufficient =
+          data.code === "insufficient_credits" ||
+          (typeof msg === "string" && msg.startsWith("Insufficient credits"));
+        if (isInsufficient) {
           setCreditsAlertMessage(msg);
           setCreditsAlertOpen(true);
         } else {
