@@ -18,9 +18,10 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { projectId, languages } = body as {
+  const { projectId, languages, burnSubs } = body as {
     projectId: string;
     languages: string[];
+    burnSubs?: boolean;
   };
 
   if (!projectId || !languages?.length) {
@@ -29,6 +30,12 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+
+  // Burn-in subtitles cost a flat +1 credit per output video (per
+  // language). If the user opts in we need to reserve those credits
+  // up front alongside the base dubbing cost, and persist the flag
+  // on each dub row so Stage 3 knows to run.
+  const wantsBurnedSubs = Boolean(burnSubs);
 
   // Check plan limits
   const { data: profile } = await supabase
@@ -83,9 +90,12 @@ export async function POST(request: Request) {
   }
 
   // 1 credit = 1 minute of dubbed video in 1 language
+  // + 1 credit per output video if the user opted into burned subs
   const durationSec = project.duration_seconds || 0;
   const durationMin = Math.ceil(durationSec / 60);
-  const requiredCredits = durationMin * languages.length;
+  const baseCredits = durationMin * languages.length;
+  const subsCredits = wantsBurnedSubs ? languages.length : 0;
+  const requiredCredits = baseCredits + subsCredits;
 
   // Effective balance = plan credits + one-time top-up credits.
   // Plan credits are spent first so the user never loses top-up credits
@@ -119,11 +129,15 @@ export async function POST(request: Request) {
     .update({ status: "dubbing" })
     .eq("id", projectId);
 
-  // Create dub records
+  // Create dub records. `has_burned_subs` flips on the optional
+  // Stage 3 (fal.ai auto-caption burn-in) that fires after lip sync
+  // completes. Stored per-dub so the webhook handler can decide
+  // without a project-level lookup.
   const dubInserts = languages.map((lang) => ({
     project_id: projectId,
     target_language: lang,
     status: "pending" as const,
+    has_burned_subs: wantsBurnedSubs,
   }));
 
   const { data: dubs, error } = await supabase
@@ -160,12 +174,16 @@ export async function POST(request: Request) {
       .eq("id", projectId)
       .single();
 
+    // Each language costs `durationMin` base credits + 1 extra
+    // for the optional burn-in pass. Spread evenly so the per-dub
+    // usage row reflects what the user actually pays per language.
+    const perLangCredits = durationMin + (wantsBurnedSubs ? 1 : 0);
     const usageInserts = languages.map((lang) => ({
       user_id: user.id,
       project_id: projectId,
       project_title: projData?.title || "Untitled",
       dub_language: lang,
-      credits_used: durationMin,
+      credits_used: perLangCredits,
       video_seconds: durationSec,
     }));
 

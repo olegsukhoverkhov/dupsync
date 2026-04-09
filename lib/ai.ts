@@ -17,6 +17,94 @@ export class ElevenLabsVoicePermissionError extends Error {
 }
 
 /**
+ * Classified transcription failure. Raised by `transcribe()` when either
+ * Whisper or AssemblyAI reject the file for a reason that is meaningful to
+ * the end user — so we can surface a friendly error message on the project
+ * card instead of a generic "error" blob.
+ *
+ * Codes:
+ *  - `no_audio`          → video has no audio stream (muted screen recording, etc.)
+ *  - `format_unsupported`→ file format can't be decoded by either provider
+ *  - `too_long`          → file exceeds provider size/duration limits
+ *  - `too_short`         → audio is too short to transcribe (<0.1s)
+ *  - `unknown`           → catch-all with the raw provider message
+ */
+export type TranscriptionErrorCode =
+  | "no_audio"
+  | "format_unsupported"
+  | "too_long"
+  | "too_short"
+  | "unknown";
+
+export class TranscriptionError extends Error {
+  code: TranscriptionErrorCode;
+  /** User-facing message, safe to render in the UI. */
+  userMessage: string;
+  constructor(code: TranscriptionErrorCode, userMessage: string, rawMessage?: string) {
+    super(rawMessage ? `${userMessage} (raw: ${rawMessage})` : userMessage);
+    this.name = "TranscriptionError";
+    this.code = code;
+    this.userMessage = userMessage;
+  }
+}
+
+/**
+ * Inspect a raw provider error message (from Whisper or AssemblyAI) and
+ * classify it into a TranscriptionError. Returns null if the message
+ * doesn't match any known pattern — the caller should then fall back to
+ * the next provider or throw a generic error.
+ */
+export function classifyTranscriptionError(
+  rawMsg: string
+): TranscriptionError | null {
+  const m = rawMsg.toLowerCase();
+
+  // AssemblyAI: "No audio stream found in the file."
+  // Whisper 400: "The audio file could not be decoded or its format is not
+  //               supported." — happens when the container has zero audio.
+  if (/no audio stream/.test(m)) {
+    return new TranscriptionError(
+      "no_audio",
+      "Your video has no audio track. Please upload a video with a spoken audio track to dub.",
+      rawMsg
+    );
+  }
+  if (/could not be decoded.*format.*not supported/.test(m)) {
+    // This Whisper message is ambiguous — could be genuinely broken file
+    // OR a silent file that Whisper can't ingest. Mark as no_audio so the
+    // user gets the more actionable message; if a follow-up provider
+    // succeeds we'll never surface this.
+    return new TranscriptionError(
+      "no_audio",
+      "Your video has no audio track, or the audio format is not supported. Upload a standard video with a spoken audio track.",
+      rawMsg
+    );
+  }
+  if (/file.*too large|exceeds.*limit|too long/.test(m)) {
+    return new TranscriptionError(
+      "too_long",
+      "Your video is too long or too large to transcribe. Trim it to under 60 minutes and try again.",
+      rawMsg
+    );
+  }
+  if (/audio.*too short|minimum.*duration/.test(m)) {
+    return new TranscriptionError(
+      "too_short",
+      "Your video audio is too short to transcribe. Upload a clip at least 1 second long.",
+      rawMsg
+    );
+  }
+  if (/unsupported.*format|invalid.*codec/.test(m)) {
+    return new TranscriptionError(
+      "format_unsupported",
+      "This file format is not supported. Please upload MP4, MOV, AVI, WebM, or MKV.",
+      rawMsg
+    );
+  }
+  return null;
+}
+
+/**
  * Heuristic — does an error look like a transient/retryable failure?
  * Used by withRetry() to decide whether to back off and retry, or to
  * fail fast on permanent errors (e.g. invalid input, quota exceeded).
@@ -180,7 +268,10 @@ export async function transcribeWithAssemblyAI(
     }
 
     if (data.status === "error") {
-      throw new Error(`AssemblyAI error: ${data.error}`);
+      const rawMsg = String(data.error || "unknown AssemblyAI error");
+      const classified = classifyTranscriptionError(rawMsg);
+      if (classified) throw classified;
+      throw new Error(`AssemblyAI error: ${rawMsg}`);
     }
   }
 
@@ -229,12 +320,27 @@ export async function transcribe(
     const errorBody = await response.text().catch(() => "");
     console.error("Whisper API error:", response.status, errorBody.slice(0, 200));
 
-    // Fallback to AssemblyAI (accepts ALL formats including HEVC MOV)
+    // Fallback to AssemblyAI (accepts ALL formats including HEVC MOV).
+    // If AssemblyAI ALSO fails with a classified error, that's our final
+    // answer — bubble it up so the UI can show a friendly message.
     if (process.env.ASSEMBLYAI_API_KEY) {
       console.log("[TRANSCRIBE] Whisper failed, trying AssemblyAI...");
-      return await transcribeWithAssemblyAI(audioBuffer, languageHint);
+      try {
+        return await transcribeWithAssemblyAI(audioBuffer, languageHint);
+      } catch (assemblyErr) {
+        // AssemblyAI's message is usually more specific ("No audio stream
+        // found in the file") so prefer it when available; otherwise fall
+        // back to classifying the original Whisper body.
+        if (assemblyErr instanceof TranscriptionError) throw assemblyErr;
+        const fromWhisper = classifyTranscriptionError(errorBody);
+        if (fromWhisper) throw fromWhisper;
+        throw assemblyErr;
+      }
     }
 
+    // No fallback configured — try to classify Whisper's own message
+    const classified = classifyTranscriptionError(errorBody);
+    if (classified) throw classified;
     throw new Error(`Whisper API error: ${response.status} ${response.statusText}`);
   }
 
@@ -1184,4 +1290,63 @@ export async function slowDownVideo(
     }
   }
   return videoUrl;
+}
+
+/**
+ * Submit a burn-subtitles job to fal.ai `auto-caption` with a webhook
+ * callback. Returns the request id so the caller can persist it and
+ * correlate the result when the webhook fires.
+ *
+ * Why auto-caption instead of feeding our own SRT file: the fal.ai
+ * ffmpeg-api `compose` endpoint has no subtitle track type (only
+ * video/audio/image) and no fal.ai model currently accepts a custom
+ * SRT input. auto-caption runs STT on the dubbed audio, which is in
+ * the target language already — the burned captions naturally match
+ * what the user hears. Our own translated_segments (used for the
+ * downloadable .srt/.vtt files) can drift slightly from the STT
+ * output because TTS compresses/stretches timing; using STT for the
+ * burn-in keeps visual + audio perfectly synced.
+ *
+ * The job is submitted async with a webhook URL. Poll-based flows
+ * would burn serverless seconds; the webhook arrives whenever fal.ai
+ * finishes (usually 30–120s for a short clip).
+ */
+export async function submitBurnSubtitlesJob(
+  videoUrl: string,
+  webhookUrl: string
+): Promise<{ requestId: string }> {
+  const res = await fetch(
+    `https://queue.fal.run/fal-ai/auto-caption?fal_webhook=${encodeURIComponent(webhookUrl)}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Key ${process.env.FAL_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        video_url: videoUrl,
+        // Styling defaults tuned for short-form social video:
+        // large readable text, white with dark stroke, centered
+        // near the bottom so it sits above typical TikTok UI chrome.
+        txt_color: "white",
+        txt_font: "Standard",
+        font_size: 32,
+        stroke_width: 2,
+        left_align: "center",
+        top_align: 0.82,
+        refresh_interval: 1.5,
+      }),
+    }
+  );
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(
+      `auto-caption submit failed: ${res.status} ${text.slice(0, 300)}`
+    );
+  }
+  const json = (await res.json()) as { request_id?: string };
+  if (!json.request_id) {
+    throw new Error("auto-caption submit: no request_id in response");
+  }
+  return { requestId: json.request_id };
 }

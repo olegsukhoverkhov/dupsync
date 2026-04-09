@@ -25,6 +25,7 @@ import { LANGUAGE_MAP } from "@/lib/supabase/constants";
 import { useDashboardT } from "@/components/dashboard/locale-provider";
 import { UpgradeModal } from "@/components/dashboard/upgrade-modal";
 import { TopupModal } from "@/components/dashboard/topup-modal";
+import { SubsChoiceModal } from "@/components/project/subs-choice-modal";
 
 type Step = "upload" | "confirm-language" | "transcript" | "languages" | "processing";
 
@@ -75,6 +76,9 @@ export default function NewProjectPage() {
   } | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [topupOpen, setTopupOpen] = useState(false);
+  // Pre-dub subtitles choice modal. Split from handleStartDubbing so
+  // the user sees the cost breakdown before any credits are reserved.
+  const [subsChoiceOpen, setSubsChoiceOpen] = useState(false);
 
   useEffect(() => {
     async function loadProfile() {
@@ -303,9 +307,17 @@ export default function NewProjectPage() {
     }
   }
 
-  async function handleStartDubbing() {
+  // First click from the Languages step — opens the subs-choice
+  // modal. The actual API call happens in `startDubbing(withSubs)`
+  // which is invoked from the modal.
+  function handleStartDubbing() {
     if (!project || selectedLanguages.length === 0) return;
+    setSubsChoiceOpen(true);
+  }
 
+  async function startDubbing(withSubs: boolean) {
+    if (!project || selectedLanguages.length === 0) return;
+    setSubsChoiceOpen(false);
     setLoading(true);
     setStep("processing");
 
@@ -316,6 +328,7 @@ export default function NewProjectPage() {
         body: JSON.stringify({
           projectId: project.id,
           languages: selectedLanguages,
+          burnSubs: withSubs,
         }),
       });
 
@@ -719,6 +732,18 @@ export default function NewProjectPage() {
       {/* Topup modal — opened from the "Insufficient credits" alert's
           secondary "Buy more credits" CTA. Stacks on top of the alert. */}
       <TopupModal open={topupOpen} onClose={() => setTopupOpen(false)} />
+
+      {/* Pre-dub subtitles choice — shown when the user clicks Start
+          Dubbing. Passes the user's selection into startDubbing which
+          hits /api/dub with the `burnSubs` flag. */}
+      <SubsChoiceModal
+        open={subsChoiceOpen}
+        onClose={() => setSubsChoiceOpen(false)}
+        onConfirm={(withSubs) => startDubbing(withSubs)}
+        durationMin={Math.ceil((project?.duration_seconds || 0) / 60)}
+        languageCount={selectedLanguages.length}
+        submitting={loading}
+      />
     </div>
   );
 }

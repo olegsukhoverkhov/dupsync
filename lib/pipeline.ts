@@ -2,7 +2,8 @@ import { createServiceClient } from "./supabase/server";
 import * as ai from "./ai";
 import { LANGUAGE_MAP } from "./supabase/constants";
 import { getQualityTier } from "./quality-tiers";
-import type { PlanType } from "./supabase/types";
+import { toSrt, toVtt } from "./subtitles";
+import type { PlanType, TranscriptSegment } from "./supabase/types";
 
 
 function log(dubId: string, msg: string) {
@@ -17,7 +18,7 @@ export async function runTranscription(projectId: string) {
 
     await supabase
       .from("projects")
-      .update({ status: "transcribing" })
+      .update({ status: "transcribing", error_message: null })
       .eq("id", projectId);
 
     const { data: project } = await supabase
@@ -71,9 +72,18 @@ export async function runTranscription(projectId: string) {
       .eq("id", projectId);
   } catch (error) {
     console.error(`[TRANSCRIBE:${projectId.slice(0, 8)}] FAILED:`, error);
+    // Classified errors carry a user-facing message; everything else
+    // falls back to a generic string so the UI always has something to
+    // render instead of a bare "error" status.
+    const userMessage =
+      error instanceof ai.TranscriptionError
+        ? error.userMessage
+        : error instanceof Error
+          ? `Transcription failed: ${error.message.slice(0, 300)}`
+          : "Transcription failed with an unknown error.";
     await supabase
       .from("projects")
-      .update({ status: "error" })
+      .update({ status: "error", error_message: userMessage })
       .eq("id", projectId);
   }
 }
@@ -262,11 +272,60 @@ async function runDubbingAudioOnce(
       .upload(audioPath, audioBuffer, { contentType: "audio/wav", upsert: true });
     if (uploadError) throw new Error(`Audio upload failed: ${uploadError.message}`);
 
+    // ── Phase 1: always-on subtitle files ──────────────────────
+    // Generate .srt and .vtt from the translated segments (with the
+    // same timing we used for TTS) and upload alongside the audio.
+    // These are downloadable artifacts for users who want to ship
+    // subs to YouTube / TikTok / their own player. Failure here is
+    // non-fatal — we still mark the audio as ready.
+    let srtUploadPath: string | null = null;
+    let vttUploadPath: string | null = null;
+    try {
+      const srtText = toSrt(segmentsWithTiming as TranscriptSegment[]);
+      const vttText = toVtt(segmentsWithTiming as TranscriptSegment[]);
+      const srtPath = `${project.user_id}/${project.id}/${dub.id}/subtitles.srt`;
+      const vttPath = `${project.user_id}/${project.id}/${dub.id}/subtitles.vtt`;
+
+      const [{ error: srtErr }, { error: vttErr }] = await Promise.all([
+        supabase.storage
+          .from("videos")
+          .upload(srtPath, Buffer.from(srtText, "utf-8"), {
+            contentType: "application/x-subrip",
+            upsert: true,
+          }),
+        supabase.storage
+          .from("videos")
+          .upload(vttPath, Buffer.from(vttText, "utf-8"), {
+            contentType: "text/vtt",
+            upsert: true,
+          }),
+      ]);
+      if (!srtErr) srtUploadPath = srtPath;
+      if (!vttErr) vttUploadPath = vttPath;
+      if (srtErr || vttErr) {
+        log(
+          dubId,
+          `Subtitle upload warning: srt=${srtErr?.message || "ok"} vtt=${vttErr?.message || "ok"}`
+        );
+      } else {
+        log(dubId, "Subtitle files uploaded (.srt + .vtt)");
+      }
+    } catch (subsErr) {
+      log(
+        dubId,
+        `Subtitle generation failed (non-fatal): ${
+          subsErr instanceof Error ? subsErr.message : "unknown"
+        }`
+      );
+    }
+
     // Mark as audio_ready — user can already download audio
     await supabase.from("dubs").update({
       status: "audio_ready",
       progress: 80,
       dubbed_video_url: audioPath,
+      srt_url: srtUploadPath,
+      vtt_url: vttUploadPath,
     }).eq("id", dubId);
 
     log(dubId, "Stage 1 COMPLETE — audio ready");
@@ -413,6 +472,39 @@ export async function completeLipSyncFromWebhook(
       throw new Error(`Storage upload failed: ${videoUploadErr.message}`);
     }
 
+    // If the user opted into burned-in subtitles at dub creation,
+    // kick off Stage 3 now instead of marking the dub as done. The
+    // lip-synced video is already saved (so even if burn-in fails
+    // the user still gets a usable result from the retry path) but
+    // the dub stays in `burning_subs` until the auto-caption webhook
+    // fires.
+    const wantsBurnedSubs = Boolean(
+      (dub as Record<string, unknown>).has_burned_subs
+    );
+
+    if (wantsBurnedSubs) {
+      // Save the lip-synced path first so Stage 3 can build a
+      // signed URL for it, and so the lip-sync retry flow can still
+      // fall back if burn-in fails entirely.
+      await supabase
+        .from("dubs")
+        .update({
+          status: "burning_subs",
+          progress: 94,
+          dubbed_video_url: videoOutputPath,
+          error_message: null,
+        })
+        .eq("id", dubId);
+      log(
+        dubId,
+        `Stage 2 COMPLETE — video ${(syncedBuffer.byteLength / 1024 / 1024).toFixed(2)}MB, starting Stage 3 (burn subtitles)`
+      );
+      await runBurnSubtitles(dubId);
+      // Do NOT call checkProjectComplete here — Stage 3 will do it
+      // once the burn-in webhook fires (or fails terminally).
+      return;
+    }
+
     await supabase
       .from("dubs")
       .update({
@@ -527,6 +619,162 @@ export async function handleLipSyncFailureFromWebhook(
         error_message: `Lip sync failed (no fallback): ${errMsg.slice(0, 500)}`,
       })
       .eq("id", dubId);
+    await checkProjectComplete(supabase, dub.project_id, dubId);
+  }
+}
+
+// ═════════════════════════ Stage 3: Burn subtitles ═════════════════════════
+//
+// Optional stage that runs after a successful lip sync when the dub
+// was created with `has_burned_subs = true`. We feed the lip-synced
+// video into fal-ai/auto-caption with a webhook URL and exit — the
+// webhook handler downloads the captioned video and finalizes.
+//
+// Fal.ai auto-caption runs STT on the dubbed audio (which is already
+// in the target language) so the burned captions naturally match the
+// voice the user hears. See `submitBurnSubtitlesJob` in lib/ai.ts
+// for the rationale on why we don't feed our own SRT.
+export async function runBurnSubtitles(dubId: string) {
+  const supabase = await createServiceClient();
+  const { data: dub } = await supabase
+    .from("dubs")
+    .select("*, projects(*)")
+    .eq("id", dubId)
+    .single();
+  if (!dub || !dub.dubbed_video_url) return;
+
+  try {
+    const { data: videoSigned } = await supabase.storage
+      .from("videos")
+      .createSignedUrl(dub.dubbed_video_url as string, 3600 * 4);
+    if (!videoSigned?.signedUrl) {
+      throw new Error("Failed to create signed URL for lip-synced video");
+    }
+
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dubsync.app";
+    const webhookUrl = `${baseUrl}/api/webhooks/fal-subs?dubId=${dubId}`;
+    const { requestId } = await ai.submitBurnSubtitlesJob(
+      videoSigned.signedUrl,
+      webhookUrl
+    );
+
+    await supabase
+      .from("dubs")
+      .update({ subs_fal_request_id: requestId, progress: 96 })
+      .eq("id", dubId);
+    log(dubId, `Stage 3 SUBMITTED — request_id=${requestId}, waiting for webhook`);
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : "Unknown error";
+    log(dubId, `Stage 3 submit failed: ${errMsg} — falling back to plain lip-synced video`);
+    // Keep the lip-synced video as the final result so the user
+    // still has a dub they can download. The soft SRT/VTT files are
+    // also intact from Stage 1.
+    await supabase
+      .from("dubs")
+      .update({
+        status: "done",
+        progress: 100,
+        error_message: `Burn-in failed: ${errMsg.slice(0, 500)}`,
+      })
+      .eq("id", dubId);
+    await checkProjectComplete(supabase, dub.project_id, dubId);
+  }
+}
+
+/**
+ * Called by the fal-subs webhook handler with a successful result.
+ * Downloads the captioned video, uploads it to Supabase, and marks
+ * the dub as done with the new video URL stored alongside the
+ * original lip-synced one.
+ */
+export async function completeBurnSubtitlesFromWebhook(
+  dubId: string,
+  videoUrl: string
+) {
+  const supabase = await createServiceClient();
+  const { data: dub } = await supabase
+    .from("dubs")
+    .select("*, projects(*)")
+    .eq("id", dubId)
+    .single();
+  if (!dub) return;
+  const project = (dub as Record<string, unknown>).projects as Record<string, unknown>;
+  if (!project) return;
+
+  try {
+    log(dubId, `Stage 3 webhook: downloading captioned video from ${videoUrl.slice(0, 80)}`);
+
+    const captionedRes = await fetch(videoUrl);
+    if (!captionedRes.ok) {
+      throw new Error(`Download captioned video: ${captionedRes.status}`);
+    }
+    const captionedBuffer = Buffer.from(await captionedRes.arrayBuffer());
+    const withSubsPath = `${project.user_id}/${project.id}/${dub.id}/dubbed-video-subs.mp4`;
+
+    const { error: uploadErr } = await supabase.storage
+      .from("videos")
+      .upload(withSubsPath, captionedBuffer, {
+        contentType: "video/mp4",
+        upsert: true,
+      });
+    if (uploadErr) {
+      throw new Error(`Storage upload failed: ${uploadErr.message}`);
+    }
+
+    await supabase
+      .from("dubs")
+      .update({
+        status: "done",
+        progress: 100,
+        dubbed_video_with_subs_url: withSubsPath,
+        error_message: null,
+      })
+      .eq("id", dubId);
+    log(
+      dubId,
+      `Stage 3 COMPLETE — captioned video ${(captionedBuffer.byteLength / 1024 / 1024).toFixed(2)}MB`
+    );
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : "Unknown error";
+    log(dubId, `Stage 3 completion failed: ${errMsg} — keeping plain lip-synced video`);
+    await supabase
+      .from("dubs")
+      .update({
+        status: "done",
+        progress: 100,
+        error_message: `Burn-in upload failed: ${errMsg.slice(0, 500)}`,
+      })
+      .eq("id", dubId);
+  }
+
+  await checkProjectComplete(supabase, dub.project_id, dubId);
+}
+
+/**
+ * Called by the fal-subs webhook when auto-caption reports a failure.
+ * We keep the lip-synced video and mark the dub as done so the user
+ * still has a usable result; the error is surfaced in `error_message`.
+ */
+export async function handleBurnSubtitlesFailureFromWebhook(
+  dubId: string,
+  failureReason: string
+) {
+  const supabase = await createServiceClient();
+  const { data: dub } = await supabase
+    .from("dubs")
+    .select("project_id")
+    .eq("id", dubId)
+    .single();
+  log(dubId, `Stage 3 webhook failure: ${failureReason} — keeping lip-synced video`);
+  await supabase
+    .from("dubs")
+    .update({
+      status: "done",
+      progress: 100,
+      error_message: `Burn-in failed: ${failureReason.slice(0, 500)}`,
+    })
+    .eq("id", dubId);
+  if (dub?.project_id) {
     await checkProjectComplete(supabase, dub.project_id, dubId);
   }
 }

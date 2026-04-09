@@ -14,6 +14,10 @@ export type DubStatus =
   | "generating_voice"
   | "lip_syncing"
   | "merging"
+  /** Stage 3 (optional): burning translated subtitles into the
+   *  lip-synced video via fal-ai auto-caption. Only reached when
+   *  the dub was created with `has_burned_subs = true`. */
+  | "burning_subs"
   | "audio_ready"
   | "done"
   | "error";
@@ -110,6 +114,24 @@ export interface Dub {
   /** Set by /api/cron/retry-failed-dubs once it has retried this dub.
    *  Prevents infinite cron retry loops. */
   cron_retried_at: string | null;
+  // ── Subtitles ──────────────────────────────────────────────
+  /** Storage path of the translated .srt file. Always generated
+   *  after Stage 1 TTS completes — Phase 1 is platform-wide. */
+  srt_url: string | null;
+  /** Storage path of the translated .vtt file (same content as
+   *  srt_url, just WebVTT format for <track> elements). */
+  vtt_url: string | null;
+  /** User opted into burned-in subtitles at dub creation time.
+   *  Each has_burned_subs=true dub costs +1 credit on top of the
+   *  normal minute-per-language rate. Stage 3 only runs when this
+   *  is true. */
+  has_burned_subs: boolean;
+  /** Storage path of the lip-synced video WITH burned subtitles.
+   *  Populated by Stage 3 (subtitle burn via fal-ai auto-caption). */
+  dubbed_video_with_subs_url: string | null;
+  /** fal.ai request id for the Stage 3 auto-caption job. Used by
+   *  the webhook handler to correlate callbacks. */
+  subs_fal_request_id: string | null;
 }
 
 export interface Transaction {

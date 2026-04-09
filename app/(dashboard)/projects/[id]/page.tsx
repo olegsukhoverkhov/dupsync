@@ -40,6 +40,7 @@ import Link from "next/link";
 import { AlertModal } from "@/components/ui/modal";
 import { UpgradeModal } from "@/components/dashboard/upgrade-modal";
 import { TopupModal } from "@/components/dashboard/topup-modal";
+import { SubsChoiceModal } from "@/components/project/subs-choice-modal";
 import { LanguageSelector } from "@/components/project/language-selector";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { Profile, PlanType } from "@/lib/supabase/types";
@@ -179,6 +180,7 @@ export default function ProjectDetailPage({
       audio_ready: { key: "dashboard.projectDetail.statusLabels.audioReady", fallback: "Audio Ready — Syncing Lips..." },
       lip_syncing: { key: "dashboard.projectDetail.statusLabels.lipSyncing", fallback: "Syncing Lips" },
       merging: { key: "dashboard.projectDetail.statusLabels.merging", fallback: "Finalizing" },
+      burning_subs: { key: "dashboard.projectDetail.statusLabels.burningSubs", fallback: "Burning Subtitles" },
       done: { key: "dashboard.projectDetail.statusLabels.done", fallback: "Complete" },
       error: { key: "dashboard.projectDetail.statusLabels.error", fallback: "Failed" },
     };
@@ -326,6 +328,7 @@ export default function ProjectDetailPage({
   const [creditsAlertMessage, setCreditsAlertMessage] = useState<string>("");
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [topupOpen, setTopupOpen] = useState(false);
+  const [subsChoiceOpen, setSubsChoiceOpen] = useState(false);
 
   const handleDelete = useCallback(async () => {
     const supabase = createClient();
@@ -387,15 +390,29 @@ export default function ProjectDetailPage({
     }
   }
 
-  async function handleStartNewDubs() {
+  // Split into two: click opens the subs-choice modal, the modal's
+  // confirm callback runs the actual /api/dub request. Matches the
+  // new-project wizard flow so the user always gets the same cost
+  // breakdown before any credits are reserved.
+  function handleStartNewDubs() {
     if (!project || newLanguages.length === 0) return;
+    setSubsChoiceOpen(true);
+  }
+
+  async function confirmStartNewDubs(withSubs: boolean) {
+    if (!project || newLanguages.length === 0) return;
+    setSubsChoiceOpen(false);
     setStartingDub(true);
     setDubError(null);
     try {
       const res = await fetch("/api/dub", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId: project.id, languages: newLanguages }),
+        body: JSON.stringify({
+          projectId: project.id,
+          languages: newLanguages,
+          burnSubs: withSubs,
+        }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -432,24 +449,33 @@ export default function ProjectDetailPage({
 
   async function handleDownload(dub: Dub) {
     if (!dub.dubbed_video_url) return;
+    const ext = dub.dubbed_video_url?.includes("dubbed-video") ? "mp4" : "mp3";
+    await downloadFromStorage(
+      dub.dubbed_video_url,
+      `${project?.title || "dubbed"}-${dub.target_language}.${ext}`
+    );
+  }
+
+  // Generalized Supabase storage download — used by the main audio/
+  // video download and by the new .srt/.vtt/"with subs" buttons.
+  // Signed URLs ignore the `download` attribute on anchors, so we
+  // fetch as a blob first and dispatch a click on a hidden anchor.
+  async function downloadFromStorage(path: string, filename: string) {
     const supabase = createClient();
     const { data } = await supabase.storage
       .from("videos")
-      .createSignedUrl(dub.dubbed_video_url, 3600);
-    if (data?.signedUrl) {
-      // Fetch as blob to force download (signed URLs ignore download attribute)
-      const response = await fetch(data.signedUrl);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      const ext = dub.dubbed_video_url?.includes("dubbed-video") ? "mp4" : "mp3";
-      a.download = `${project?.title || "dubbed"}-${dub.target_language}.${ext}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
+      .createSignedUrl(path, 3600);
+    if (!data?.signedUrl) return;
+    const response = await fetch(data.signedUrl);
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   if (loading) {
@@ -635,13 +661,65 @@ export default function ProjectDetailPage({
                 </CardDescription>
               </div>
               {(activeDub.status === "done" || activeDub.status === "audio_ready") && activeDub.dubbed_video_url && (
-                <button
-                  onClick={() => handleDownload(activeDub)}
-                  className="gradient-button rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1"
-                >
-                  <Download className="h-3 w-3" />
-                  {activeDub.status === "audio_ready" ? t("dashboard.projectDetail.downloadAudio", "Download Audio") : t("dashboard.projectDetail.download", "Download")}
-                </button>
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  <button
+                    onClick={() => handleDownload(activeDub)}
+                    className="gradient-button rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1"
+                  >
+                    <Download className="h-3 w-3" />
+                    {activeDub.status === "audio_ready"
+                      ? t("dashboard.projectDetail.downloadAudio", "Download Audio")
+                      : t("dashboard.projectDetail.download", "Download")}
+                  </button>
+                  {/* Optional: download the same video but with burned
+                      subtitles. Only visible once Stage 3 has written
+                      `dubbed_video_with_subs_url`. */}
+                  {activeDub.status === "done" && activeDub.dubbed_video_with_subs_url && (
+                    <button
+                      onClick={() =>
+                        downloadFromStorage(
+                          activeDub.dubbed_video_with_subs_url!,
+                          `${project?.title || "dubbed"}-${activeDub.target_language}-subs.mp4`
+                        )
+                      }
+                      className="rounded-lg border border-pink-500/40 bg-pink-500/10 px-3 py-1.5 text-xs font-semibold text-pink-200 hover:bg-pink-500/20 transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      <Download className="h-3 w-3" />
+                      {t("dashboard.projectDetail.downloadWithSubs", "With subs")}
+                    </button>
+                  )}
+                  {/* .srt / .vtt are always generated after Stage 1
+                      (Phase 1 is platform-wide). Hidden only when
+                      storage upload failed. */}
+                  {activeDub.srt_url && (
+                    <button
+                      onClick={() =>
+                        downloadFromStorage(
+                          activeDub.srt_url!,
+                          `${project?.title || "dubbed"}-${activeDub.target_language}.srt`
+                        )
+                      }
+                      className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      <Download className="h-3 w-3" />
+                      .srt
+                    </button>
+                  )}
+                  {activeDub.vtt_url && (
+                    <button
+                      onClick={() =>
+                        downloadFromStorage(
+                          activeDub.vtt_url!,
+                          `${project?.title || "dubbed"}-${activeDub.target_language}.vtt`
+                        )
+                      }
+                      className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      <Download className="h-3 w-3" />
+                      .vtt
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           </CardHeader>
@@ -963,6 +1041,18 @@ export default function ProjectDetailPage({
       )}
 
       <TopupModal open={topupOpen} onClose={() => setTopupOpen(false)} />
+
+      {/* Pre-dub subtitles choice — shown when the user confirms
+          a new set of languages to dub. Matches the new-project
+          wizard flow. */}
+      <SubsChoiceModal
+        open={subsChoiceOpen}
+        onClose={() => setSubsChoiceOpen(false)}
+        onConfirm={(withSubs) => confirmStartNewDubs(withSubs)}
+        durationMin={Math.ceil((project?.duration_seconds || 0) / 60)}
+        languageCount={newLanguages.length}
+        submitting={startingDub}
+      />
     </div>
   );
 }
