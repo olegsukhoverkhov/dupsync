@@ -466,7 +466,452 @@ const TRANSLATIONS = {
     ],
     breadcrumbFeatures: "\u6a5f\u80fd",
   },
-};
+
+  hi: {
+    title: "Funciones de DubSync — Clonaci\u00f3n de Voz, Lip Sync y Doblaje con IA",
+    description:
+      "Descubre las funciones de doblaje con IA de DubSync: clonaci\u00f3n de voz, lip sync, m\u00e1s de 30 idiomas, detecci\u00f3n de m\u00faltiples hablantes y API.",
+    h1: "Funciones de doblaje de video con IA",
+    h1Highlight: "para creadores y equipos",
+    subtitle:
+      "Sube un video, elige tus idiomas y deja que DubSync se encargue de la clonaci\u00f3n de voz, lip sync y traducci\u00f3n. Todo lo que necesitas para llegar al mundo en minutos.",
+    ctaPrimary: "Empezar gratis",
+    ctaPricing: "Ver precios",
+    learnMore: "M\u00e1s informaci\u00f3n",
+    howItWorks: "C\u00f3mo funciona",
+    howCompares: "C\u00f3mo se compara",
+    comparesSubtitle:
+      "Compara DubSync con otras herramientas de doblaje con IA en las funciones que m\u00e1s importan.",
+    featureLabel: "Funci\u00f3n",
+    readyTitle: "\u00bfListo para doblar tu primer video?",
+    readySubtitle:
+      "Comienza con 5 minutos gratis de doblaje. No se requiere tarjeta de cr\u00e9dito.",
+    faqTitle: "Preguntas frecuentes",
+    features: {
+      voiceCloning: "Clonaci\u00f3n de Voz",
+      voiceCloningDesc:
+        "Clona la voz de cualquier hablante y conserva su tono, tono y cadencia \u00fanicos en cada idioma.",
+      lipSync: "Lip Sync",
+      lipSyncDesc:
+        "La IA ajusta los movimientos de la boca para que coincidan con el audio doblado. El resultado se ve completamente natural.",
+      languages: "M\u00e1s de 30 idiomas",
+      languagesDesc:
+        "Traduce y dobla videos en m\u00e1s de 30 idiomas, incluyendo espa\u00f1ol, franc\u00e9s, japon\u00e9s, hindi, \u00e1rabe y m\u00e1s.",
+      multiSpeaker: "Detecci\u00f3n de m\u00faltiples hablantes",
+      multiSpeakerDesc:
+        "Detecta y separa autom\u00e1ticamente m\u00faltiples hablantes, clonando cada voz de forma independiente.",
+      scriptEditor: "Editor de guiones",
+      scriptEditorDesc:
+        "Revisa, edita y ajusta los guiones traducidos antes del doblaje. Ajusta el tiempo, la redacci\u00f3n y el \u00e9nfasis.",
+      api: "Acceso API",
+      apiDesc:
+        "Integra DubSync en tu producto o flujo de trabajo con nuestra API REST. Automatiza el doblaje a escala.",
+          subtitles: "Subtítulos IA",
+      subtitlesDesc:
+        "Genera automáticamente subtítulos sincronizados del audio doblado. Exporta como subtítulos incrustados o archivos SRT/VTT. Personaliza fuente, color, posición y estilo.",
+},
+    steps: {
+      step1: "Sube tu video",
+      step1Desc:
+        "Arrastra un archivo de video o pega un enlace de YouTube. DubSync acepta MP4, MOV y WebM de hasta 2 horas.",
+      step2: "Elige idiomas y configuraci\u00f3n",
+      step2Desc:
+        "Selecciona tus idiomas objetivo, activa lip sync y elige la fidelidad de clonaci\u00f3n de voz.",
+      step3: "Descarga el video doblado",
+      step3Desc:
+        "En minutos obtienes un video doblado con calidad de estudio listo para publicar en YouTube, TikTok o cualquier plataforma.",
+    },
+    comparison: {
+      voiceCloning: "Clonaci\u00f3n de voz",
+      lipSync: "Lip sync",
+      languages: "M\u00e1s de 30 idiomas",
+      multiSpeaker: "Detecci\u00f3n de hablantes",
+      scriptEditor: "Editor de guiones",
+      restApi: "API REST",
+      freePlan: "Plan gratuito",
+      youtubeImport: "Importar de YouTube",
+          aiSubtitles: "Subtítulos IA (incrustados + SRT)",
+},
+    faqs: [
+      {
+        question: "\u00bfQu\u00e9 formatos de video admite DubSync?",
+        answer:
+          "DubSync admite archivos MP4, MOV y WebM de hasta 2 horas. Tambi\u00e9n puedes pegar un enlace de YouTube y el video se importa autom\u00e1ticamente. Todos los videos se entregan en MP4 a la misma resoluci\u00f3n que el original.",
+      },
+      {
+        question: "\u00bfQu\u00e9 tan precisa es la clonaci\u00f3n de voz?",
+        answer:
+          "DubSync captura el tono, la altura y la cadencia del hablante con alta fidelidad. La mayor\u00eda de los oyentes no distinguen la voz clonada de la original. Para mejores resultados, usa audio con poco ruido de fondo.",
+      },
+      {
+        question: "\u00bfPuedo editar el guion traducido antes del doblaje?",
+        answer:
+          "S\u00ed. Despu\u00e9s de la traducci\u00f3n, el editor de guiones integrado permite revisar y ajustar cada l\u00ednea. Puedes cambiar la redacci\u00f3n, modificar el tiempo y agregar marcadores de \u00e9nfasis.",
+      },
+      {
+        question: "\u00bfHay una API para doblaje automatizado?",
+        answer:
+          "S\u00ed. DubSync ofrece una API REST disponible en los planes Pro y Enterprise. Puedes enviar videos, seleccionar idiomas y obtener resultados de forma program\u00e1tica.",
+      },
+    ],
+    breadcrumbFeatures: "Funciones",
+  },
+  ar: {
+    title: "Funciones de DubSync — Clonaci\u00f3n de Voz, Lip Sync y Doblaje con IA",
+    description:
+      "Descubre las funciones de doblaje con IA de DubSync: clonaci\u00f3n de voz, lip sync, m\u00e1s de 30 idiomas, detecci\u00f3n de m\u00faltiples hablantes y API.",
+    h1: "Funciones de doblaje de video con IA",
+    h1Highlight: "para creadores y equipos",
+    subtitle:
+      "Sube un video, elige tus idiomas y deja que DubSync se encargue de la clonaci\u00f3n de voz, lip sync y traducci\u00f3n. Todo lo que necesitas para llegar al mundo en minutos.",
+    ctaPrimary: "Empezar gratis",
+    ctaPricing: "Ver precios",
+    learnMore: "M\u00e1s informaci\u00f3n",
+    howItWorks: "C\u00f3mo funciona",
+    howCompares: "C\u00f3mo se compara",
+    comparesSubtitle:
+      "Compara DubSync con otras herramientas de doblaje con IA en las funciones que m\u00e1s importan.",
+    featureLabel: "Funci\u00f3n",
+    readyTitle: "\u00bfListo para doblar tu primer video?",
+    readySubtitle:
+      "Comienza con 5 minutos gratis de doblaje. No se requiere tarjeta de cr\u00e9dito.",
+    faqTitle: "Preguntas frecuentes",
+    features: {
+      voiceCloning: "Clonaci\u00f3n de Voz",
+      voiceCloningDesc:
+        "Clona la voz de cualquier hablante y conserva su tono, tono y cadencia \u00fanicos en cada idioma.",
+      lipSync: "Lip Sync",
+      lipSyncDesc:
+        "La IA ajusta los movimientos de la boca para que coincidan con el audio doblado. El resultado se ve completamente natural.",
+      languages: "M\u00e1s de 30 idiomas",
+      languagesDesc:
+        "Traduce y dobla videos en m\u00e1s de 30 idiomas, incluyendo espa\u00f1ol, franc\u00e9s, japon\u00e9s, hindi, \u00e1rabe y m\u00e1s.",
+      multiSpeaker: "Detecci\u00f3n de m\u00faltiples hablantes",
+      multiSpeakerDesc:
+        "Detecta y separa autom\u00e1ticamente m\u00faltiples hablantes, clonando cada voz de forma independiente.",
+      scriptEditor: "Editor de guiones",
+      scriptEditorDesc:
+        "Revisa, edita y ajusta los guiones traducidos antes del doblaje. Ajusta el tiempo, la redacci\u00f3n y el \u00e9nfasis.",
+      api: "Acceso API",
+      apiDesc:
+        "Integra DubSync en tu producto o flujo de trabajo con nuestra API REST. Automatiza el doblaje a escala.",
+          subtitles: "Subtítulos IA",
+      subtitlesDesc:
+        "Genera automáticamente subtítulos sincronizados del audio doblado. Exporta como subtítulos incrustados o archivos SRT/VTT. Personaliza fuente, color, posición y estilo.",
+},
+    steps: {
+      step1: "Sube tu video",
+      step1Desc:
+        "Arrastra un archivo de video o pega un enlace de YouTube. DubSync acepta MP4, MOV y WebM de hasta 2 horas.",
+      step2: "Elige idiomas y configuraci\u00f3n",
+      step2Desc:
+        "Selecciona tus idiomas objetivo, activa lip sync y elige la fidelidad de clonaci\u00f3n de voz.",
+      step3: "Descarga el video doblado",
+      step3Desc:
+        "En minutos obtienes un video doblado con calidad de estudio listo para publicar en YouTube, TikTok o cualquier plataforma.",
+    },
+    comparison: {
+      voiceCloning: "Clonaci\u00f3n de voz",
+      lipSync: "Lip sync",
+      languages: "M\u00e1s de 30 idiomas",
+      multiSpeaker: "Detecci\u00f3n de hablantes",
+      scriptEditor: "Editor de guiones",
+      restApi: "API REST",
+      freePlan: "Plan gratuito",
+      youtubeImport: "Importar de YouTube",
+          aiSubtitles: "Subtítulos IA (incrustados + SRT)",
+},
+    faqs: [
+      {
+        question: "\u00bfQu\u00e9 formatos de video admite DubSync?",
+        answer:
+          "DubSync admite archivos MP4, MOV y WebM de hasta 2 horas. Tambi\u00e9n puedes pegar un enlace de YouTube y el video se importa autom\u00e1ticamente. Todos los videos se entregan en MP4 a la misma resoluci\u00f3n que el original.",
+      },
+      {
+        question: "\u00bfQu\u00e9 tan precisa es la clonaci\u00f3n de voz?",
+        answer:
+          "DubSync captura el tono, la altura y la cadencia del hablante con alta fidelidad. La mayor\u00eda de los oyentes no distinguen la voz clonada de la original. Para mejores resultados, usa audio con poco ruido de fondo.",
+      },
+      {
+        question: "\u00bfPuedo editar el guion traducido antes del doblaje?",
+        answer:
+          "S\u00ed. Despu\u00e9s de la traducci\u00f3n, el editor de guiones integrado permite revisar y ajustar cada l\u00ednea. Puedes cambiar la redacci\u00f3n, modificar el tiempo y agregar marcadores de \u00e9nfasis.",
+      },
+      {
+        question: "\u00bfHay una API para doblaje automatizado?",
+        answer:
+          "S\u00ed. DubSync ofrece una API REST disponible en los planes Pro y Enterprise. Puedes enviar videos, seleccionar idiomas y obtener resultados de forma program\u00e1tica.",
+      },
+    ],
+    breadcrumbFeatures: "Funciones",
+  },
+  id: {
+    title: "Funciones de DubSync — Clonaci\u00f3n de Voz, Lip Sync y Doblaje con IA",
+    description:
+      "Descubre las funciones de doblaje con IA de DubSync: clonaci\u00f3n de voz, lip sync, m\u00e1s de 30 idiomas, detecci\u00f3n de m\u00faltiples hablantes y API.",
+    h1: "Funciones de doblaje de video con IA",
+    h1Highlight: "para creadores y equipos",
+    subtitle:
+      "Sube un video, elige tus idiomas y deja que DubSync se encargue de la clonaci\u00f3n de voz, lip sync y traducci\u00f3n. Todo lo que necesitas para llegar al mundo en minutos.",
+    ctaPrimary: "Empezar gratis",
+    ctaPricing: "Ver precios",
+    learnMore: "M\u00e1s informaci\u00f3n",
+    howItWorks: "C\u00f3mo funciona",
+    howCompares: "C\u00f3mo se compara",
+    comparesSubtitle:
+      "Compara DubSync con otras herramientas de doblaje con IA en las funciones que m\u00e1s importan.",
+    featureLabel: "Funci\u00f3n",
+    readyTitle: "\u00bfListo para doblar tu primer video?",
+    readySubtitle:
+      "Comienza con 5 minutos gratis de doblaje. No se requiere tarjeta de cr\u00e9dito.",
+    faqTitle: "Preguntas frecuentes",
+    features: {
+      voiceCloning: "Clonaci\u00f3n de Voz",
+      voiceCloningDesc:
+        "Clona la voz de cualquier hablante y conserva su tono, tono y cadencia \u00fanicos en cada idioma.",
+      lipSync: "Lip Sync",
+      lipSyncDesc:
+        "La IA ajusta los movimientos de la boca para que coincidan con el audio doblado. El resultado se ve completamente natural.",
+      languages: "M\u00e1s de 30 idiomas",
+      languagesDesc:
+        "Traduce y dobla videos en m\u00e1s de 30 idiomas, incluyendo espa\u00f1ol, franc\u00e9s, japon\u00e9s, hindi, \u00e1rabe y m\u00e1s.",
+      multiSpeaker: "Detecci\u00f3n de m\u00faltiples hablantes",
+      multiSpeakerDesc:
+        "Detecta y separa autom\u00e1ticamente m\u00faltiples hablantes, clonando cada voz de forma independiente.",
+      scriptEditor: "Editor de guiones",
+      scriptEditorDesc:
+        "Revisa, edita y ajusta los guiones traducidos antes del doblaje. Ajusta el tiempo, la redacci\u00f3n y el \u00e9nfasis.",
+      api: "Acceso API",
+      apiDesc:
+        "Integra DubSync en tu producto o flujo de trabajo con nuestra API REST. Automatiza el doblaje a escala.",
+          subtitles: "Subtítulos IA",
+      subtitlesDesc:
+        "Genera automáticamente subtítulos sincronizados del audio doblado. Exporta como subtítulos incrustados o archivos SRT/VTT. Personaliza fuente, color, posición y estilo.",
+},
+    steps: {
+      step1: "Sube tu video",
+      step1Desc:
+        "Arrastra un archivo de video o pega un enlace de YouTube. DubSync acepta MP4, MOV y WebM de hasta 2 horas.",
+      step2: "Elige idiomas y configuraci\u00f3n",
+      step2Desc:
+        "Selecciona tus idiomas objetivo, activa lip sync y elige la fidelidad de clonaci\u00f3n de voz.",
+      step3: "Descarga el video doblado",
+      step3Desc:
+        "En minutos obtienes un video doblado con calidad de estudio listo para publicar en YouTube, TikTok o cualquier plataforma.",
+    },
+    comparison: {
+      voiceCloning: "Clonaci\u00f3n de voz",
+      lipSync: "Lip sync",
+      languages: "M\u00e1s de 30 idiomas",
+      multiSpeaker: "Detecci\u00f3n de hablantes",
+      scriptEditor: "Editor de guiones",
+      restApi: "API REST",
+      freePlan: "Plan gratuito",
+      youtubeImport: "Importar de YouTube",
+          aiSubtitles: "Subtítulos IA (incrustados + SRT)",
+},
+    faqs: [
+      {
+        question: "\u00bfQu\u00e9 formatos de video admite DubSync?",
+        answer:
+          "DubSync admite archivos MP4, MOV y WebM de hasta 2 horas. Tambi\u00e9n puedes pegar un enlace de YouTube y el video se importa autom\u00e1ticamente. Todos los videos se entregan en MP4 a la misma resoluci\u00f3n que el original.",
+      },
+      {
+        question: "\u00bfQu\u00e9 tan precisa es la clonaci\u00f3n de voz?",
+        answer:
+          "DubSync captura el tono, la altura y la cadencia del hablante con alta fidelidad. La mayor\u00eda de los oyentes no distinguen la voz clonada de la original. Para mejores resultados, usa audio con poco ruido de fondo.",
+      },
+      {
+        question: "\u00bfPuedo editar el guion traducido antes del doblaje?",
+        answer:
+          "S\u00ed. Despu\u00e9s de la traducci\u00f3n, el editor de guiones integrado permite revisar y ajustar cada l\u00ednea. Puedes cambiar la redacci\u00f3n, modificar el tiempo y agregar marcadores de \u00e9nfasis.",
+      },
+      {
+        question: "\u00bfHay una API para doblaje automatizado?",
+        answer:
+          "S\u00ed. DubSync ofrece una API REST disponible en los planes Pro y Enterprise. Puedes enviar videos, seleccionar idiomas y obtener resultados de forma program\u00e1tica.",
+      },
+    ],
+    breadcrumbFeatures: "Funciones",
+  },
+  tr: {
+    title: "Funciones de DubSync — Clonaci\u00f3n de Voz, Lip Sync y Doblaje con IA",
+    description:
+      "Descubre las funciones de doblaje con IA de DubSync: clonaci\u00f3n de voz, lip sync, m\u00e1s de 30 idiomas, detecci\u00f3n de m\u00faltiples hablantes y API.",
+    h1: "Funciones de doblaje de video con IA",
+    h1Highlight: "para creadores y equipos",
+    subtitle:
+      "Sube un video, elige tus idiomas y deja que DubSync se encargue de la clonaci\u00f3n de voz, lip sync y traducci\u00f3n. Todo lo que necesitas para llegar al mundo en minutos.",
+    ctaPrimary: "Empezar gratis",
+    ctaPricing: "Ver precios",
+    learnMore: "M\u00e1s informaci\u00f3n",
+    howItWorks: "C\u00f3mo funciona",
+    howCompares: "C\u00f3mo se compara",
+    comparesSubtitle:
+      "Compara DubSync con otras herramientas de doblaje con IA en las funciones que m\u00e1s importan.",
+    featureLabel: "Funci\u00f3n",
+    readyTitle: "\u00bfListo para doblar tu primer video?",
+    readySubtitle:
+      "Comienza con 5 minutos gratis de doblaje. No se requiere tarjeta de cr\u00e9dito.",
+    faqTitle: "Preguntas frecuentes",
+    features: {
+      voiceCloning: "Clonaci\u00f3n de Voz",
+      voiceCloningDesc:
+        "Clona la voz de cualquier hablante y conserva su tono, tono y cadencia \u00fanicos en cada idioma.",
+      lipSync: "Lip Sync",
+      lipSyncDesc:
+        "La IA ajusta los movimientos de la boca para que coincidan con el audio doblado. El resultado se ve completamente natural.",
+      languages: "M\u00e1s de 30 idiomas",
+      languagesDesc:
+        "Traduce y dobla videos en m\u00e1s de 30 idiomas, incluyendo espa\u00f1ol, franc\u00e9s, japon\u00e9s, hindi, \u00e1rabe y m\u00e1s.",
+      multiSpeaker: "Detecci\u00f3n de m\u00faltiples hablantes",
+      multiSpeakerDesc:
+        "Detecta y separa autom\u00e1ticamente m\u00faltiples hablantes, clonando cada voz de forma independiente.",
+      scriptEditor: "Editor de guiones",
+      scriptEditorDesc:
+        "Revisa, edita y ajusta los guiones traducidos antes del doblaje. Ajusta el tiempo, la redacci\u00f3n y el \u00e9nfasis.",
+      api: "Acceso API",
+      apiDesc:
+        "Integra DubSync en tu producto o flujo de trabajo con nuestra API REST. Automatiza el doblaje a escala.",
+          subtitles: "Subtítulos IA",
+      subtitlesDesc:
+        "Genera automáticamente subtítulos sincronizados del audio doblado. Exporta como subtítulos incrustados o archivos SRT/VTT. Personaliza fuente, color, posición y estilo.",
+},
+    steps: {
+      step1: "Sube tu video",
+      step1Desc:
+        "Arrastra un archivo de video o pega un enlace de YouTube. DubSync acepta MP4, MOV y WebM de hasta 2 horas.",
+      step2: "Elige idiomas y configuraci\u00f3n",
+      step2Desc:
+        "Selecciona tus idiomas objetivo, activa lip sync y elige la fidelidad de clonaci\u00f3n de voz.",
+      step3: "Descarga el video doblado",
+      step3Desc:
+        "En minutos obtienes un video doblado con calidad de estudio listo para publicar en YouTube, TikTok o cualquier plataforma.",
+    },
+    comparison: {
+      voiceCloning: "Clonaci\u00f3n de voz",
+      lipSync: "Lip sync",
+      languages: "M\u00e1s de 30 idiomas",
+      multiSpeaker: "Detecci\u00f3n de hablantes",
+      scriptEditor: "Editor de guiones",
+      restApi: "API REST",
+      freePlan: "Plan gratuito",
+      youtubeImport: "Importar de YouTube",
+          aiSubtitles: "Subtítulos IA (incrustados + SRT)",
+},
+    faqs: [
+      {
+        question: "\u00bfQu\u00e9 formatos de video admite DubSync?",
+        answer:
+          "DubSync admite archivos MP4, MOV y WebM de hasta 2 horas. Tambi\u00e9n puedes pegar un enlace de YouTube y el video se importa autom\u00e1ticamente. Todos los videos se entregan en MP4 a la misma resoluci\u00f3n que el original.",
+      },
+      {
+        question: "\u00bfQu\u00e9 tan precisa es la clonaci\u00f3n de voz?",
+        answer:
+          "DubSync captura el tono, la altura y la cadencia del hablante con alta fidelidad. La mayor\u00eda de los oyentes no distinguen la voz clonada de la original. Para mejores resultados, usa audio con poco ruido de fondo.",
+      },
+      {
+        question: "\u00bfPuedo editar el guion traducido antes del doblaje?",
+        answer:
+          "S\u00ed. Despu\u00e9s de la traducci\u00f3n, el editor de guiones integrado permite revisar y ajustar cada l\u00ednea. Puedes cambiar la redacci\u00f3n, modificar el tiempo y agregar marcadores de \u00e9nfasis.",
+      },
+      {
+        question: "\u00bfHay una API para doblaje automatizado?",
+        answer:
+          "S\u00ed. DubSync ofrece una API REST disponible en los planes Pro y Enterprise. Puedes enviar videos, seleccionar idiomas y obtener resultados de forma program\u00e1tica.",
+      },
+    ],
+    breadcrumbFeatures: "Funciones",
+  },
+  ko: {
+    title: "Funciones de DubSync — Clonaci\u00f3n de Voz, Lip Sync y Doblaje con IA",
+    description:
+      "Descubre las funciones de doblaje con IA de DubSync: clonaci\u00f3n de voz, lip sync, m\u00e1s de 30 idiomas, detecci\u00f3n de m\u00faltiples hablantes y API.",
+    h1: "Funciones de doblaje de video con IA",
+    h1Highlight: "para creadores y equipos",
+    subtitle:
+      "Sube un video, elige tus idiomas y deja que DubSync se encargue de la clonaci\u00f3n de voz, lip sync y traducci\u00f3n. Todo lo que necesitas para llegar al mundo en minutos.",
+    ctaPrimary: "Empezar gratis",
+    ctaPricing: "Ver precios",
+    learnMore: "M\u00e1s informaci\u00f3n",
+    howItWorks: "C\u00f3mo funciona",
+    howCompares: "C\u00f3mo se compara",
+    comparesSubtitle:
+      "Compara DubSync con otras herramientas de doblaje con IA en las funciones que m\u00e1s importan.",
+    featureLabel: "Funci\u00f3n",
+    readyTitle: "\u00bfListo para doblar tu primer video?",
+    readySubtitle:
+      "Comienza con 5 minutos gratis de doblaje. No se requiere tarjeta de cr\u00e9dito.",
+    faqTitle: "Preguntas frecuentes",
+    features: {
+      voiceCloning: "Clonaci\u00f3n de Voz",
+      voiceCloningDesc:
+        "Clona la voz de cualquier hablante y conserva su tono, tono y cadencia \u00fanicos en cada idioma.",
+      lipSync: "Lip Sync",
+      lipSyncDesc:
+        "La IA ajusta los movimientos de la boca para que coincidan con el audio doblado. El resultado se ve completamente natural.",
+      languages: "M\u00e1s de 30 idiomas",
+      languagesDesc:
+        "Traduce y dobla videos en m\u00e1s de 30 idiomas, incluyendo espa\u00f1ol, franc\u00e9s, japon\u00e9s, hindi, \u00e1rabe y m\u00e1s.",
+      multiSpeaker: "Detecci\u00f3n de m\u00faltiples hablantes",
+      multiSpeakerDesc:
+        "Detecta y separa autom\u00e1ticamente m\u00faltiples hablantes, clonando cada voz de forma independiente.",
+      scriptEditor: "Editor de guiones",
+      scriptEditorDesc:
+        "Revisa, edita y ajusta los guiones traducidos antes del doblaje. Ajusta el tiempo, la redacci\u00f3n y el \u00e9nfasis.",
+      api: "Acceso API",
+      apiDesc:
+        "Integra DubSync en tu producto o flujo de trabajo con nuestra API REST. Automatiza el doblaje a escala.",
+          subtitles: "Subtítulos IA",
+      subtitlesDesc:
+        "Genera automáticamente subtítulos sincronizados del audio doblado. Exporta como subtítulos incrustados o archivos SRT/VTT. Personaliza fuente, color, posición y estilo.",
+},
+    steps: {
+      step1: "Sube tu video",
+      step1Desc:
+        "Arrastra un archivo de video o pega un enlace de YouTube. DubSync acepta MP4, MOV y WebM de hasta 2 horas.",
+      step2: "Elige idiomas y configuraci\u00f3n",
+      step2Desc:
+        "Selecciona tus idiomas objetivo, activa lip sync y elige la fidelidad de clonaci\u00f3n de voz.",
+      step3: "Descarga el video doblado",
+      step3Desc:
+        "En minutos obtienes un video doblado con calidad de estudio listo para publicar en YouTube, TikTok o cualquier plataforma.",
+    },
+    comparison: {
+      voiceCloning: "Clonaci\u00f3n de voz",
+      lipSync: "Lip sync",
+      languages: "M\u00e1s de 30 idiomas",
+      multiSpeaker: "Detecci\u00f3n de hablantes",
+      scriptEditor: "Editor de guiones",
+      restApi: "API REST",
+      freePlan: "Plan gratuito",
+      youtubeImport: "Importar de YouTube",
+          aiSubtitles: "Subtítulos IA (incrustados + SRT)",
+},
+    faqs: [
+      {
+        question: "\u00bfQu\u00e9 formatos de video admite DubSync?",
+        answer:
+          "DubSync admite archivos MP4, MOV y WebM de hasta 2 horas. Tambi\u00e9n puedes pegar un enlace de YouTube y el video se importa autom\u00e1ticamente. Todos los videos se entregan en MP4 a la misma resoluci\u00f3n que el original.",
+      },
+      {
+        question: "\u00bfQu\u00e9 tan precisa es la clonaci\u00f3n de voz?",
+        answer:
+          "DubSync captura el tono, la altura y la cadencia del hablante con alta fidelidad. La mayor\u00eda de los oyentes no distinguen la voz clonada de la original. Para mejores resultados, usa audio con poco ruido de fondo.",
+      },
+      {
+        question: "\u00bfPuedo editar el guion traducido antes del doblaje?",
+        answer:
+          "S\u00ed. Despu\u00e9s de la traducci\u00f3n, el editor de guiones integrado permite revisar y ajustar cada l\u00ednea. Puedes cambiar la redacci\u00f3n, modificar el tiempo y agregar marcadores de \u00e9nfasis.",
+      },
+      {
+        question: "\u00bfHay una API para doblaje automatizado?",
+        answer:
+          "S\u00ed. DubSync ofrece una API REST disponible en los planes Pro y Enterprise. Puedes enviar videos, seleccionar idiomas y obtener resultados de forma program\u00e1tica.",
+      },
+    ],
+    breadcrumbFeatures: "Funciones",
+  },};
 
 type Lang = keyof typeof TRANSLATIONS;
 

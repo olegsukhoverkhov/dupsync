@@ -227,7 +227,212 @@ const t: Record<
       },
     ],
   },
-};
+
+  hi: {
+    title: "Precios de DubSync — Planes de Doblaje de Video con IA",
+    metaTitle:
+      "Precios de DubSync — Planes de Doblaje de Video con IA desde Gratis hasta Enterprise",
+    metaDescription:
+      "Elige el plan de DubSync que se adapte a tus necesidades. Planes Gratis, Starter, Pro y Enterprise para doblaje de video con IA, clonación de voz y sincronización labial.",
+    ogDescription:
+      "Elige el plan de DubSync ideal. Planes Gratis, Starter, Pro y Enterprise con sincronización labial incluida.",
+    heading:
+      "Precios de DubSync — Planes de Doblaje de Video con IA para Cada Creador",
+    subheading:
+      "Comienza gratis con 5 minutos de doblaje al mes. Actualiza cuando necesites más minutos, idiomas y funciones de equipo.",
+    faqHeading: "Preguntas Frecuentes sobre Precios",
+    breadcrumb: "Precios",
+    faqs: [
+      {
+        q: "¿Puedo cambiar de plan en cualquier momento?",
+        a: "Sí. Puedes mejorar o reducir tu plan en cualquier momento desde tu panel de control. Al mejorar, obtienes acceso inmediato a las nuevas funciones. Al reducir, tu plan actual permanece activo hasta el final del período de facturación.",
+      },
+      {
+        q: "¿Qué sucede si excedo los límites de mi plan?",
+        a: "Recibirás una notificación cuando alcances el 80% de tus minutos mensuales de doblaje. Una vez que alcances el límite, los nuevos trabajos de doblaje se pondrán en cola hasta tu próximo ciclo de facturación o hasta que actualices tu plan.",
+      },
+      {
+        q: "¿Hay una prueba gratuita para los planes de pago?",
+        a: "Ofrecemos un plan gratuito con 5 minutos de doblaje al mes para que puedas probar la calidad. Los planes de pago no tienen una prueba separada, pero puedes cancelar dentro de los primeros 7 días para obtener un reembolso completo.",
+      },
+      {
+        q: "¿Cómo funciona la facturación anual?",
+        a: "Los planes anuales se facturan una vez al año con una tarifa con descuento (normalmente un 20% de descuento). Obtienes las mismas funciones que el plan mensual pero pagas menos en total. Las suscripciones anuales se pueden cancelar en cualquier momento, con acceso hasta el final del período pagado.",
+      },
+      {
+        q: "¿Ofrecen reembolsos?",
+        a: "Ofrecemos una política de reembolso de 7 días para nuevas suscripciones de pago. Después de los primeros 7 días, las tarifas no son reembolsables. Los minutos de doblaje no utilizados no se transfieren entre períodos de facturación.",
+      },
+      {
+        q: "¿Qué métodos de pago aceptan?",
+        a: "Aceptamos todas las principales tarjetas de crédito, tarjetas de débito y PayPal a través de nuestro procesador de pagos. Los clientes Enterprise pueden pagar mediante factura y transferencia bancaria.",
+      },
+    ],
+  },
+  ar: {
+    title: "Precios de DubSync — Planes de Doblaje de Video con IA",
+    metaTitle:
+      "Precios de DubSync — Planes de Doblaje de Video con IA desde Gratis hasta Enterprise",
+    metaDescription:
+      "Elige el plan de DubSync que se adapte a tus necesidades. Planes Gratis, Starter, Pro y Enterprise para doblaje de video con IA, clonación de voz y sincronización labial.",
+    ogDescription:
+      "Elige el plan de DubSync ideal. Planes Gratis, Starter, Pro y Enterprise con sincronización labial incluida.",
+    heading:
+      "Precios de DubSync — Planes de Doblaje de Video con IA para Cada Creador",
+    subheading:
+      "Comienza gratis con 5 minutos de doblaje al mes. Actualiza cuando necesites más minutos, idiomas y funciones de equipo.",
+    faqHeading: "Preguntas Frecuentes sobre Precios",
+    breadcrumb: "Precios",
+    faqs: [
+      {
+        q: "¿Puedo cambiar de plan en cualquier momento?",
+        a: "Sí. Puedes mejorar o reducir tu plan en cualquier momento desde tu panel de control. Al mejorar, obtienes acceso inmediato a las nuevas funciones. Al reducir, tu plan actual permanece activo hasta el final del período de facturación.",
+      },
+      {
+        q: "¿Qué sucede si excedo los límites de mi plan?",
+        a: "Recibirás una notificación cuando alcances el 80% de tus minutos mensuales de doblaje. Una vez que alcances el límite, los nuevos trabajos de doblaje se pondrán en cola hasta tu próximo ciclo de facturación o hasta que actualices tu plan.",
+      },
+      {
+        q: "¿Hay una prueba gratuita para los planes de pago?",
+        a: "Ofrecemos un plan gratuito con 5 minutos de doblaje al mes para que puedas probar la calidad. Los planes de pago no tienen una prueba separada, pero puedes cancelar dentro de los primeros 7 días para obtener un reembolso completo.",
+      },
+      {
+        q: "¿Cómo funciona la facturación anual?",
+        a: "Los planes anuales se facturan una vez al año con una tarifa con descuento (normalmente un 20% de descuento). Obtienes las mismas funciones que el plan mensual pero pagas menos en total. Las suscripciones anuales se pueden cancelar en cualquier momento, con acceso hasta el final del período pagado.",
+      },
+      {
+        q: "¿Ofrecen reembolsos?",
+        a: "Ofrecemos una política de reembolso de 7 días para nuevas suscripciones de pago. Después de los primeros 7 días, las tarifas no son reembolsables. Los minutos de doblaje no utilizados no se transfieren entre períodos de facturación.",
+      },
+      {
+        q: "¿Qué métodos de pago aceptan?",
+        a: "Aceptamos todas las principales tarjetas de crédito, tarjetas de débito y PayPal a través de nuestro procesador de pagos. Los clientes Enterprise pueden pagar mediante factura y transferencia bancaria.",
+      },
+    ],
+  },
+  id: {
+    title: "Precios de DubSync — Planes de Doblaje de Video con IA",
+    metaTitle:
+      "Precios de DubSync — Planes de Doblaje de Video con IA desde Gratis hasta Enterprise",
+    metaDescription:
+      "Elige el plan de DubSync que se adapte a tus necesidades. Planes Gratis, Starter, Pro y Enterprise para doblaje de video con IA, clonación de voz y sincronización labial.",
+    ogDescription:
+      "Elige el plan de DubSync ideal. Planes Gratis, Starter, Pro y Enterprise con sincronización labial incluida.",
+    heading:
+      "Precios de DubSync — Planes de Doblaje de Video con IA para Cada Creador",
+    subheading:
+      "Comienza gratis con 5 minutos de doblaje al mes. Actualiza cuando necesites más minutos, idiomas y funciones de equipo.",
+    faqHeading: "Preguntas Frecuentes sobre Precios",
+    breadcrumb: "Precios",
+    faqs: [
+      {
+        q: "¿Puedo cambiar de plan en cualquier momento?",
+        a: "Sí. Puedes mejorar o reducir tu plan en cualquier momento desde tu panel de control. Al mejorar, obtienes acceso inmediato a las nuevas funciones. Al reducir, tu plan actual permanece activo hasta el final del período de facturación.",
+      },
+      {
+        q: "¿Qué sucede si excedo los límites de mi plan?",
+        a: "Recibirás una notificación cuando alcances el 80% de tus minutos mensuales de doblaje. Una vez que alcances el límite, los nuevos trabajos de doblaje se pondrán en cola hasta tu próximo ciclo de facturación o hasta que actualices tu plan.",
+      },
+      {
+        q: "¿Hay una prueba gratuita para los planes de pago?",
+        a: "Ofrecemos un plan gratuito con 5 minutos de doblaje al mes para que puedas probar la calidad. Los planes de pago no tienen una prueba separada, pero puedes cancelar dentro de los primeros 7 días para obtener un reembolso completo.",
+      },
+      {
+        q: "¿Cómo funciona la facturación anual?",
+        a: "Los planes anuales se facturan una vez al año con una tarifa con descuento (normalmente un 20% de descuento). Obtienes las mismas funciones que el plan mensual pero pagas menos en total. Las suscripciones anuales se pueden cancelar en cualquier momento, con acceso hasta el final del período pagado.",
+      },
+      {
+        q: "¿Ofrecen reembolsos?",
+        a: "Ofrecemos una política de reembolso de 7 días para nuevas suscripciones de pago. Después de los primeros 7 días, las tarifas no son reembolsables. Los minutos de doblaje no utilizados no se transfieren entre períodos de facturación.",
+      },
+      {
+        q: "¿Qué métodos de pago aceptan?",
+        a: "Aceptamos todas las principales tarjetas de crédito, tarjetas de débito y PayPal a través de nuestro procesador de pagos. Los clientes Enterprise pueden pagar mediante factura y transferencia bancaria.",
+      },
+    ],
+  },
+  tr: {
+    title: "Precios de DubSync — Planes de Doblaje de Video con IA",
+    metaTitle:
+      "Precios de DubSync — Planes de Doblaje de Video con IA desde Gratis hasta Enterprise",
+    metaDescription:
+      "Elige el plan de DubSync que se adapte a tus necesidades. Planes Gratis, Starter, Pro y Enterprise para doblaje de video con IA, clonación de voz y sincronización labial.",
+    ogDescription:
+      "Elige el plan de DubSync ideal. Planes Gratis, Starter, Pro y Enterprise con sincronización labial incluida.",
+    heading:
+      "Precios de DubSync — Planes de Doblaje de Video con IA para Cada Creador",
+    subheading:
+      "Comienza gratis con 5 minutos de doblaje al mes. Actualiza cuando necesites más minutos, idiomas y funciones de equipo.",
+    faqHeading: "Preguntas Frecuentes sobre Precios",
+    breadcrumb: "Precios",
+    faqs: [
+      {
+        q: "¿Puedo cambiar de plan en cualquier momento?",
+        a: "Sí. Puedes mejorar o reducir tu plan en cualquier momento desde tu panel de control. Al mejorar, obtienes acceso inmediato a las nuevas funciones. Al reducir, tu plan actual permanece activo hasta el final del período de facturación.",
+      },
+      {
+        q: "¿Qué sucede si excedo los límites de mi plan?",
+        a: "Recibirás una notificación cuando alcances el 80% de tus minutos mensuales de doblaje. Una vez que alcances el límite, los nuevos trabajos de doblaje se pondrán en cola hasta tu próximo ciclo de facturación o hasta que actualices tu plan.",
+      },
+      {
+        q: "¿Hay una prueba gratuita para los planes de pago?",
+        a: "Ofrecemos un plan gratuito con 5 minutos de doblaje al mes para que puedas probar la calidad. Los planes de pago no tienen una prueba separada, pero puedes cancelar dentro de los primeros 7 días para obtener un reembolso completo.",
+      },
+      {
+        q: "¿Cómo funciona la facturación anual?",
+        a: "Los planes anuales se facturan una vez al año con una tarifa con descuento (normalmente un 20% de descuento). Obtienes las mismas funciones que el plan mensual pero pagas menos en total. Las suscripciones anuales se pueden cancelar en cualquier momento, con acceso hasta el final del período pagado.",
+      },
+      {
+        q: "¿Ofrecen reembolsos?",
+        a: "Ofrecemos una política de reembolso de 7 días para nuevas suscripciones de pago. Después de los primeros 7 días, las tarifas no son reembolsables. Los minutos de doblaje no utilizados no se transfieren entre períodos de facturación.",
+      },
+      {
+        q: "¿Qué métodos de pago aceptan?",
+        a: "Aceptamos todas las principales tarjetas de crédito, tarjetas de débito y PayPal a través de nuestro procesador de pagos. Los clientes Enterprise pueden pagar mediante factura y transferencia bancaria.",
+      },
+    ],
+  },
+  ko: {
+    title: "Precios de DubSync — Planes de Doblaje de Video con IA",
+    metaTitle:
+      "Precios de DubSync — Planes de Doblaje de Video con IA desde Gratis hasta Enterprise",
+    metaDescription:
+      "Elige el plan de DubSync que se adapte a tus necesidades. Planes Gratis, Starter, Pro y Enterprise para doblaje de video con IA, clonación de voz y sincronización labial.",
+    ogDescription:
+      "Elige el plan de DubSync ideal. Planes Gratis, Starter, Pro y Enterprise con sincronización labial incluida.",
+    heading:
+      "Precios de DubSync — Planes de Doblaje de Video con IA para Cada Creador",
+    subheading:
+      "Comienza gratis con 5 minutos de doblaje al mes. Actualiza cuando necesites más minutos, idiomas y funciones de equipo.",
+    faqHeading: "Preguntas Frecuentes sobre Precios",
+    breadcrumb: "Precios",
+    faqs: [
+      {
+        q: "¿Puedo cambiar de plan en cualquier momento?",
+        a: "Sí. Puedes mejorar o reducir tu plan en cualquier momento desde tu panel de control. Al mejorar, obtienes acceso inmediato a las nuevas funciones. Al reducir, tu plan actual permanece activo hasta el final del período de facturación.",
+      },
+      {
+        q: "¿Qué sucede si excedo los límites de mi plan?",
+        a: "Recibirás una notificación cuando alcances el 80% de tus minutos mensuales de doblaje. Una vez que alcances el límite, los nuevos trabajos de doblaje se pondrán en cola hasta tu próximo ciclo de facturación o hasta que actualices tu plan.",
+      },
+      {
+        q: "¿Hay una prueba gratuita para los planes de pago?",
+        a: "Ofrecemos un plan gratuito con 5 minutos de doblaje al mes para que puedas probar la calidad. Los planes de pago no tienen una prueba separada, pero puedes cancelar dentro de los primeros 7 días para obtener un reembolso completo.",
+      },
+      {
+        q: "¿Cómo funciona la facturación anual?",
+        a: "Los planes anuales se facturan una vez al año con una tarifa con descuento (normalmente un 20% de descuento). Obtienes las mismas funciones que el plan mensual pero pagas menos en total. Las suscripciones anuales se pueden cancelar en cualquier momento, con acceso hasta el final del período pagado.",
+      },
+      {
+        q: "¿Ofrecen reembolsos?",
+        a: "Ofrecemos una política de reembolso de 7 días para nuevas suscripciones de pago. Después de los primeros 7 días, las tarifas no son reembolsables. Los minutos de doblaje no utilizados no se transfieren entre períodos de facturación.",
+      },
+      {
+        q: "¿Qué métodos de pago aceptan?",
+        a: "Aceptamos todas las principales tarjetas de crédito, tarjetas de débito y PayPal a través de nuestro procesador de pagos. Los clientes Enterprise pueden pagar mediante factura y transferencia bancaria.",
+      },
+    ],
+  },};
 
 /* ------------------------------------------------------------------ */
 /*  Static params                                                      */

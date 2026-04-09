@@ -78,6 +78,43 @@ const COUNTRY_LOCALE_MAP: Record<string, Locale> = {
 
   // Japanese (ja)
   JP: "ja", // Japan
+
+  // Hindi (hi) — primary for India. Other Indian languages still
+  // fall through to English for now; if we add Tamil/Bengali/etc.
+  // later this map gets more entries.
+  IN: "hi", // India
+
+  // Arabic (ar) — MENA region. Egypt has the largest Arabic-speaking
+  // population on the web, Saudi Arabia + UAE have the highest ad
+  // spend, so both are included. Maghreb (Algeria/Morocco/Tunisia)
+  // routes to French historically but could be flipped to Arabic.
+  SA: "ar", // Saudi Arabia
+  EG: "ar", // Egypt
+  AE: "ar", // United Arab Emirates
+  JO: "ar", // Jordan
+  KW: "ar", // Kuwait
+  QA: "ar", // Qatar
+  BH: "ar", // Bahrain
+  OM: "ar", // Oman
+  IQ: "ar", // Iraq
+  SY: "ar", // Syria
+  LB: "ar", // Lebanon
+  LY: "ar", // Libya
+  YE: "ar", // Yemen
+  SD: "ar", // Sudan
+  PS: "ar", // Palestine
+
+  // Indonesian (id)
+  ID: "id", // Indonesia
+
+  // Turkish (tr)
+  TR: "tr", // Türkiye
+  CY: "tr", // Cyprus (Turkish is one of two official languages; Greek
+            // is not a supported locale so we route everyone here)
+
+  // Korean (ko)
+  KR: "ko", // South Korea
+  KP: "ko", // North Korea — tiny traffic but correct mapping
 };
 
 /**

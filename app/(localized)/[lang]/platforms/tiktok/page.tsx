@@ -126,7 +126,127 @@ const TRANSLATIONS = {
     ctaSubtitle: "5分間の無料吹き替えで始めましょう。クレジットカード不要。",
     ctaButton: "無料で始める",
   },
-};
+
+  hi: {
+    title: "Dobla Videos de TikTok con IA — Viralízate Globalmente | DubSync",
+    description:
+      "Traduce y dobla tus TikToks en más de 30 idiomas con clonación de voz con IA. Lip sync automático. Hazte viral en todo el mundo.",
+    h1: "Dobla videos de TikTok — viralízate globalmente",
+    subtitle:
+      "Traduce tus TikToks a cualquier idioma con tu propia voz clonada. Lip sync perfecto para formato vertical.",
+    ctaText: "Doblar mi TikTok",
+    statBadge: "Formato vertical optimizado",
+    steps: ["Sube tu TikTok", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync optimiza para formato vertical de TikTok?", a: "Sí. DubSync procesa videos en cualquier formato, incluido el vertical 9:16 de TikTok, manteniendo la calidad visual." },
+      { q: "¿Cuánto tarda doblar un TikTok?", a: "Los TikToks cortos (15-60 segundos) se procesan en menos de 2 minutos." },
+      { q: "¿Se mantiene la música de fondo?", a: "Sí. DubSync separa la voz de la música y efectos, reemplazando solo la voz con la versión clonada traducida." },
+      { q: "¿Puedo doblar videos de TikTok de otros creadores?", a: "Solo puedes doblar contenido que posees o para el que tienes derechos explícitos de doblaje." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbTikTok: "TikTok",
+    ctaTitle: "Haz viral tu contenido en todo el mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  ar: {
+    title: "Dobla Videos de TikTok con IA — Viralízate Globalmente | DubSync",
+    description:
+      "Traduce y dobla tus TikToks en más de 30 idiomas con clonación de voz con IA. Lip sync automático. Hazte viral en todo el mundo.",
+    h1: "Dobla videos de TikTok — viralízate globalmente",
+    subtitle:
+      "Traduce tus TikToks a cualquier idioma con tu propia voz clonada. Lip sync perfecto para formato vertical.",
+    ctaText: "Doblar mi TikTok",
+    statBadge: "Formato vertical optimizado",
+    steps: ["Sube tu TikTok", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync optimiza para formato vertical de TikTok?", a: "Sí. DubSync procesa videos en cualquier formato, incluido el vertical 9:16 de TikTok, manteniendo la calidad visual." },
+      { q: "¿Cuánto tarda doblar un TikTok?", a: "Los TikToks cortos (15-60 segundos) se procesan en menos de 2 minutos." },
+      { q: "¿Se mantiene la música de fondo?", a: "Sí. DubSync separa la voz de la música y efectos, reemplazando solo la voz con la versión clonada traducida." },
+      { q: "¿Puedo doblar videos de TikTok de otros creadores?", a: "Solo puedes doblar contenido que posees o para el que tienes derechos explícitos de doblaje." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbTikTok: "TikTok",
+    ctaTitle: "Haz viral tu contenido en todo el mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  id: {
+    title: "Dobla Videos de TikTok con IA — Viralízate Globalmente | DubSync",
+    description:
+      "Traduce y dobla tus TikToks en más de 30 idiomas con clonación de voz con IA. Lip sync automático. Hazte viral en todo el mundo.",
+    h1: "Dobla videos de TikTok — viralízate globalmente",
+    subtitle:
+      "Traduce tus TikToks a cualquier idioma con tu propia voz clonada. Lip sync perfecto para formato vertical.",
+    ctaText: "Doblar mi TikTok",
+    statBadge: "Formato vertical optimizado",
+    steps: ["Sube tu TikTok", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync optimiza para formato vertical de TikTok?", a: "Sí. DubSync procesa videos en cualquier formato, incluido el vertical 9:16 de TikTok, manteniendo la calidad visual." },
+      { q: "¿Cuánto tarda doblar un TikTok?", a: "Los TikToks cortos (15-60 segundos) se procesan en menos de 2 minutos." },
+      { q: "¿Se mantiene la música de fondo?", a: "Sí. DubSync separa la voz de la música y efectos, reemplazando solo la voz con la versión clonada traducida." },
+      { q: "¿Puedo doblar videos de TikTok de otros creadores?", a: "Solo puedes doblar contenido que posees o para el que tienes derechos explícitos de doblaje." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbTikTok: "TikTok",
+    ctaTitle: "Haz viral tu contenido en todo el mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  tr: {
+    title: "Dobla Videos de TikTok con IA — Viralízate Globalmente | DubSync",
+    description:
+      "Traduce y dobla tus TikToks en más de 30 idiomas con clonación de voz con IA. Lip sync automático. Hazte viral en todo el mundo.",
+    h1: "Dobla videos de TikTok — viralízate globalmente",
+    subtitle:
+      "Traduce tus TikToks a cualquier idioma con tu propia voz clonada. Lip sync perfecto para formato vertical.",
+    ctaText: "Doblar mi TikTok",
+    statBadge: "Formato vertical optimizado",
+    steps: ["Sube tu TikTok", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync optimiza para formato vertical de TikTok?", a: "Sí. DubSync procesa videos en cualquier formato, incluido el vertical 9:16 de TikTok, manteniendo la calidad visual." },
+      { q: "¿Cuánto tarda doblar un TikTok?", a: "Los TikToks cortos (15-60 segundos) se procesan en menos de 2 minutos." },
+      { q: "¿Se mantiene la música de fondo?", a: "Sí. DubSync separa la voz de la música y efectos, reemplazando solo la voz con la versión clonada traducida." },
+      { q: "¿Puedo doblar videos de TikTok de otros creadores?", a: "Solo puedes doblar contenido que posees o para el que tienes derechos explícitos de doblaje." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbTikTok: "TikTok",
+    ctaTitle: "Haz viral tu contenido en todo el mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  ko: {
+    title: "Dobla Videos de TikTok con IA — Viralízate Globalmente | DubSync",
+    description:
+      "Traduce y dobla tus TikToks en más de 30 idiomas con clonación de voz con IA. Lip sync automático. Hazte viral en todo el mundo.",
+    h1: "Dobla videos de TikTok — viralízate globalmente",
+    subtitle:
+      "Traduce tus TikToks a cualquier idioma con tu propia voz clonada. Lip sync perfecto para formato vertical.",
+    ctaText: "Doblar mi TikTok",
+    statBadge: "Formato vertical optimizado",
+    steps: ["Sube tu TikTok", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync optimiza para formato vertical de TikTok?", a: "Sí. DubSync procesa videos en cualquier formato, incluido el vertical 9:16 de TikTok, manteniendo la calidad visual." },
+      { q: "¿Cuánto tarda doblar un TikTok?", a: "Los TikToks cortos (15-60 segundos) se procesan en menos de 2 minutos." },
+      { q: "¿Se mantiene la música de fondo?", a: "Sí. DubSync separa la voz de la música y efectos, reemplazando solo la voz con la versión clonada traducida." },
+      { q: "¿Puedo doblar videos de TikTok de otros creadores?", a: "Solo puedes doblar contenido que posees o para el que tienes derechos explícitos de doblaje." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbTikTok: "TikTok",
+    ctaTitle: "Haz viral tu contenido en todo el mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },};
 
 type Lang = keyof typeof TRANSLATIONS;
 const STEP_ICONS = [Upload, Languages, Download];

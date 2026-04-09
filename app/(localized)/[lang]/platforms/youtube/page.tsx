@@ -127,7 +127,127 @@ const TRANSLATIONS = {
     ctaSubtitle: "5分間の無料吹き替えで始めましょう。クレジットカード不要。",
     ctaButton: "無料で始める",
   },
-};
+
+  hi: {
+    title: "Dobla Videos de YouTube con IA — Clonación de Voz en 30+ Idiomas | DubSync",
+    description:
+      "Traduce y dobla videos de YouTube en más de 30 idiomas con clonación de voz con IA y lip sync. Mantén tu voz original. Crece globalmente.",
+    h1: "Dobla videos de YouTube en 30+ idiomas",
+    subtitle:
+      "Traduce automáticamente tus videos de YouTube conservando tu voz, tono y personalidad. Lip sync perfecto en cada idioma.",
+    ctaText: "Doblar mi video de YouTube",
+    statBadge: "30+ idiomas disponibles",
+    steps: ["Sube tu video", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿Cuánto tarda doblar un video de YouTube?", a: "Un video de 10 minutos se procesa en aproximadamente 5-8 minutos. La duración varía según la cantidad de idiomas seleccionados." },
+      { q: "¿Se mantiene la calidad del audio original?", a: "Sí. DubSync clona tu voz con alta fidelidad y sincroniza los labios automáticamente." },
+      { q: "¿Puedo doblar videos con múltiples hablantes?", a: "Sí. DubSync detecta y separa automáticamente cada hablante, clonando cada voz de forma independiente." },
+      { q: "¿Necesito descargar algún software?", a: "No. DubSync funciona completamente en la nube. Solo sube tu video y recibe el resultado doblado." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbYouTube: "YouTube",
+    ctaTitle: "Lleva tu canal de YouTube al mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  ar: {
+    title: "Dobla Videos de YouTube con IA — Clonación de Voz en 30+ Idiomas | DubSync",
+    description:
+      "Traduce y dobla videos de YouTube en más de 30 idiomas con clonación de voz con IA y lip sync. Mantén tu voz original. Crece globalmente.",
+    h1: "Dobla videos de YouTube en 30+ idiomas",
+    subtitle:
+      "Traduce automáticamente tus videos de YouTube conservando tu voz, tono y personalidad. Lip sync perfecto en cada idioma.",
+    ctaText: "Doblar mi video de YouTube",
+    statBadge: "30+ idiomas disponibles",
+    steps: ["Sube tu video", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿Cuánto tarda doblar un video de YouTube?", a: "Un video de 10 minutos se procesa en aproximadamente 5-8 minutos. La duración varía según la cantidad de idiomas seleccionados." },
+      { q: "¿Se mantiene la calidad del audio original?", a: "Sí. DubSync clona tu voz con alta fidelidad y sincroniza los labios automáticamente." },
+      { q: "¿Puedo doblar videos con múltiples hablantes?", a: "Sí. DubSync detecta y separa automáticamente cada hablante, clonando cada voz de forma independiente." },
+      { q: "¿Necesito descargar algún software?", a: "No. DubSync funciona completamente en la nube. Solo sube tu video y recibe el resultado doblado." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbYouTube: "YouTube",
+    ctaTitle: "Lleva tu canal de YouTube al mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  id: {
+    title: "Dobla Videos de YouTube con IA — Clonación de Voz en 30+ Idiomas | DubSync",
+    description:
+      "Traduce y dobla videos de YouTube en más de 30 idiomas con clonación de voz con IA y lip sync. Mantén tu voz original. Crece globalmente.",
+    h1: "Dobla videos de YouTube en 30+ idiomas",
+    subtitle:
+      "Traduce automáticamente tus videos de YouTube conservando tu voz, tono y personalidad. Lip sync perfecto en cada idioma.",
+    ctaText: "Doblar mi video de YouTube",
+    statBadge: "30+ idiomas disponibles",
+    steps: ["Sube tu video", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿Cuánto tarda doblar un video de YouTube?", a: "Un video de 10 minutos se procesa en aproximadamente 5-8 minutos. La duración varía según la cantidad de idiomas seleccionados." },
+      { q: "¿Se mantiene la calidad del audio original?", a: "Sí. DubSync clona tu voz con alta fidelidad y sincroniza los labios automáticamente." },
+      { q: "¿Puedo doblar videos con múltiples hablantes?", a: "Sí. DubSync detecta y separa automáticamente cada hablante, clonando cada voz de forma independiente." },
+      { q: "¿Necesito descargar algún software?", a: "No. DubSync funciona completamente en la nube. Solo sube tu video y recibe el resultado doblado." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbYouTube: "YouTube",
+    ctaTitle: "Lleva tu canal de YouTube al mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  tr: {
+    title: "Dobla Videos de YouTube con IA — Clonación de Voz en 30+ Idiomas | DubSync",
+    description:
+      "Traduce y dobla videos de YouTube en más de 30 idiomas con clonación de voz con IA y lip sync. Mantén tu voz original. Crece globalmente.",
+    h1: "Dobla videos de YouTube en 30+ idiomas",
+    subtitle:
+      "Traduce automáticamente tus videos de YouTube conservando tu voz, tono y personalidad. Lip sync perfecto en cada idioma.",
+    ctaText: "Doblar mi video de YouTube",
+    statBadge: "30+ idiomas disponibles",
+    steps: ["Sube tu video", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿Cuánto tarda doblar un video de YouTube?", a: "Un video de 10 minutos se procesa en aproximadamente 5-8 minutos. La duración varía según la cantidad de idiomas seleccionados." },
+      { q: "¿Se mantiene la calidad del audio original?", a: "Sí. DubSync clona tu voz con alta fidelidad y sincroniza los labios automáticamente." },
+      { q: "¿Puedo doblar videos con múltiples hablantes?", a: "Sí. DubSync detecta y separa automáticamente cada hablante, clonando cada voz de forma independiente." },
+      { q: "¿Necesito descargar algún software?", a: "No. DubSync funciona completamente en la nube. Solo sube tu video y recibe el resultado doblado." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbYouTube: "YouTube",
+    ctaTitle: "Lleva tu canal de YouTube al mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  ko: {
+    title: "Dobla Videos de YouTube con IA — Clonación de Voz en 30+ Idiomas | DubSync",
+    description:
+      "Traduce y dobla videos de YouTube en más de 30 idiomas con clonación de voz con IA y lip sync. Mantén tu voz original. Crece globalmente.",
+    h1: "Dobla videos de YouTube en 30+ idiomas",
+    subtitle:
+      "Traduce automáticamente tus videos de YouTube conservando tu voz, tono y personalidad. Lip sync perfecto en cada idioma.",
+    ctaText: "Doblar mi video de YouTube",
+    statBadge: "30+ idiomas disponibles",
+    steps: ["Sube tu video", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿Cuánto tarda doblar un video de YouTube?", a: "Un video de 10 minutos se procesa en aproximadamente 5-8 minutos. La duración varía según la cantidad de idiomas seleccionados." },
+      { q: "¿Se mantiene la calidad del audio original?", a: "Sí. DubSync clona tu voz con alta fidelidad y sincroniza los labios automáticamente." },
+      { q: "¿Puedo doblar videos con múltiples hablantes?", a: "Sí. DubSync detecta y separa automáticamente cada hablante, clonando cada voz de forma independiente." },
+      { q: "¿Necesito descargar algún software?", a: "No. DubSync funciona completamente en la nube. Solo sube tu video y recibe el resultado doblado." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbYouTube: "YouTube",
+    ctaTitle: "Lleva tu canal de YouTube al mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },};
 
 type Lang = keyof typeof TRANSLATIONS;
 const STEP_ICONS = [Upload, Languages, Download];

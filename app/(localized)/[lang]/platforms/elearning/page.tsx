@@ -126,7 +126,127 @@ const TRANSLATIONS = {
     ctaSubtitle: "5分間の無料吹き替えで始めましょう。クレジットカード不要。",
     ctaButton: "無料で始める",
   },
-};
+
+  hi: {
+    title: "Dobla Cursos Online y E-Learning con IA — Clonación de Voz | DubSync",
+    description:
+      "Traduce y dobla cursos online y contenido de e-learning en más de 30 idiomas con clonación de voz con IA. Mantén la voz del instructor.",
+    h1: "Dobla cursos online para estudiantes globales",
+    subtitle:
+      "Traduce tus cursos y materiales de e-learning a cualquier idioma. Mantén la voz del instructor consistente en todas las versiones.",
+    ctaText: "Doblar mi curso",
+    statBadge: "E-learning optimizado",
+    steps: ["Sube tu curso", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿Funciona con plataformas como Udemy o Coursera?", a: "Sí. Puedes subir cualquier video de curso, independientemente de la plataforma. Luego sube la versión doblada a tu plataforma preferida." },
+      { q: "¿Se mantiene la voz del instructor?", a: "Sí. DubSync clona la voz del instructor para que suene natural en cada idioma traducido." },
+      { q: "¿Puedo doblar un curso completo?", a: "Sí. Puedes subir múltiples lecciones y procesarlas por lotes." },
+      { q: "¿Se generan subtítulos traducidos?", a: "Sí. DubSync genera subtítulos SRT/VTT traducidos que puedes descargar junto al video." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbElearning: "E-Learning",
+    ctaTitle: "Lleva tus cursos a estudiantes de todo el mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  ar: {
+    title: "Dobla Cursos Online y E-Learning con IA — Clonación de Voz | DubSync",
+    description:
+      "Traduce y dobla cursos online y contenido de e-learning en más de 30 idiomas con clonación de voz con IA. Mantén la voz del instructor.",
+    h1: "Dobla cursos online para estudiantes globales",
+    subtitle:
+      "Traduce tus cursos y materiales de e-learning a cualquier idioma. Mantén la voz del instructor consistente en todas las versiones.",
+    ctaText: "Doblar mi curso",
+    statBadge: "E-learning optimizado",
+    steps: ["Sube tu curso", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿Funciona con plataformas como Udemy o Coursera?", a: "Sí. Puedes subir cualquier video de curso, independientemente de la plataforma. Luego sube la versión doblada a tu plataforma preferida." },
+      { q: "¿Se mantiene la voz del instructor?", a: "Sí. DubSync clona la voz del instructor para que suene natural en cada idioma traducido." },
+      { q: "¿Puedo doblar un curso completo?", a: "Sí. Puedes subir múltiples lecciones y procesarlas por lotes." },
+      { q: "¿Se generan subtítulos traducidos?", a: "Sí. DubSync genera subtítulos SRT/VTT traducidos que puedes descargar junto al video." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbElearning: "E-Learning",
+    ctaTitle: "Lleva tus cursos a estudiantes de todo el mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  id: {
+    title: "Dobla Cursos Online y E-Learning con IA — Clonación de Voz | DubSync",
+    description:
+      "Traduce y dobla cursos online y contenido de e-learning en más de 30 idiomas con clonación de voz con IA. Mantén la voz del instructor.",
+    h1: "Dobla cursos online para estudiantes globales",
+    subtitle:
+      "Traduce tus cursos y materiales de e-learning a cualquier idioma. Mantén la voz del instructor consistente en todas las versiones.",
+    ctaText: "Doblar mi curso",
+    statBadge: "E-learning optimizado",
+    steps: ["Sube tu curso", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿Funciona con plataformas como Udemy o Coursera?", a: "Sí. Puedes subir cualquier video de curso, independientemente de la plataforma. Luego sube la versión doblada a tu plataforma preferida." },
+      { q: "¿Se mantiene la voz del instructor?", a: "Sí. DubSync clona la voz del instructor para que suene natural en cada idioma traducido." },
+      { q: "¿Puedo doblar un curso completo?", a: "Sí. Puedes subir múltiples lecciones y procesarlas por lotes." },
+      { q: "¿Se generan subtítulos traducidos?", a: "Sí. DubSync genera subtítulos SRT/VTT traducidos que puedes descargar junto al video." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbElearning: "E-Learning",
+    ctaTitle: "Lleva tus cursos a estudiantes de todo el mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  tr: {
+    title: "Dobla Cursos Online y E-Learning con IA — Clonación de Voz | DubSync",
+    description:
+      "Traduce y dobla cursos online y contenido de e-learning en más de 30 idiomas con clonación de voz con IA. Mantén la voz del instructor.",
+    h1: "Dobla cursos online para estudiantes globales",
+    subtitle:
+      "Traduce tus cursos y materiales de e-learning a cualquier idioma. Mantén la voz del instructor consistente en todas las versiones.",
+    ctaText: "Doblar mi curso",
+    statBadge: "E-learning optimizado",
+    steps: ["Sube tu curso", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿Funciona con plataformas como Udemy o Coursera?", a: "Sí. Puedes subir cualquier video de curso, independientemente de la plataforma. Luego sube la versión doblada a tu plataforma preferida." },
+      { q: "¿Se mantiene la voz del instructor?", a: "Sí. DubSync clona la voz del instructor para que suene natural en cada idioma traducido." },
+      { q: "¿Puedo doblar un curso completo?", a: "Sí. Puedes subir múltiples lecciones y procesarlas por lotes." },
+      { q: "¿Se generan subtítulos traducidos?", a: "Sí. DubSync genera subtítulos SRT/VTT traducidos que puedes descargar junto al video." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbElearning: "E-Learning",
+    ctaTitle: "Lleva tus cursos a estudiantes de todo el mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  ko: {
+    title: "Dobla Cursos Online y E-Learning con IA — Clonación de Voz | DubSync",
+    description:
+      "Traduce y dobla cursos online y contenido de e-learning en más de 30 idiomas con clonación de voz con IA. Mantén la voz del instructor.",
+    h1: "Dobla cursos online para estudiantes globales",
+    subtitle:
+      "Traduce tus cursos y materiales de e-learning a cualquier idioma. Mantén la voz del instructor consistente en todas las versiones.",
+    ctaText: "Doblar mi curso",
+    statBadge: "E-learning optimizado",
+    steps: ["Sube tu curso", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿Funciona con plataformas como Udemy o Coursera?", a: "Sí. Puedes subir cualquier video de curso, independientemente de la plataforma. Luego sube la versión doblada a tu plataforma preferida." },
+      { q: "¿Se mantiene la voz del instructor?", a: "Sí. DubSync clona la voz del instructor para que suene natural en cada idioma traducido." },
+      { q: "¿Puedo doblar un curso completo?", a: "Sí. Puedes subir múltiples lecciones y procesarlas por lotes." },
+      { q: "¿Se generan subtítulos traducidos?", a: "Sí. DubSync genera subtítulos SRT/VTT traducidos que puedes descargar junto al video." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbElearning: "E-Learning",
+    ctaTitle: "Lleva tus cursos a estudiantes de todo el mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },};
 
 type Lang = keyof typeof TRANSLATIONS;
 const STEP_ICONS = [Upload, Languages, Download];

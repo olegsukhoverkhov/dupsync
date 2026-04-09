@@ -126,7 +126,127 @@ const TRANSLATIONS = {
     ctaSubtitle: "5分間の無料吹き替えで始めましょう。クレジットカード不要。",
     ctaButton: "無料で始める",
   },
-};
+
+  hi: {
+    title: "Dobla tu Podcast a Cualquier Idioma con IA — Clonación de Voz | DubSync",
+    description:
+      "Traduce y dobla episodios de podcast en más de 30 idiomas con clonación de voz con IA. Mantén tu voz auténtica en cada idioma.",
+    h1: "Dobla tu podcast a cualquier idioma",
+    subtitle:
+      "Traduce tus episodios de podcast a cualquier idioma con tu voz clonada. Expande tu audiencia sin perder autenticidad.",
+    ctaText: "Doblar mi podcast",
+    statBadge: "Audio optimizado",
+    steps: ["Sube tu episodio", "Elige los idiomas", "Descarga el audio"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync funciona solo con audio?", a: "Sí. DubSync procesa tanto video como audio puro, lo que lo hace perfecto para podcasts." },
+      { q: "¿Se mantiene la calidad del audio?", a: "Sí. La salida es audio de alta calidad listo para distribución en plataformas de podcast." },
+      { q: "¿Funciona con podcasts de múltiples participantes?", a: "Sí. DubSync detecta y separa cada hablante, clonando cada voz de forma independiente." },
+      { q: "¿Qué formatos de audio soporta?", a: "DubSync soporta MP3, WAV, M4A, FLAC y OGG. La salida está disponible en MP3 y WAV." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPodcasts: "Podcasts",
+    ctaTitle: "Lleva tu podcast a oyentes de todo el mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  ar: {
+    title: "Dobla tu Podcast a Cualquier Idioma con IA — Clonación de Voz | DubSync",
+    description:
+      "Traduce y dobla episodios de podcast en más de 30 idiomas con clonación de voz con IA. Mantén tu voz auténtica en cada idioma.",
+    h1: "Dobla tu podcast a cualquier idioma",
+    subtitle:
+      "Traduce tus episodios de podcast a cualquier idioma con tu voz clonada. Expande tu audiencia sin perder autenticidad.",
+    ctaText: "Doblar mi podcast",
+    statBadge: "Audio optimizado",
+    steps: ["Sube tu episodio", "Elige los idiomas", "Descarga el audio"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync funciona solo con audio?", a: "Sí. DubSync procesa tanto video como audio puro, lo que lo hace perfecto para podcasts." },
+      { q: "¿Se mantiene la calidad del audio?", a: "Sí. La salida es audio de alta calidad listo para distribución en plataformas de podcast." },
+      { q: "¿Funciona con podcasts de múltiples participantes?", a: "Sí. DubSync detecta y separa cada hablante, clonando cada voz de forma independiente." },
+      { q: "¿Qué formatos de audio soporta?", a: "DubSync soporta MP3, WAV, M4A, FLAC y OGG. La salida está disponible en MP3 y WAV." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPodcasts: "Podcasts",
+    ctaTitle: "Lleva tu podcast a oyentes de todo el mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  id: {
+    title: "Dobla tu Podcast a Cualquier Idioma con IA — Clonación de Voz | DubSync",
+    description:
+      "Traduce y dobla episodios de podcast en más de 30 idiomas con clonación de voz con IA. Mantén tu voz auténtica en cada idioma.",
+    h1: "Dobla tu podcast a cualquier idioma",
+    subtitle:
+      "Traduce tus episodios de podcast a cualquier idioma con tu voz clonada. Expande tu audiencia sin perder autenticidad.",
+    ctaText: "Doblar mi podcast",
+    statBadge: "Audio optimizado",
+    steps: ["Sube tu episodio", "Elige los idiomas", "Descarga el audio"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync funciona solo con audio?", a: "Sí. DubSync procesa tanto video como audio puro, lo que lo hace perfecto para podcasts." },
+      { q: "¿Se mantiene la calidad del audio?", a: "Sí. La salida es audio de alta calidad listo para distribución en plataformas de podcast." },
+      { q: "¿Funciona con podcasts de múltiples participantes?", a: "Sí. DubSync detecta y separa cada hablante, clonando cada voz de forma independiente." },
+      { q: "¿Qué formatos de audio soporta?", a: "DubSync soporta MP3, WAV, M4A, FLAC y OGG. La salida está disponible en MP3 y WAV." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPodcasts: "Podcasts",
+    ctaTitle: "Lleva tu podcast a oyentes de todo el mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  tr: {
+    title: "Dobla tu Podcast a Cualquier Idioma con IA — Clonación de Voz | DubSync",
+    description:
+      "Traduce y dobla episodios de podcast en más de 30 idiomas con clonación de voz con IA. Mantén tu voz auténtica en cada idioma.",
+    h1: "Dobla tu podcast a cualquier idioma",
+    subtitle:
+      "Traduce tus episodios de podcast a cualquier idioma con tu voz clonada. Expande tu audiencia sin perder autenticidad.",
+    ctaText: "Doblar mi podcast",
+    statBadge: "Audio optimizado",
+    steps: ["Sube tu episodio", "Elige los idiomas", "Descarga el audio"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync funciona solo con audio?", a: "Sí. DubSync procesa tanto video como audio puro, lo que lo hace perfecto para podcasts." },
+      { q: "¿Se mantiene la calidad del audio?", a: "Sí. La salida es audio de alta calidad listo para distribución en plataformas de podcast." },
+      { q: "¿Funciona con podcasts de múltiples participantes?", a: "Sí. DubSync detecta y separa cada hablante, clonando cada voz de forma independiente." },
+      { q: "¿Qué formatos de audio soporta?", a: "DubSync soporta MP3, WAV, M4A, FLAC y OGG. La salida está disponible en MP3 y WAV." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPodcasts: "Podcasts",
+    ctaTitle: "Lleva tu podcast a oyentes de todo el mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  ko: {
+    title: "Dobla tu Podcast a Cualquier Idioma con IA — Clonación de Voz | DubSync",
+    description:
+      "Traduce y dobla episodios de podcast en más de 30 idiomas con clonación de voz con IA. Mantén tu voz auténtica en cada idioma.",
+    h1: "Dobla tu podcast a cualquier idioma",
+    subtitle:
+      "Traduce tus episodios de podcast a cualquier idioma con tu voz clonada. Expande tu audiencia sin perder autenticidad.",
+    ctaText: "Doblar mi podcast",
+    statBadge: "Audio optimizado",
+    steps: ["Sube tu episodio", "Elige los idiomas", "Descarga el audio"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync funciona solo con audio?", a: "Sí. DubSync procesa tanto video como audio puro, lo que lo hace perfecto para podcasts." },
+      { q: "¿Se mantiene la calidad del audio?", a: "Sí. La salida es audio de alta calidad listo para distribución en plataformas de podcast." },
+      { q: "¿Funciona con podcasts de múltiples participantes?", a: "Sí. DubSync detecta y separa cada hablante, clonando cada voz de forma independiente." },
+      { q: "¿Qué formatos de audio soporta?", a: "DubSync soporta MP3, WAV, M4A, FLAC y OGG. La salida está disponible en MP3 y WAV." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPodcasts: "Podcasts",
+    ctaTitle: "Lleva tu podcast a oyentes de todo el mundo",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },};
 
 type Lang = keyof typeof TRANSLATIONS;
 const STEP_ICONS = [Upload, Languages, Download];

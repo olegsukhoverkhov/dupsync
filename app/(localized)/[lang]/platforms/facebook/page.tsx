@@ -127,7 +127,127 @@ const TRANSLATIONS = {
     ctaSubtitle: "5分間の無料吹き替えで始めましょう。クレジットカード不要。",
     ctaButton: "無料で始める",
   },
-};
+
+  hi: {
+    title: "Dobla Anuncios de Video y Contenido de Facebook con IA | DubSync",
+    description:
+      "Traduce y dobla anuncios de video y contenido de Facebook en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
+    h1: "Dobla anuncios de video y contenido de Facebook",
+    subtitle:
+      "Localiza tus anuncios de video y contenido de Facebook para audiencias globales. Clonación de voz y lip sync con IA.",
+    ctaText: "Doblar mi video de Facebook",
+    statBadge: "Anuncios y contenido optimizados",
+    steps: ["Sube tu video", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync funciona con anuncios de Facebook?", a: "Sí. DubSync procesa videos de cualquier duración, incluidos anuncios cortos de 15-30 segundos optimizados para Facebook Ads." },
+      { q: "¿Puedo doblar Facebook Lives grabados?", a: "Sí. Puedes subir grabaciones de Facebook Live y doblarlas a múltiples idiomas." },
+      { q: "¿Mejora el rendimiento de mis anuncios?", a: "Los anuncios localizados en el idioma nativo de la audiencia suelen tener mejor CTR y menor costo por conversión." },
+      { q: "¿Qué formatos de video soporta?", a: "DubSync soporta MP4, MOV, AVI y WebM en formatos horizontal, vertical y cuadrado." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbFacebook: "Facebook",
+    ctaTitle: "Localiza tu presencia en Facebook globalmente",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  ar: {
+    title: "Dobla Anuncios de Video y Contenido de Facebook con IA | DubSync",
+    description:
+      "Traduce y dobla anuncios de video y contenido de Facebook en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
+    h1: "Dobla anuncios de video y contenido de Facebook",
+    subtitle:
+      "Localiza tus anuncios de video y contenido de Facebook para audiencias globales. Clonación de voz y lip sync con IA.",
+    ctaText: "Doblar mi video de Facebook",
+    statBadge: "Anuncios y contenido optimizados",
+    steps: ["Sube tu video", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync funciona con anuncios de Facebook?", a: "Sí. DubSync procesa videos de cualquier duración, incluidos anuncios cortos de 15-30 segundos optimizados para Facebook Ads." },
+      { q: "¿Puedo doblar Facebook Lives grabados?", a: "Sí. Puedes subir grabaciones de Facebook Live y doblarlas a múltiples idiomas." },
+      { q: "¿Mejora el rendimiento de mis anuncios?", a: "Los anuncios localizados en el idioma nativo de la audiencia suelen tener mejor CTR y menor costo por conversión." },
+      { q: "¿Qué formatos de video soporta?", a: "DubSync soporta MP4, MOV, AVI y WebM en formatos horizontal, vertical y cuadrado." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbFacebook: "Facebook",
+    ctaTitle: "Localiza tu presencia en Facebook globalmente",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  id: {
+    title: "Dobla Anuncios de Video y Contenido de Facebook con IA | DubSync",
+    description:
+      "Traduce y dobla anuncios de video y contenido de Facebook en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
+    h1: "Dobla anuncios de video y contenido de Facebook",
+    subtitle:
+      "Localiza tus anuncios de video y contenido de Facebook para audiencias globales. Clonación de voz y lip sync con IA.",
+    ctaText: "Doblar mi video de Facebook",
+    statBadge: "Anuncios y contenido optimizados",
+    steps: ["Sube tu video", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync funciona con anuncios de Facebook?", a: "Sí. DubSync procesa videos de cualquier duración, incluidos anuncios cortos de 15-30 segundos optimizados para Facebook Ads." },
+      { q: "¿Puedo doblar Facebook Lives grabados?", a: "Sí. Puedes subir grabaciones de Facebook Live y doblarlas a múltiples idiomas." },
+      { q: "¿Mejora el rendimiento de mis anuncios?", a: "Los anuncios localizados en el idioma nativo de la audiencia suelen tener mejor CTR y menor costo por conversión." },
+      { q: "¿Qué formatos de video soporta?", a: "DubSync soporta MP4, MOV, AVI y WebM en formatos horizontal, vertical y cuadrado." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbFacebook: "Facebook",
+    ctaTitle: "Localiza tu presencia en Facebook globalmente",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  tr: {
+    title: "Dobla Anuncios de Video y Contenido de Facebook con IA | DubSync",
+    description:
+      "Traduce y dobla anuncios de video y contenido de Facebook en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
+    h1: "Dobla anuncios de video y contenido de Facebook",
+    subtitle:
+      "Localiza tus anuncios de video y contenido de Facebook para audiencias globales. Clonación de voz y lip sync con IA.",
+    ctaText: "Doblar mi video de Facebook",
+    statBadge: "Anuncios y contenido optimizados",
+    steps: ["Sube tu video", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync funciona con anuncios de Facebook?", a: "Sí. DubSync procesa videos de cualquier duración, incluidos anuncios cortos de 15-30 segundos optimizados para Facebook Ads." },
+      { q: "¿Puedo doblar Facebook Lives grabados?", a: "Sí. Puedes subir grabaciones de Facebook Live y doblarlas a múltiples idiomas." },
+      { q: "¿Mejora el rendimiento de mis anuncios?", a: "Los anuncios localizados en el idioma nativo de la audiencia suelen tener mejor CTR y menor costo por conversión." },
+      { q: "¿Qué formatos de video soporta?", a: "DubSync soporta MP4, MOV, AVI y WebM en formatos horizontal, vertical y cuadrado." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbFacebook: "Facebook",
+    ctaTitle: "Localiza tu presencia en Facebook globalmente",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  ko: {
+    title: "Dobla Anuncios de Video y Contenido de Facebook con IA | DubSync",
+    description:
+      "Traduce y dobla anuncios de video y contenido de Facebook en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
+    h1: "Dobla anuncios de video y contenido de Facebook",
+    subtitle:
+      "Localiza tus anuncios de video y contenido de Facebook para audiencias globales. Clonación de voz y lip sync con IA.",
+    ctaText: "Doblar mi video de Facebook",
+    statBadge: "Anuncios y contenido optimizados",
+    steps: ["Sube tu video", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync funciona con anuncios de Facebook?", a: "Sí. DubSync procesa videos de cualquier duración, incluidos anuncios cortos de 15-30 segundos optimizados para Facebook Ads." },
+      { q: "¿Puedo doblar Facebook Lives grabados?", a: "Sí. Puedes subir grabaciones de Facebook Live y doblarlas a múltiples idiomas." },
+      { q: "¿Mejora el rendimiento de mis anuncios?", a: "Los anuncios localizados en el idioma nativo de la audiencia suelen tener mejor CTR y menor costo por conversión." },
+      { q: "¿Qué formatos de video soporta?", a: "DubSync soporta MP4, MOV, AVI y WebM en formatos horizontal, vertical y cuadrado." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbFacebook: "Facebook",
+    ctaTitle: "Localiza tu presencia en Facebook globalmente",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },};
 
 type Lang = keyof typeof TRANSLATIONS;
 const STEP_ICONS = [Upload, Languages, Download];

@@ -127,7 +127,127 @@ const TRANSLATIONS = {
     ctaSubtitle: "5分間の無料吹き替えで始めましょう。クレジットカード不要。",
     ctaButton: "無料で始める",
   },
-};
+
+  hi: {
+    title: "Dobla Reels y Stories de Instagram con IA — Clonación de Voz | DubSync",
+    description:
+      "Traduce y dobla tus Instagram Reels y Stories en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
+    h1: "Dobla Reels y Stories de Instagram",
+    subtitle:
+      "Traduce tus Reels y Stories de Instagram a cualquier idioma con tu voz clonada. Lip sync y formatos optimizados para Instagram.",
+    ctaText: "Doblar mi Reel",
+    statBadge: "Reels y Stories optimizados",
+    steps: ["Sube tu Reel o Story", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync soporta formato vertical de Instagram?", a: "Sí. DubSync procesa formatos 9:16 (Reels/Stories) y 1:1 (feed) manteniendo la calidad visual." },
+      { q: "¿Puedo doblar Reels con música de fondo?", a: "Sí. DubSync separa la voz de la música y efectos sonoros, reemplazando solo la narración." },
+      { q: "¿Cuánto tarda doblar un Reel de Instagram?", a: "Los Reels de 30-90 segundos se procesan en aproximadamente 1-2 minutos." },
+      { q: "¿Se mantienen los subtítulos originales?", a: "DubSync genera nuevos subtítulos traducidos que puedes descargar por separado." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbInstagram: "Instagram",
+    ctaTitle: "Conquista Instagram en todos los idiomas",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  ar: {
+    title: "Dobla Reels y Stories de Instagram con IA — Clonación de Voz | DubSync",
+    description:
+      "Traduce y dobla tus Instagram Reels y Stories en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
+    h1: "Dobla Reels y Stories de Instagram",
+    subtitle:
+      "Traduce tus Reels y Stories de Instagram a cualquier idioma con tu voz clonada. Lip sync y formatos optimizados para Instagram.",
+    ctaText: "Doblar mi Reel",
+    statBadge: "Reels y Stories optimizados",
+    steps: ["Sube tu Reel o Story", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync soporta formato vertical de Instagram?", a: "Sí. DubSync procesa formatos 9:16 (Reels/Stories) y 1:1 (feed) manteniendo la calidad visual." },
+      { q: "¿Puedo doblar Reels con música de fondo?", a: "Sí. DubSync separa la voz de la música y efectos sonoros, reemplazando solo la narración." },
+      { q: "¿Cuánto tarda doblar un Reel de Instagram?", a: "Los Reels de 30-90 segundos se procesan en aproximadamente 1-2 minutos." },
+      { q: "¿Se mantienen los subtítulos originales?", a: "DubSync genera nuevos subtítulos traducidos que puedes descargar por separado." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbInstagram: "Instagram",
+    ctaTitle: "Conquista Instagram en todos los idiomas",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  id: {
+    title: "Dobla Reels y Stories de Instagram con IA — Clonación de Voz | DubSync",
+    description:
+      "Traduce y dobla tus Instagram Reels y Stories en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
+    h1: "Dobla Reels y Stories de Instagram",
+    subtitle:
+      "Traduce tus Reels y Stories de Instagram a cualquier idioma con tu voz clonada. Lip sync y formatos optimizados para Instagram.",
+    ctaText: "Doblar mi Reel",
+    statBadge: "Reels y Stories optimizados",
+    steps: ["Sube tu Reel o Story", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync soporta formato vertical de Instagram?", a: "Sí. DubSync procesa formatos 9:16 (Reels/Stories) y 1:1 (feed) manteniendo la calidad visual." },
+      { q: "¿Puedo doblar Reels con música de fondo?", a: "Sí. DubSync separa la voz de la música y efectos sonoros, reemplazando solo la narración." },
+      { q: "¿Cuánto tarda doblar un Reel de Instagram?", a: "Los Reels de 30-90 segundos se procesan en aproximadamente 1-2 minutos." },
+      { q: "¿Se mantienen los subtítulos originales?", a: "DubSync genera nuevos subtítulos traducidos que puedes descargar por separado." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbInstagram: "Instagram",
+    ctaTitle: "Conquista Instagram en todos los idiomas",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  tr: {
+    title: "Dobla Reels y Stories de Instagram con IA — Clonación de Voz | DubSync",
+    description:
+      "Traduce y dobla tus Instagram Reels y Stories en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
+    h1: "Dobla Reels y Stories de Instagram",
+    subtitle:
+      "Traduce tus Reels y Stories de Instagram a cualquier idioma con tu voz clonada. Lip sync y formatos optimizados para Instagram.",
+    ctaText: "Doblar mi Reel",
+    statBadge: "Reels y Stories optimizados",
+    steps: ["Sube tu Reel o Story", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync soporta formato vertical de Instagram?", a: "Sí. DubSync procesa formatos 9:16 (Reels/Stories) y 1:1 (feed) manteniendo la calidad visual." },
+      { q: "¿Puedo doblar Reels con música de fondo?", a: "Sí. DubSync separa la voz de la música y efectos sonoros, reemplazando solo la narración." },
+      { q: "¿Cuánto tarda doblar un Reel de Instagram?", a: "Los Reels de 30-90 segundos se procesan en aproximadamente 1-2 minutos." },
+      { q: "¿Se mantienen los subtítulos originales?", a: "DubSync genera nuevos subtítulos traducidos que puedes descargar por separado." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbInstagram: "Instagram",
+    ctaTitle: "Conquista Instagram en todos los idiomas",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },
+  ko: {
+    title: "Dobla Reels y Stories de Instagram con IA — Clonación de Voz | DubSync",
+    description:
+      "Traduce y dobla tus Instagram Reels y Stories en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
+    h1: "Dobla Reels y Stories de Instagram",
+    subtitle:
+      "Traduce tus Reels y Stories de Instagram a cualquier idioma con tu voz clonada. Lip sync y formatos optimizados para Instagram.",
+    ctaText: "Doblar mi Reel",
+    statBadge: "Reels y Stories optimizados",
+    steps: ["Sube tu Reel o Story", "Elige los idiomas", "Descarga el resultado"],
+    faqTitle: "Preguntas frecuentes",
+    faqs: [
+      { q: "¿DubSync soporta formato vertical de Instagram?", a: "Sí. DubSync procesa formatos 9:16 (Reels/Stories) y 1:1 (feed) manteniendo la calidad visual." },
+      { q: "¿Puedo doblar Reels con música de fondo?", a: "Sí. DubSync separa la voz de la música y efectos sonoros, reemplazando solo la narración." },
+      { q: "¿Cuánto tarda doblar un Reel de Instagram?", a: "Los Reels de 30-90 segundos se procesan en aproximadamente 1-2 minutos." },
+      { q: "¿Se mantienen los subtítulos originales?", a: "DubSync genera nuevos subtítulos traducidos que puedes descargar por separado." },
+    ],
+    alsoWorksWith: "También funciona con",
+    breadcrumbPlatforms: "Plataformas",
+    breadcrumbInstagram: "Instagram",
+    ctaTitle: "Conquista Instagram en todos los idiomas",
+    ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
+    ctaButton: "Empezar gratis",
+  },};
 
 type Lang = keyof typeof TRANSLATIONS;
 const STEP_ICONS = [Upload, Languages, Download];
