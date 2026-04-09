@@ -46,7 +46,7 @@ export function TopupModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="topup-modal-title"
-      className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/70 backdrop-blur-sm p-4 py-10"
+      className="fixed inset-0 z-[110] flex items-start justify-center overflow-y-auto bg-black/70 backdrop-blur-sm p-4 py-10"
       onClick={onClose}
     >
       <div
