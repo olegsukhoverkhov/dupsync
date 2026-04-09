@@ -90,6 +90,14 @@ export const ALL_ARTICLES = [
     readingTime: "12 min read",
     category: "Guide",
   },
+  {
+    slug: "ai-subtitles-for-dubbed-videos",
+    title: "AI Subtitles for Dubbed Videos — How It Works",
+    excerpt: "DubSync now generates AI subtitles automatically for dubbed videos. Burned-in or SRT export in 30+ languages. Perfect sync with dubbed audio.",
+    date: "2026-04-09",
+    readingTime: "8 min read",
+    category: "Feature",
+  },
 ];
 
 /** Format ISO date to human-readable: "Oct 14, 2025" */

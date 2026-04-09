@@ -341,4 +341,38 @@
   <url><loc>https://dubsync.app/de/blog/social-media-video-localization-guide</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
   <url><loc>https://dubsync.app/fr/blog/social-media-video-localization-guide</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
   <url><loc>https://dubsync.app/ja/blog/social-media-video-localization-guide</loc><lastmod>2026-04-06</lastmod><priority>0.6</priority></url>
+  <!-- AI Subtitles for Dubbed Videos (6 locales) -->
+  <url><loc>https://dubsync.app/blog/ai-subtitles-for-dubbed-videos</loc><lastmod>2026-04-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/es/blog/ai-subtitles-for-dubbed-videos</loc><lastmod>2026-04-09</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/pt/blog/ai-subtitles-for-dubbed-videos</loc><lastmod>2026-04-09</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/de/blog/ai-subtitles-for-dubbed-videos</loc><lastmod>2026-04-09</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/fr/blog/ai-subtitles-for-dubbed-videos</loc><lastmod>2026-04-09</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/ja/blog/ai-subtitles-for-dubbed-videos</loc><lastmod>2026-04-09</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <!-- Localized /about -->
+  <url><loc>https://dubsync.app/es/about</loc><lastmod>2026-04-08</lastmod><priority>0.5</priority></url>
+  <url><loc>https://dubsync.app/pt/about</loc><lastmod>2026-04-08</lastmod><priority>0.5</priority></url>
+  <url><loc>https://dubsync.app/de/about</loc><lastmod>2026-04-08</lastmod><priority>0.5</priority></url>
+  <url><loc>https://dubsync.app/fr/about</loc><lastmod>2026-04-08</lastmod><priority>0.5</priority></url>
+  <url><loc>https://dubsync.app/ja/about</loc><lastmod>2026-04-08</lastmod><priority>0.5</priority></url>
+  <!-- Localized /vs/* (20 pages: 5 locales × 4 competitors) -->
+  <url><loc>https://dubsync.app/es/vs/rask-ai</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/es/vs/heygen</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/es/vs/elevenlabs</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/es/vs/geckodub</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/pt/vs/rask-ai</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/pt/vs/heygen</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/pt/vs/elevenlabs</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/pt/vs/geckodub</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/de/vs/rask-ai</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/de/vs/heygen</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/de/vs/elevenlabs</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/de/vs/geckodub</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/fr/vs/rask-ai</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/fr/vs/heygen</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/fr/vs/elevenlabs</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/fr/vs/geckodub</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/ja/vs/rask-ai</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/ja/vs/heygen</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/ja/vs/elevenlabs</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
+  <url><loc>https://dubsync.app/ja/vs/geckodub</loc><lastmod>2026-04-08</lastmod><priority>0.6</priority></url>
 </urlset>

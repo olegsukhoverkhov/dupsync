@@ -21,6 +21,7 @@ export const TRANSLATED_SLUGS: Record<string, string> = {
   "ai-dubbing-pricing-comparison-2026": "ai-dubbing-pricing-comparison-2026",
   "how-to-dub-instagram-reels": "how-to-dub-instagram-reels",
   "social-media-video-localization-guide": "social-media-video-localization-guide",
+  "ai-subtitles-for-dubbed-videos": "ai-subtitles-for-dubbed-videos",
 };
 
 type TranslationModule = { default: ArticleTranslation[] };
