@@ -749,6 +749,19 @@ export default function ProjectDetailPage({
               </div>
             )}
 
+            {/* Soft warning chip — shown when a dub completed but
+                Stage 1 had to fall back to a generic voice because
+                voice cloning was unavailable (quota / bad sample).
+                Rendered in amber so it's clearly distinct from red
+                error states above. */}
+            {activeDub.status !== "error" && activeDub.warning_message && (
+              <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-4 mb-6">
+                <p className="text-sm text-amber-300">
+                  {activeDub.warning_message}
+                </p>
+              </div>
+            )}
+
             {activeDub.translated_transcript && (
               <div className="mt-6">
                 <p className="text-xs text-slate-500 mb-3 font-medium uppercase tracking-wider">{t("dashboard.projectDetail.translationLabel", "Translation")}</p>

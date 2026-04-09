@@ -105,6 +105,13 @@ export interface Dub {
   dubbed_video_url: string | null;
   progress: number;
   error_message: string | null;
+  /** Soft warning written alongside a successful dub — e.g. voice
+   *  cloning quota was exhausted so the dub was generated with a
+   *  pre-made multilingual voice instead of the speaker's cloned
+   *  voice. Separate from `error_message` so a dub can be both
+   *  status=done AND carry a user-visible warning. Rendered as an
+   *  amber chip on the project detail page. */
+  warning_message: string | null;
   created_at: string;
   updated_at: string;
   // fal.ai async lip sync tracking (populated by Stage 2 submit, read by webhook)

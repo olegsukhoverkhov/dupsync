@@ -33,17 +33,22 @@ export class ElevenLabsQuotaExhaustedError extends Error {
 }
 
 /**
- * Pre-flight check: is the ElevenLabs account able to create at
- * least one more voice clone right now? Returns `{ ok: false }` when
- * the monthly `voice_add_edit_counter` has reached the plan cap.
+ * Advisory probe of the ElevenLabs subscription quota. Returns the
+ * current voice add/edit counter, voice slot usage, and character
+ * usage for the account.
  *
- * Used by `/api/dub` to refuse the request BEFORE deducting credits,
- * so the user isn't charged for a dub that will inevitably fail on
- * Stage 1 voice cloning and produce a wrong-sounding fallback voice.
+ * Was previously wired into `/api/dub` as a pre-flight gate that
+ * refused dub requests when the monthly `voice_add_edit_counter`
+ * was exhausted. That gate was removed because blocking every dub
+ * felt too strict — instead, the pipeline now gracefully falls
+ * back to a pre-made multilingual voice on quota errors and flags
+ * the dub with a `warning_message` so the user sees exactly what
+ * happened. See `runDubbingAudioOnce`.
  *
- * The check is cheap (one GET /user/subscription) and cached for 60s
- * in-process to avoid hammering ElevenLabs on a burst of parallel
- * dub requests.
+ * Kept as an exported helper for operational dashboards (e.g. an
+ * /admin/stats panel that wants to show "voice clone capacity"
+ * alongside other telemetry). Results are cached in-process for
+ * 60s to avoid hammering ElevenLabs on repeated reads.
  */
 type ElevenLabsQuota = {
   voiceAddEditUsed: number;
@@ -84,11 +89,12 @@ export async function getElevenLabsQuota(): Promise<ElevenLabsQuota | null> {
 }
 
 /**
- * Convenience wrapper: true if a new dubbing pipeline run can
- * reasonably expect voice cloning to succeed right now. Conservative
- * by design — we need at least 1 free add/edit AND at least 1 free
- * voice slot, with a small safety margin so a burst of parallel
- * Stage 1 runs doesn't trip the limit mid-flight.
+ * Advisory: true if a new dubbing pipeline run can reasonably
+ * expect voice cloning to succeed right now. NOT used by `/api/dub`
+ * as a hard gate anymore — see the `getElevenLabsQuota` docblock.
+ * Kept for operational dashboards and future soft-warning surfaces
+ * (e.g. warning the user in the wizard modal that voice cloning
+ * is temporarily degraded).
  */
 export async function canCloneVoiceNow(): Promise<{
   ok: boolean;

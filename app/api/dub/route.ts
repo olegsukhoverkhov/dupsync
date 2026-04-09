@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { runDubbing } from "@/lib/pipeline";
-import { canCloneVoiceNow } from "@/lib/ai";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { Profile } from "@/lib/supabase/types";
 
@@ -78,23 +77,15 @@ export async function POST(request: Request) {
     );
   }
 
-  // Pre-flight: refuse the dub if our ElevenLabs voice cloning
-  // quota is exhausted. Without this check the pipeline would
-  // quietly fall back to a pre-made multilingual voice and the user
-  // would hear a random speaker with no way to tell why. Bail before
-  // deducting credits so the user isn't billed for a failed dub.
-  const vcCheck = await canCloneVoiceNow();
-  if (!vcCheck.ok) {
-    return NextResponse.json(
-      {
-        error:
-          "Voice cloning is temporarily unavailable. Our voice provider's monthly quota has been reached — dubbing will resume automatically when it resets. Contact support if you need this dub sooner.",
-        code: "voice_clone_unavailable",
-        reason: vcCheck.reason,
-      },
-      { status: 503 }
-    );
-  }
+  // Voice cloning pre-flight was removed intentionally. We used to
+  // 503 here when the ElevenLabs monthly voice_add_edit_counter hit
+  // its cap, but blocking every dub (even short ones that might not
+  // need a fresh clone, or ones where the user is OK with a generic
+  // voice fallback) felt too strict. The pipeline still detects the
+  // quota error during Stage 1 and falls back to the multilingual
+  // pre-made voice, marking the dub with a visible warning so the
+  // user knows the result is not voice-cloned. See
+  // runDubbingAudioOnce in lib/pipeline.ts.
 
   // Check credits
   const { data: project } = await supabase
