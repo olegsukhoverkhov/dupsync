@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
-import { RANGE_PRESETS, type RangePreset } from "@/lib/admin";
+import { RANGE_PRESETS, type RangePreset } from "@/lib/admin-range";
 
 /**
  * Time-range filter for /admin/stats. URL is the single source of
