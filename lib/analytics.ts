@@ -25,11 +25,10 @@ import { createServiceClient } from "@/lib/supabase/server";
  */
 export async function trackVisit(path: string): Promise<void> {
   try {
+    console.log(`[trackVisit] start path=${path}`);
     const salt = process.env.SITE_VISIT_SALT;
     if (!salt) {
-      // No salt configured → do nothing. Refusing to store unsalted
-      // hashes avoids a scenario where we accidentally turn the DB
-      // into a reversible IP log.
+      console.warn("[trackVisit] skip: SITE_VISIT_SALT not set");
       return;
     }
 
@@ -43,12 +42,19 @@ export async function trackVisit(path: string): Promise<void> {
       h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       "";
 
-    if (!ip) return;
+    if (!ip) {
+      console.warn("[trackVisit] skip: no IP in headers");
+      return;
+    }
 
     const ipHash = createHash("sha256").update(salt + ip).digest("hex");
+    console.log(`[trackVisit] ipHash=${ipHash.slice(0, 12)}... path=${path}`);
 
     // Admin exclusion — do not record the operator's own browsing.
-    if (ipHash === process.env.ADMIN_IP_HASH) return;
+    if (ipHash === process.env.ADMIN_IP_HASH) {
+      console.log("[trackVisit] skip: admin hash match");
+      return;
+    }
 
     const userAgent = h.get("user-agent") || null;
     // Skip obvious bots so the counter reflects real humans. This is
@@ -65,14 +71,19 @@ export async function trackVisit(path: string): Promise<void> {
     // Postgres-side atomic upsert: insert if new, else bump count +
     // last_seen. We use an RPC to avoid a read-then-write race when
     // two tabs fire simultaneously.
-    await supabase.rpc("record_site_visit", {
+    const { error } = await supabase.rpc("record_site_visit", {
       p_ip_hash: ipHash,
       p_path: path,
       p_user_agent: userAgent,
       p_country: country,
     });
-  } catch {
-    // Analytics must never break a page render. Swallow everything.
+    if (error) {
+      console.error("[trackVisit] rpc error:", error);
+    } else {
+      console.log("[trackVisit] wrote row");
+    }
+  } catch (err) {
+    console.error("[trackVisit] exception:", err);
   }
 }
 
