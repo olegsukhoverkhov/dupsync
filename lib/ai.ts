@@ -1060,11 +1060,15 @@ export async function fetchLipSyncResult(
  * Webhook bodies vary by model:
  *   sync-lipsync → { payload: { video: { url: "..." } } }
  *   latentsync   → { payload: { video: { url: "..." } } }
+ *   auto-caption → { payload: { video_url: "..." } }
  * Older shapes:   { payload: { video: "..." } }  or  { payload: { url: "..." } }
  */
 export function extractVideoUrlFromWebhook(payload: unknown): string | null {
   if (!payload || typeof payload !== "object") return null;
   const p = payload as Record<string, unknown>;
+  // auto-caption uses a flat `video_url` field — check before the
+  // nested lipsync shapes so we don't accidentally miss it.
+  if (typeof p.video_url === "string") return p.video_url;
   const video = p.video;
   if (typeof video === "string") return video;
   if (video && typeof video === "object") {
