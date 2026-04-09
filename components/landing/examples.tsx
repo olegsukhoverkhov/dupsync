@@ -132,7 +132,7 @@ function RealResultCard({
       </div>
       <div className="p-4">
         <h3 className="font-semibold text-white">{title}</h3>
-        <div className="mt-3 flex items-center gap-4 text-xs text-zinc-500">
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-zinc-500">
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
             {duration}
@@ -140,6 +140,12 @@ function RealResultCard({
           <span className="flex items-center gap-1">
             <Mic className="h-3 w-3" />
             {accuracy}
+          </span>
+          {/* AI Subtitles availability badge — every real demo
+              on the landing ships with synced subtitles baked into
+              the dubbing pipeline, so the chip is static. */}
+          <span className="inline-flex items-center gap-1 rounded-full border border-pink-500/30 bg-pink-500/10 px-2 py-0.5 text-[10px] font-medium text-pink-300">
+            With AI subtitles
           </span>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 import { ArrowRight, Check, X } from "lucide-react";
+import { getPlatformHreflang } from "@/lib/seo/platform-hreflang";
 
 export const metadata: Metadata = {
   title: "DubSync vs Rask AI (2026) — Lip Sync from $19.99 vs $120/mo",
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
     "Rask AI charges $120/mo for lip sync and doubles credit usage. DubSync includes lip sync in every credit from $19.99. Compare features, pricing, and real costs.",
   alternates: {
     canonical: "https://dubsync.app/vs/rask-ai",
+    languages: getPlatformHreflang("/vs/rask-ai"),
   },
   openGraph: {
     type: "website",
@@ -68,6 +70,7 @@ const LIP_SYNC_ROWS = [
 
 const FEATURE_ROWS = [
   { feature: "Voice cloning", dubsync: true, competitor: true },
+  { feature: "AI Subtitles (burned-in + SRT)", dubsync: true, competitor: "partial" as const },
   { feature: "Multi-speaker detection", dubsync: true, competitor: true },
   { feature: "Script editing", dubsync: true, competitor: true },
   { feature: "API access", dubsync: true, competitor: true },
@@ -93,7 +96,10 @@ const FAQS = [
   },
 ];
 
-function FeatureIcon({ value }: { value: boolean }) {
+function FeatureIcon({ value }: { value: boolean | "partial" }) {
+  if (value === "partial") {
+    return <span className="text-[10px] font-medium text-yellow-400">Partial</span>;
+  }
   return value ? (
     <Check className="h-4 w-4 text-green-400" />
   ) : (

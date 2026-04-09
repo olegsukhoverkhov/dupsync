@@ -1,16 +1,20 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { Mic, Scan, Globe, Users, FileEdit, Code, ArrowRight, Upload, Wand2, Download, Check, X, Minus } from "lucide-react";
+import { Mic, Scan, Globe, Users, FileEdit, Code, Captions, ArrowRight, Upload, Wand2, Download, Check, X, Minus } from "lucide-react";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 import { FaqAccordion } from "@/components/ui/faq-accordion";
+import { getPlatformHreflang } from "@/lib/seo/platform-hreflang";
 
 export const metadata: Metadata = {
   title: "DubSync Features — Voice Cloning, Lip Sync & AI Video Dubbing",
   description:
     "Explore DubSync's AI dubbing features: voice cloning, lip sync, 30+ languages, multi-speaker detection, and API.",
-  alternates: { canonical: "https://dubsync.app/features" },
+  alternates: {
+    canonical: "https://dubsync.app/features",
+    languages: getPlatformHreflang("/features"),
+  },
   openGraph: {
     type: "website",
     title: "DubSync Features — Voice Cloning, Lip Sync & AI Video Dubbing",
@@ -64,6 +68,14 @@ const FEATURES = [
       "Integrate DubSync into your product or workflow with our REST API. Automate dubbing at scale programmatically.",
     href: "/features/api",
   },
+  {
+    // AI Subtitles — 7th card. Links to the dedicated feature page.
+    icon: Captions,
+    title: "AI Subtitles",
+    description:
+      "Auto-generate perfectly synced subtitles from dubbed audio. Export as burned-in captions or SRT/VTT files. Customize font, color, position, and style.",
+    href: "/features/subtitles",
+  },
 ];
 
 const STEPS = [
@@ -102,6 +114,16 @@ const COMPARISON = [
     feature: "Lip sync",
     dubsync: true,
     heygen: true,
+    rask: "partial",
+    elevenlabs: false,
+  },
+  {
+    // AI Subtitles (burned-in + SRT). DubSync ships both formats on
+    // every plan; competitors vary — Rask has SRT only, HeyGen is
+    // limited, ElevenLabs is audio-only so has no subtitle story.
+    feature: "AI Subtitles (burned-in + SRT)",
+    dubsync: true,
+    heygen: "partial",
     rask: "partial",
     elevenlabs: false,
   },

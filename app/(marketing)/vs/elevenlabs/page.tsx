@@ -4,17 +4,19 @@ import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 import { ArrowRight, Check, X } from "lucide-react";
+import { getPlatformHreflang } from "@/lib/seo/platform-hreflang";
 
 export const metadata: Metadata = {
-  title: "DubSync vs ElevenLabs (2026) — Video Lip Sync vs Audio-Only Dubbing",
+  title: "DubSync vs ElevenLabs — Lip Sync vs Audio Dubbing",
   description:
     "ElevenLabs offers the best AI audio but no lip sync. DubSync adds lip sync to every dubbed video. Compare features for video localization.",
   alternates: {
     canonical: "https://dubsync.app/vs/elevenlabs",
+    languages: getPlatformHreflang("/vs/elevenlabs"),
   },
   openGraph: {
     type: "website",
-    title: "DubSync vs ElevenLabs (2026) — Video Lip Sync vs Audio-Only Dubbing",
+    title: "DubSync vs ElevenLabs — Lip Sync vs Audio Dubbing",
     description:
       "ElevenLabs offers the best AI audio but no lip sync. DubSync adds lip sync to every dubbed video.",
     url: "https://dubsync.app/vs/elevenlabs",
@@ -22,7 +24,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "DubSync vs ElevenLabs (2026) — Video Lip Sync vs Audio-Only Dubbing",
+    title: "DubSync vs ElevenLabs — Lip Sync vs Audio Dubbing",
     description:
       "ElevenLabs offers the best AI audio but no lip sync. DubSync adds lip sync to every dubbed video.",
   },
@@ -30,6 +32,7 @@ export const metadata: Metadata = {
 
 const FEATURE_ROWS = [
   { feature: "Voice cloning", dubsync: true, competitor: true },
+  { feature: "AI Subtitles (burned-in + SRT)", dubsync: true, competitor: false },
   { feature: "Lip sync", dubsync: true, competitor: false },
   { feature: "Video output", dubsync: true, competitor: false },
   { feature: "Multi-speaker detection", dubsync: true, competitor: false },
@@ -56,7 +59,10 @@ const FAQS = [
   },
 ];
 
-function FeatureIcon({ value }: { value: boolean }) {
+function FeatureIcon({ value }: { value: boolean | "partial" }) {
+  if (value === "partial") {
+    return <span className="text-[10px] font-medium text-yellow-400">Partial</span>;
+  }
   return value ? (
     <Check className="h-4 w-4 text-green-400" />
   ) : (

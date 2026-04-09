@@ -1,4 +1,4 @@
-import { Mic, Scan, Globe, Zap, Sparkles, Code } from "lucide-react";
+import { Mic, Scan, Globe, Zap, Captions, Code } from "lucide-react";
 
 const FEATURES = [
   {
@@ -22,9 +22,13 @@ const FEATURES = [
     description: "A 10-minute video dubbed in under 3 minutes. No more waiting days for manual dubbing.",
   },
   {
-    icon: Sparkles,
-    title: "Studio Quality",
-    description: "Up to 4K output with natural-sounding speech. Professional results without the studio.",
+    // AI Subtitles — replaces Studio Quality. The subtitle pipeline
+    // ships per-dub SRT/VTT files plus an optional burned-in video,
+    // synced to the dubbed audio (not the original transcript).
+    icon: Captions,
+    title: "AI Subtitles",
+    description:
+      "Auto-generate synchronized subtitles for every dubbed video. Burned-in for social media or SRT export for YouTube — perfectly synced with dubbed audio.",
   },
   {
     icon: Code,

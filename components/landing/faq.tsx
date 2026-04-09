@@ -52,6 +52,14 @@ const FAQS = [
     q: "Is DubSync better than traditional dubbing?",
     a: "For digital content, marketing videos, e-learning, and social media — yes. AI dubbing is 10-100x faster and more affordable. Traditional dubbing studios still excel for theatrical releases where maximum emotional nuance is required.",
   },
+  {
+    q: "Does DubSync generate subtitles?",
+    a: "Yes. AI subtitles synced to dubbed audio. Burned-in for social media or SRT/VTT for YouTube. All plans.",
+  },
+  {
+    q: "Can I export SRT subtitle files?",
+    a: "Yes. SRT or VTT from any dubbed video. Upload to YouTube, use in LMS, or edit externally.",
+  },
 ];
 
 function FaqItem({ q, a }: { q: string; a: string }) {

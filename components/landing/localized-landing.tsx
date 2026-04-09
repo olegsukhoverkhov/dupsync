@@ -10,7 +10,7 @@ import {
   GraduationCap,
   Scan,
   Zap,
-  Sparkles,
+  Captions,
   Code,
   Upload,
   Cpu,
@@ -326,7 +326,18 @@ function Features({ dict }: { dict: Dictionary }) {
     { icon: Scan, title: dict.features.lipSync, desc: dict.features.lipSyncDesc },
     { icon: Globe, title: dict.features.languages, desc: dict.features.languagesDesc },
     { icon: Zap, title: dict.features.speed, desc: dict.features.speedDesc },
-    { icon: Sparkles, title: dict.features.quality, desc: dict.features.qualityDesc },
+    {
+      // AI Subtitles — the homepage Why-DubSync card replaces the
+      // old Studio Quality slot. Dict falls back to the English
+      // string if a locale doesn't have the key translated yet.
+      icon: Captions,
+      title: d(dict, "features.subtitles", "AI Subtitles"),
+      desc: d(
+        dict,
+        "features.subtitlesDesc",
+        "Auto-generate synchronized subtitles for every dubbed video. Burned-in for social media or SRT export for YouTube — perfectly synced with dubbed audio."
+      ),
+    },
     { icon: Code, title: dict.features.api, desc: dict.features.apiDesc },
   ];
   return (
@@ -583,6 +594,10 @@ function translateFeature(feature: string, dict: Dictionary): string {
     "5GB max file size": d(dict, "pricing.maxFile5gb", feature),
     "Voice cloning": d(dict, "pricing.voiceCloning", feature),
     "Lip sync included": d(dict, "pricing.lipSyncIncludedFeature", feature),
+    "AI subtitles": d(dict, "pricing.aiSubtitles", feature),
+    "AI subtitles + SRT export": d(dict, "pricing.aiSubtitlesSrt", feature),
+    "AI subtitles + SRT/VTT export": d(dict, "pricing.aiSubtitlesSrtVtt", feature),
+    "Custom subtitle styling": d(dict, "pricing.aiSubtitlesCustom", feature),
     "No watermark": d(dict, "pricing.noWatermarkFeature", feature),
     "Email support": d(dict, "pricing.emailSupport", feature),
     "API access": d(dict, "pricing.apiAccess", feature),
@@ -747,6 +762,14 @@ const EN_FAQS = [
     q: "Is DubSync better than traditional dubbing?",
     a: "For digital content, marketing videos, e-learning, and social media \u2014 yes. AI dubbing is 10-100x faster and more affordable. Traditional dubbing studios still excel for theatrical releases where maximum emotional nuance is required.",
   },
+  {
+    q: "Does DubSync generate subtitles?",
+    a: "Yes. AI subtitles synced to dubbed audio. Burned-in for social media or SRT/VTT for YouTube. All plans.",
+  },
+  {
+    q: "Can I export SRT subtitle files?",
+    a: "Yes. SRT or VTT from any dubbed video. Upload to YouTube, use in LMS, or edit externally.",
+  },
 ];
 
 function FaqItem({ q, a }: { q: string; a: string }) {
@@ -778,9 +801,12 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 }
 
 function FaqSection({ dict }: { dict: Dictionary }) {
-  // Use dict faq items if available, otherwise fall back to EN_FAQS
+  // Use dict faq items if available, otherwise fall back to EN_FAQS.
+  // Bumped from 12 → 14 to include the two new subtitles questions.
+  // Older locales without q13/q14 just get 12 items; the iteration
+  // skips empty entries silently.
   const faqItems: { q: string; a: string }[] = [];
-  for (let i = 1; i <= 12; i++) {
+  for (let i = 1; i <= 14; i++) {
     const q = d(dict, `faq.q${i}`, "");
     const a = d(dict, `faq.a${i}`, "");
     if (q && a) faqItems.push({ q, a });

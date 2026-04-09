@@ -4,6 +4,7 @@ import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 import { ArrowRight, Check, X, ChevronDown } from "lucide-react";
+import { getPlatformHreflang } from "@/lib/seo/platform-hreflang";
 
 export const metadata: Metadata = {
   title:
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
     "Compare real lip sync minutes per dollar across AI dubbing tools. DubSync: 20 min from $19.99. Rask AI: requires $120/mo. See hidden costs and credit traps.",
   alternates: {
     canonical: "https://dubsync.app/compare",
+    languages: getPlatformHreflang("/compare"),
   },
   openGraph: {
     type: "website",
@@ -392,6 +394,21 @@ export default function ComparePage() {
                   <td className="p-4 text-center text-xs">paid plans</td>
                   <td className="p-4 text-center text-xs">Creator+</td>
                   <td className="p-4 text-center text-xs">Starter+</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <th
+                    scope="row"
+                    className="text-left p-4 font-medium"
+                  >
+                    AI Subtitles (burned-in + SRT)
+                  </th>
+                  <td className="p-4 text-center bg-pink-500/5 text-xs">
+                    All plans
+                  </td>
+                  <td className="p-4 text-center text-xs">Basic</td>
+                  <td className="p-4 text-center text-xs">Limited</td>
+                  <td className="p-4 text-center text-xs">SRT only</td>
+                  <td className="p-4 text-center text-xs">Audio only</td>
                 </tr>
                 <tr className="border-b border-white/5">
                   <th

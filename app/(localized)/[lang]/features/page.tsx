@@ -8,6 +8,7 @@ import {
   Users,
   FileEdit,
   Code,
+  Captions,
   ArrowRight,
   Upload,
   Wand2,
@@ -59,7 +60,10 @@ const TRANSLATIONS = {
       api: "Acceso API",
       apiDesc:
         "Integra DubSync en tu producto o flujo de trabajo con nuestra API REST. Automatiza el doblaje a escala.",
-    },
+          subtitles: "Subtítulos IA",
+      subtitlesDesc:
+        "Genera automáticamente subtítulos sincronizados del audio doblado. Exporta como subtítulos incrustados o archivos SRT/VTT. Personaliza fuente, color, posición y estilo.",
+},
     steps: {
       step1: "Sube tu video",
       step1Desc:
@@ -80,7 +84,8 @@ const TRANSLATIONS = {
       restApi: "API REST",
       freePlan: "Plan gratuito",
       youtubeImport: "Importar de YouTube",
-    },
+          aiSubtitles: "Subtítulos IA (incrustados + SRT)",
+},
     faqs: [
       {
         question: "\u00bfQu\u00e9 formatos de video admite DubSync?",
@@ -144,7 +149,10 @@ const TRANSLATIONS = {
       api: "Acesso \u00e0 API",
       apiDesc:
         "Integre o DubSync ao seu produto ou fluxo de trabalho com nossa API REST. Automatize a dublagem em escala.",
-    },
+          subtitles: "Legendas IA",
+      subtitlesDesc:
+        "Gere automaticamente legendas sincronizadas do áudio dublado. Exporte como legendas incorporadas ou arquivos SRT/VTT. Personalize fonte, cor, posição e estilo.",
+},
     steps: {
       step1: "Envie seu v\u00eddeo",
       step1Desc:
@@ -165,7 +173,8 @@ const TRANSLATIONS = {
       restApi: "API REST",
       freePlan: "Plano gratuito",
       youtubeImport: "Importar do YouTube",
-    },
+          aiSubtitles: "Legendas IA (incorporadas + SRT)",
+},
     faqs: [
       {
         question: "Quais formatos de v\u00eddeo o DubSync suporta?",
@@ -229,7 +238,10 @@ const TRANSLATIONS = {
       api: "API-Zugang",
       apiDesc:
         "Integrieren Sie DubSync in Ihr Produkt oder Ihren Workflow mit unserer REST API. Automatisieren Sie die Synchronisation im gro\u00dfen Ma\u00dfstab.",
-    },
+          subtitles: "KI-Untertitel",
+      subtitlesDesc:
+        "Generiere automatisch synchronisierte Untertitel aus dem synchronisierten Audio. Exportiere als eingebrannte Untertitel oder SRT/VTT-Dateien. Passe Schrift, Farbe, Position und Stil an.",
+},
     steps: {
       step1: "Video hochladen",
       step1Desc:
@@ -250,7 +262,8 @@ const TRANSLATIONS = {
       restApi: "REST API",
       freePlan: "Kostenloser Plan",
       youtubeImport: "YouTube-Import",
-    },
+          aiSubtitles: "KI-Untertitel (eingebrannt + SRT)",
+},
     faqs: [
       {
         question: "Welche Videoformate unterst\u00fctzt DubSync?",
@@ -314,7 +327,10 @@ const TRANSLATIONS = {
       api: "Acc\u00e8s API",
       apiDesc:
         "Int\u00e9grez DubSync dans votre produit ou workflow avec notre API REST. Automatisez le doublage \u00e0 grande \u00e9chelle.",
-    },
+          subtitles: "Sous-titres IA",
+      subtitlesDesc:
+        "Générez automatiquement des sous-titres synchronisés à partir de l'audio doublé. Exportez en sous-titres incrustés ou fichiers SRT/VTT. Personnalisez police, couleur, position et style.",
+},
     steps: {
       step1: "T\u00e9l\u00e9chargez votre vid\u00e9o",
       step1Desc:
@@ -335,7 +351,8 @@ const TRANSLATIONS = {
       restApi: "API REST",
       freePlan: "Plan gratuit",
       youtubeImport: "Import YouTube",
-    },
+          aiSubtitles: "Sous-titres IA (incrustés + SRT)",
+},
     faqs: [
       {
         question: "Quels formats vid\u00e9o DubSync prend-il en charge ?",
@@ -399,7 +416,10 @@ const TRANSLATIONS = {
       api: "API\u30a2\u30af\u30bb\u30b9",
       apiDesc:
         "REST API\u3067DubSync\u3092\u88fd\u54c1\u3084\u30ef\u30fc\u30af\u30d5\u30ed\u30fc\u306b\u7d71\u5408\u3002\u5439\u304d\u66ff\u3048\u3092\u5927\u898f\u6a21\u306b\u81ea\u52d5\u5316\u3067\u304d\u307e\u3059\u3002",
-    },
+          subtitles: "AI字幕",
+      subtitlesDesc:
+        "吹き替え音声から完全に同期した字幕を自動生成。焼き付け字幕またはSRT/VTTファイルとしてエクスポート。フォント、色、位置、スタイルをカスタマイズ。",
+},
     steps: {
       step1: "\u52d5\u753b\u3092\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9",
       step1Desc:
@@ -420,7 +440,8 @@ const TRANSLATIONS = {
       restApi: "REST API",
       freePlan: "\u7121\u6599\u30d7\u30e9\u30f3",
       youtubeImport: "YouTube\u30a4\u30f3\u30dd\u30fc\u30c8",
-    },
+          aiSubtitles: "AI字幕（焼き付け + SRT）",
+},
     faqs: [
       {
         question: "DubSync\u306f\u3069\u306e\u52d5\u753b\u30d5\u30a9\u30fc\u30de\u30c3\u30c8\u306b\u5bfe\u5fdc\u3057\u3066\u3044\u307e\u3059\u304b\uff1f",
@@ -458,6 +479,9 @@ const COMPARISON_DATA = [
   { dubsync: true, heygen: true, rask: true, elevenlabs: true },
   { dubsync: true, heygen: false, rask: true, elevenlabs: true },
   { dubsync: true, heygen: false, rask: true, elevenlabs: false },
+  // AI Subtitles (burned-in + SRT). Same row index as the new
+  // `comparison.aiSubtitles` label in every TRANSLATIONS block.
+  { dubsync: true, heygen: "partial" as const, rask: "partial" as const, elevenlabs: false },
 ];
 
 function ComparisonIcon({ value }: { value: boolean | string }) {
@@ -555,6 +579,17 @@ export default async function LocalizedFeaturesPage({
       description: t.features.apiDesc,
       href: `/${lang}/features/api`,
     },
+    {
+      // AI Subtitles — 7th card, localized. Injected via the
+      // inline dict `subtitles`/`subtitlesDesc` keys added to
+      // each TRANSLATIONS block.
+      icon: Captions,
+      title: (t.features as Record<string, string>).subtitles ?? "AI Subtitles",
+      description:
+        (t.features as Record<string, string>).subtitlesDesc ??
+        "Auto-generate perfectly synced subtitles from dubbed audio. Export as burned-in captions or SRT/VTT files.",
+      href: `/${lang}/features/subtitles`,
+    },
   ];
 
   const steps = [
@@ -572,6 +607,9 @@ export default async function LocalizedFeaturesPage({
     t.comparison.restApi,
     t.comparison.freePlan,
     t.comparison.youtubeImport,
+    // AI Subtitles row — matches the new 9th entry in COMPARISON_DATA.
+    (t.comparison as Record<string, string>).aiSubtitles ??
+      "AI Subtitles (burned-in + SRT)",
   ];
 
   return (

@@ -348,6 +348,13 @@
   <url><loc>https://dubsync.app/de/blog/ai-subtitles-for-dubbed-videos</loc><lastmod>2026-04-09</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://dubsync.app/fr/blog/ai-subtitles-for-dubbed-videos</loc><lastmod>2026-04-09</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://dubsync.app/ja/blog/ai-subtitles-for-dubbed-videos</loc><lastmod>2026-04-09</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <!-- /features/subtitles (6 locales) -->
+  <url><loc>https://dubsync.app/features/subtitles</loc><lastmod>2026-04-09</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://dubsync.app/es/features/subtitles</loc><lastmod>2026-04-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/pt/features/subtitles</loc><lastmod>2026-04-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/de/features/subtitles</loc><lastmod>2026-04-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/fr/features/subtitles</loc><lastmod>2026-04-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://dubsync.app/ja/features/subtitles</loc><lastmod>2026-04-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <!-- Localized /about -->
   <url><loc>https://dubsync.app/es/about</loc><lastmod>2026-04-08</lastmod><priority>0.5</priority></url>
   <url><loc>https://dubsync.app/pt/about</loc><lastmod>2026-04-08</lastmod><priority>0.5</priority></url>

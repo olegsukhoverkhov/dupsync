@@ -4,17 +4,19 @@ import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 import { ArrowRight, Check, X } from "lucide-react";
+import { getPlatformHreflang } from "@/lib/seo/platform-hreflang";
 
 export const metadata: Metadata = {
-  title: "DubSync vs HeyGen (2026) — Dedicated Lip Sync vs Shared Credits",
+  title: "DubSync vs HeyGen — Lip Sync Included vs Shared",
   description:
     "HeyGen shares lip sync credits with avatars and generation. DubSync gives dedicated lip sync in every credit. Compare for video dubbing in 2026.",
   alternates: {
     canonical: "https://dubsync.app/vs/heygen",
+    languages: getPlatformHreflang("/vs/heygen"),
   },
   openGraph: {
     type: "website",
-    title: "DubSync vs HeyGen (2026) — Dedicated Lip Sync vs Shared Credits",
+    title: "DubSync vs HeyGen — Lip Sync Included vs Shared",
     description:
       "HeyGen shares lip sync credits with avatars and generation. DubSync gives dedicated lip sync in every credit.",
     url: "https://dubsync.app/vs/heygen",
@@ -22,7 +24,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "DubSync vs HeyGen (2026) — Dedicated Lip Sync vs Shared Credits",
+    title: "DubSync vs HeyGen — Lip Sync Included vs Shared",
     description:
       "HeyGen shares lip sync credits with avatars and generation. DubSync gives dedicated lip sync in every credit.",
   },
@@ -30,6 +32,7 @@ export const metadata: Metadata = {
 
 const FEATURE_ROWS = [
   { feature: "Voice cloning", dubsync: true, competitor: true },
+  { feature: "AI Subtitles (burned-in + SRT)", dubsync: true, competitor: "partial" as const },
   { feature: "Dedicated lip sync credits", dubsync: true, competitor: false },
   { feature: "Multi-speaker detection", dubsync: true, competitor: true },
   { feature: "Script editing", dubsync: true, competitor: true },
@@ -56,7 +59,10 @@ const FAQS = [
   },
 ];
 
-function FeatureIcon({ value }: { value: boolean }) {
+function FeatureIcon({ value }: { value: boolean | "partial" }) {
+  if (value === "partial") {
+    return <span className="text-[10px] font-medium text-yellow-400">Partial</span>;
+  }
   return value ? (
     <Check className="h-4 w-4 text-green-400" />
   ) : (

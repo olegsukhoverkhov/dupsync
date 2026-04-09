@@ -4,17 +4,19 @@ import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 import { ArrowRight, Check, X } from "lucide-react";
+import { getPlatformHreflang } from "@/lib/seo/platform-hreflang";
 
 export const metadata: Metadata = {
-  title: "DubSync vs GeckoDub (2026) — 20 Lip Sync Min vs 7 for Similar Price",
+  title: "DubSync vs GeckoDub — 20 vs 7 Lip Sync Minutes",
   description:
     "GeckoDub splits video and lip sync into separate pools (only 7 min lip sync on Starter). DubSync includes lip sync in all 20 minutes. Compare plans.",
   alternates: {
     canonical: "https://dubsync.app/vs/geckodub",
+    languages: getPlatformHreflang("/vs/geckodub"),
   },
   openGraph: {
     type: "website",
-    title: "DubSync vs GeckoDub (2026) — 20 Lip Sync Min vs 7 for Similar Price",
+    title: "DubSync vs GeckoDub — 20 vs 7 Lip Sync Minutes",
     description:
       "GeckoDub splits video and lip sync into separate pools (only 7 min lip sync on Starter). DubSync includes lip sync in all 20 minutes.",
     url: "https://dubsync.app/vs/geckodub",
@@ -22,7 +24,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "DubSync vs GeckoDub (2026) — 20 Lip Sync Min vs 7 for Similar Price",
+    title: "DubSync vs GeckoDub — 20 vs 7 Lip Sync Minutes",
     description:
       "GeckoDub splits video and lip sync into separate pools. DubSync includes lip sync in every minute.",
   },
@@ -61,6 +63,7 @@ const LIP_SYNC_ROWS = [
 
 const FEATURE_ROWS = [
   { feature: "Voice cloning", dubsync: true, competitor: true },
+  { feature: "AI Subtitles (burned-in + SRT)", dubsync: true, competitor: "partial" as const },
   { feature: "Lip sync in every minute", dubsync: true, competitor: false },
   { feature: "Multi-speaker detection", dubsync: true, competitor: true },
   { feature: "Script editing", dubsync: true, competitor: true },
@@ -87,7 +90,10 @@ const FAQS = [
   },
 ];
 
-function FeatureIcon({ value }: { value: boolean }) {
+function FeatureIcon({ value }: { value: boolean | "partial" }) {
+  if (value === "partial") {
+    return <span className="text-[10px] font-medium text-yellow-400">Partial</span>;
+  }
   return value ? (
     <Check className="h-4 w-4 text-green-400" />
   ) : (
