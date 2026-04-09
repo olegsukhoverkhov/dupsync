@@ -74,10 +74,17 @@ export async function trackVisit(ctx: VisitContext): Promise<void> {
 }
 
 /**
- * Read the two counters + a few extras for the admin stats page.
+ * Read visit counters for the admin stats page. Accepts an optional
+ * ISO date range. `from`/`to` are INCLUSIVE of `from` and EXCLUSIVE
+ * of `to` on the SQL side so callers can safely pass "start of next
+ * day" to include a full day without off-by-one errors.
+ *
  * Returns zeros on any error so the page still renders.
  */
-export async function getVisitStats(): Promise<{
+export async function getVisitStats(range?: {
+  from?: string | null;
+  to?: string | null;
+}): Promise<{
   unique: number;
   returning: number;
   totalVisits: number;
@@ -85,7 +92,10 @@ export async function getVisitStats(): Promise<{
 }> {
   try {
     const supabase = await createServiceClient();
-    const { data, error } = await supabase.rpc("site_visit_stats");
+    const { data, error } = await supabase.rpc("site_visit_stats", {
+      p_from: range?.from ?? null,
+      p_to: range?.to ?? null,
+    });
     if (error || !data) {
       return { unique: 0, returning: 0, totalVisits: 0, last24h: 0 };
     }
