@@ -144,9 +144,10 @@ export function AlertModal({
             <button
               type="button"
               onClick={() => {
-                // Intentionally do NOT call onClose() — the secondary
-                // action (typically "Buy credits") opens its own modal
-                // on top. The parent decides when to close the alert.
+                // Close the alert first so the follow-up modal
+                // (typically "Buy credits") fully replaces it instead
+                // of stacking on top.
+                onClose();
                 secondaryActionOnClick();
               }}
               className="block w-full rounded-xl border border-pink-500/40 bg-pink-500/10 px-4 py-3 text-sm font-semibold text-pink-200 hover:bg-pink-500/20 transition-colors cursor-pointer"
