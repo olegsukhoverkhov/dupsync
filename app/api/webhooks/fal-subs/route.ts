@@ -10,10 +10,11 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 /**
- * Webhook receiver for fal.ai `auto-caption` subtitle burn jobs.
- *
- * Submitted from `runBurnSubtitles()` via `submitBurnSubtitlesJob()`.
- * fal.ai POSTs here when the burn finishes (or fails).
+ * Legacy webhook receiver for fal.ai `auto-caption` subtitle burn
+ * jobs. Retained as a 2xx-noop for already-submitted fal renders
+ * that may still deliver after the provider switch to Shotstack.
+ * New dubs use `/api/webhooks/shotstack-subs` — see
+ * `submitShotstackBurnJob` in lib/ai.ts.
  *
  * URL format: /api/webhooks/fal-subs?dubId=<uuid>
  *

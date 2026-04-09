@@ -1404,60 +1404,136 @@ export async function slowDownVideo(
 }
 
 /**
- * Submit a burn-subtitles job to fal.ai `auto-caption` with a webhook
- * callback. Returns the request id so the caller can persist it and
+ * Submit a burn-subtitles render to Shotstack with a webhook
+ * callback. Returns the render id so the caller can persist it and
  * correlate the result when the webhook fires.
  *
- * Why auto-caption instead of feeding our own SRT file: the fal.ai
- * ffmpeg-api `compose` endpoint has no subtitle track type (only
- * video/audio/image) and no fal.ai model currently accepts a custom
- * SRT input. auto-caption runs STT on the dubbed audio, which is in
- * the target language already — the burned captions naturally match
- * what the user hears. Our own translated_segments (used for the
- * downloadable .srt/.vtt files) can drift slightly from the STT
- * output because TTS compresses/stretches timing; using STT for the
- * burn-in keeps visual + audio perfectly synced.
+ * Why Shotstack and not fal.ai anymore: fal.ai's ffmpeg-api/compose
+ * has no subtitle track type, and its auto-caption model only
+ * transcribes supported languages (en/es/fr/de/it/pt/nl/ja/zh/ko),
+ * so Ukrainian, Polish, Turkish, Hindi, Arabic and friends silently
+ * produced videos with no burned captions at all. Shotstack accepts
+ * a plain external SRT URL via the `caption` asset type and renders
+ * it into any video — language-agnostic, Cyrillic/CJK/RTL all work.
  *
- * The job is submitted async with a webhook URL. Poll-based flows
- * would burn serverless seconds; the webhook arrives whenever fal.ai
- * finishes (usually 30–120s for a short clip).
+ * Uses the Shotstack sandbox endpoint when `SHOTSTACK_ENV` is not
+ * set to `production`. Sandbox renders are free and come with a
+ * subtle watermark — fine for development but should be flipped to
+ * `production` once the Vercel env vars are set.
+ *
+ * The render is submitted async with a `callback` URL. Shotstack
+ * posts the final video URL to that endpoint once rendering
+ * finishes (usually 30–90s for a short clip). Same pattern as the
+ * lipsync webhook flow, different payload shape — see
+ * app/api/webhooks/shotstack-subs.
  */
-export async function submitBurnSubtitlesJob(
+export async function submitShotstackBurnJob(
   videoUrl: string,
+  srtUrl: string,
   webhookUrl: string
-): Promise<{ requestId: string }> {
-  const res = await fetch(
-    `https://queue.fal.run/fal-ai/auto-caption?fal_webhook=${encodeURIComponent(webhookUrl)}`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Key ${process.env.FAL_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        video_url: videoUrl,
-        // Styling defaults tuned for short-form social video:
-        // large readable text, white with dark stroke, centered
-        // near the bottom so it sits above typical TikTok UI chrome.
-        txt_color: "white",
-        txt_font: "Standard",
-        font_size: 32,
-        stroke_width: 2,
-        left_align: "center",
-        top_align: 0.82,
-        refresh_interval: 1.5,
-      }),
-    }
-  );
+): Promise<{ renderId: string }> {
+  const apiKey = process.env.SHOTSTACK_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      "SHOTSTACK_API_KEY is not set — subtitle burn-in cannot run. " +
+        "Sign up at https://shotstack.io and add the sandbox key to Vercel env."
+    );
+  }
+  const env = process.env.SHOTSTACK_ENV === "production" ? "v1" : "stage";
+  const endpoint = `https://api.shotstack.io/edit/${env}/render`;
+
+  // Timeline order: caption track SITS ON TOP of the video track so
+  // the rendered captions are composited over the video pixels. The
+  // caption asset uses Shotstack's Smart Clips — setting length:
+  // "end" stretches it to the full video length, and start:0 aligns
+  // it to the very first frame. Video `length: "auto"` means "use
+  // the source video's natural length as the final output length".
+  const body = {
+    timeline: {
+      background: "#000000",
+      tracks: [
+        {
+          clips: [
+            {
+              asset: {
+                type: "caption",
+                src: srtUrl,
+                // Styling tuned for short-form social video: large
+                // white text with a dark stroke so it reads on any
+                // background, anchored near the bottom of the frame
+                // so it clears the TikTok / Reels UI chrome.
+                font: {
+                  color: "#ffffff",
+                  family: "Montserrat ExtraBold",
+                  size: 38,
+                  lineHeight: 1,
+                },
+                stroke: {
+                  color: "#000000",
+                  width: 3,
+                },
+                background: {
+                  color: "#000000",
+                  opacity: 0.35,
+                  padding: 14,
+                  borderRadius: 8,
+                },
+                margin: {
+                  bottom: 0.08,
+                },
+              },
+              start: 0,
+              length: "end",
+            },
+          ],
+        },
+        {
+          clips: [
+            {
+              asset: { type: "video", src: videoUrl },
+              start: 0,
+              length: "auto",
+            },
+          ],
+        },
+      ],
+    },
+    output: {
+      format: "mp4",
+      // Preserve source quality as closely as the sandbox allows.
+      // Shotstack sandbox caps at 720p regardless; production
+      // accepts 1080p / 4k. We ask for 1080p and let Shotstack
+      // decide based on the account tier.
+      resolution: "1080",
+    },
+    callback: webhookUrl,
+  };
+
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "x-api-key": apiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(
-      `auto-caption submit failed: ${res.status} ${text.slice(0, 300)}`
+      `Shotstack render submit failed: ${res.status} ${text.slice(0, 300)}`
     );
   }
-  const json = (await res.json()) as { request_id?: string };
-  if (!json.request_id) {
-    throw new Error("auto-caption submit: no request_id in response");
+  const json = (await res.json()) as {
+    success?: boolean;
+    response?: { id?: string };
+  };
+  const renderId = json?.response?.id;
+  if (!renderId) {
+    throw new Error(
+      `Shotstack render submit: no render id in response: ${JSON.stringify(
+        json
+      ).slice(0, 300)}`
+    );
   }
-  return { requestId: json.request_id };
+  return { renderId };
 }
