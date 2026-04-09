@@ -1,6 +1,18 @@
-import { headers } from "next/headers";
 import { createHash } from "node:crypto";
 import { createServiceClient } from "@/lib/supabase/server";
+
+/**
+ * Request context the caller collects from `headers()` BEFORE
+ * scheduling trackVisit via `after()`. Next disallows calling
+ * request-scoped APIs (headers, cookies, draftMode) inside after()
+ * callbacks, so the caller must extract values eagerly.
+ */
+export type VisitContext = {
+  ip: string;
+  userAgent: string | null;
+  country: string | null;
+  path: string;
+};
 
 /**
  * Lightweight site-visit tracking.
@@ -23,48 +35,23 @@ import { createServiceClient } from "@/lib/supabase/server";
  * identity (existing rows would become orphans that never match new
  * visitors again).
  */
-export async function trackVisit(path: string): Promise<void> {
+export async function trackVisit(ctx: VisitContext): Promise<void> {
   try {
-    console.log(`[trackVisit] start path=${path}`);
     const salt = process.env.SITE_VISIT_SALT;
-    if (!salt) {
-      console.warn("[trackVisit] skip: SITE_VISIT_SALT not set");
+    if (!salt) return;
+
+    if (!ctx.ip) return;
+
+    // Skip obvious bots so the counter reflects real humans. Naive UA
+    // filter; anything claiming to be a browser gets through.
+    if (ctx.userAgent && /bot|crawler|spider|slurp|bingpreview/i.test(ctx.userAgent)) {
       return;
     }
 
-    const h = await headers();
-
-    // Real visitor IP. Cloudflare fronts the origin, so prefer
-    // `cf-connecting-ip`. Fall back to Vercel/standard headers.
-    const ip =
-      h.get("cf-connecting-ip") ||
-      h.get("x-real-ip") ||
-      h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      "";
-
-    if (!ip) {
-      console.warn("[trackVisit] skip: no IP in headers");
-      return;
-    }
-
-    const ipHash = createHash("sha256").update(salt + ip).digest("hex");
-    console.log(`[trackVisit] ipHash=${ipHash.slice(0, 12)}... path=${path}`);
+    const ipHash = createHash("sha256").update(salt + ctx.ip).digest("hex");
 
     // Admin exclusion — do not record the operator's own browsing.
-    if (ipHash === process.env.ADMIN_IP_HASH) {
-      console.log("[trackVisit] skip: admin hash match");
-      return;
-    }
-
-    const userAgent = h.get("user-agent") || null;
-    // Skip obvious bots so the counter reflects real humans. This is
-    // a naive filter; anything claiming to be a browser gets through.
-    if (userAgent && /bot|crawler|spider|slurp|bingpreview/i.test(userAgent)) {
-      return;
-    }
-
-    const country =
-      h.get("cf-ipcountry") || h.get("x-vercel-ip-country") || null;
+    if (ipHash === process.env.ADMIN_IP_HASH) return;
 
     const supabase = await createServiceClient();
 
@@ -73,14 +60,12 @@ export async function trackVisit(path: string): Promise<void> {
     // two tabs fire simultaneously.
     const { error } = await supabase.rpc("record_site_visit", {
       p_ip_hash: ipHash,
-      p_path: path,
-      p_user_agent: userAgent,
-      p_country: country,
+      p_path: ctx.path,
+      p_user_agent: ctx.userAgent,
+      p_country: ctx.country,
     });
     if (error) {
       console.error("[trackVisit] rpc error:", error);
-    } else {
-      console.log("[trackVisit] wrote row");
     }
   } catch (err) {
     console.error("[trackVisit] exception:", err);

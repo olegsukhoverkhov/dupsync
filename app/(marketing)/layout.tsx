@@ -33,10 +33,19 @@ export default async function MarketingLayout({
   // the geo logic lives in proxy.ts which executes before this layout.
   await cookies();
 
-  // Read the current path from the request headers. next/headers
-  // exposes `x-invoke-path` on Vercel and `x-pathname` on other hosts;
-  // the referer fallback is there in case neither is present.
+  // Read the request context eagerly. Next disallows calling headers()
+  // inside an after() callback, so we have to pluck values here and
+  // close over them. See the runtime error shape in the Next docs:
+  // https://nextjs.org/docs/app/api-reference/functions/after
   const h = await headers();
+  const ip =
+    h.get("cf-connecting-ip") ||
+    h.get("x-real-ip") ||
+    h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "";
+  const userAgent = h.get("user-agent") || null;
+  const country =
+    h.get("cf-ipcountry") || h.get("x-vercel-ip-country") || null;
   const path =
     h.get("x-invoke-path") ||
     h.get("x-pathname") ||
@@ -45,7 +54,7 @@ export default async function MarketingLayout({
 
   // Fire-and-forget — runs AFTER the response is streamed to the
   // browser, so page render is not blocked by the tracking insert.
-  after(() => trackVisit(path));
+  after(() => trackVisit({ ip, userAgent, country, path }));
 
   return <>{children}</>;
 }
