@@ -35,6 +35,7 @@ import {
   RefreshCw,
   ArrowUpRight,
   Upload,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { AlertModal } from "@/components/ui/modal";
@@ -659,6 +660,34 @@ export default function ProjectDetailPage({
                 <CardDescription>
                   {statusLabel(activeDub.status)}
                 </CardDescription>
+                {/* Similar-voice chip for free plan dubs. Shown once
+                    Stage 1 is complete (voice_source is written at
+                    audio_ready). Free users see: "similar voice —
+                    upgrade for exact cloning" with a direct button
+                    into the UpgradeModal used elsewhere in the app. */}
+                {profile?.plan === "free" &&
+                  activeDub.voice_source === "premade" &&
+                  (activeDub.status === "audio_ready" ||
+                    activeDub.status === "lip_syncing" ||
+                    activeDub.status === "burning_subs" ||
+                    activeDub.status === "done") && (
+                    <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-pink-500/30 bg-pink-500/10 px-3 py-2 text-xs">
+                      <Sparkles className="h-3.5 w-3.5 text-pink-300 shrink-0" />
+                      <span className="text-pink-100">
+                        {t(
+                          "dashboard.projectDetail.similarVoiceFree",
+                          "Similar voice (not an exact clone of the speaker). Upgrade for exact voice cloning."
+                        )}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setUpgradeOpen(true)}
+                        className="ml-auto shrink-0 rounded-md bg-gradient-to-r from-pink-500 to-violet-500 px-2.5 py-1 text-[11px] font-semibold text-white hover:opacity-90 transition-opacity cursor-pointer"
+                      >
+                        {t("dashboard.home.upgrade", "Upgrade")}
+                      </button>
+                    </div>
+                  )}
               </div>
               {(activeDub.status === "done" || activeDub.status === "audio_ready") && activeDub.dubbed_video_url && (
                 <div className="flex flex-wrap items-center justify-end gap-2">

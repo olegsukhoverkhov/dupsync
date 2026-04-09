@@ -177,90 +177,124 @@ async function runDubbingAudioOnce(
     log(dubId, `Translation done: ${translatedSegments.length} segments`);
     await supabase.from("dubs").update({ translated_transcript: translatedSegments, progress: 30 }).eq("id", dubId);
 
-    // Voice clone — use extracted audio, not full video
+    // Voice selection — plan-gated.
+    //
+    // Free plan users always get a pre-made multilingual voice.
+    // Cloning burns a finite monthly ElevenLabs quota that we
+    // reserve for paying users (starter/pro/enterprise). Free
+    // users still get a perfectly usable dub with accurate
+    // translation + lip sync, just with a generic "similar"
+    // voice instead of an exact clone of their speaker. The
+    // project detail page shows a chip explaining this and a
+    // direct upgrade CTA — see projects/[id]/page.tsx.
+    //
+    // Paid plan users try the full clone path as before, with
+    // quota-exhausted failures falling back silently to the
+    // pre-made voice so the dub still completes.
     await supabase.from("dubs").update({ status: "generating_voice", progress: 35 }).eq("id", dubId);
-    let voiceId: string;
 
-    const videoDir = (project.original_video_url as string).split("/").slice(0, -1).join("/");
-
-    // Try extracted audio formats in order of preference
-    const audioCandidates = ["extracted-audio.webm", "extracted-audio.mp4", "voice-sample.wav"];
-    let sampleBuffer: Buffer | null = null;
-    let sampleExt = "webm";
-
-    for (const candidate of audioCandidates) {
-      try {
-        const { data, error } = await supabase.storage.from("videos").download(`${videoDir}/${candidate}`);
-        if (data && !error) {
-          sampleBuffer = Buffer.from(await data.arrayBuffer());
-          sampleExt = candidate.split(".").pop() || "webm";
-          log(dubId, `Found voice sample: ${candidate} (${(sampleBuffer.length / 1024).toFixed(0)}KB)`);
-          break;
-        }
-      } catch {
-        continue;
-      }
+    // Look up the dub owner's plan — needed for the clone-vs-premade
+    // decision above AND downstream for the lipsync quality tier.
+    let ownerPlan: PlanType = "free";
+    const ownerUserId = project.user_id as string | undefined;
+    if (ownerUserId) {
+      const { data: ownerProfile } = await supabase
+        .from("profiles")
+        .select("plan")
+        .eq("id", ownerUserId)
+        .single();
+      if (ownerProfile?.plan) ownerPlan = ownerProfile.plan as PlanType;
     }
+    const isFreePlan = ownerPlan === "free";
+    log(dubId, `Owner plan=${ownerPlan}, cloning=${!isFreePlan}`);
 
-    // Voice quota exhaustion is NOT surfaced to users per-dub —
-    // it's now visible only to operators via /admin/stats (the
-    // ElevenLabs quota cards). The fallback to a pre-made voice
-    // still happens; we just don't nag users about it on their
-    // project page. Leaving the local var for future re-enable.
-    let voiceFallbackWarning: string | null = null;
-    void voiceFallbackWarning;
+    let voiceId: string;
+    // Tracks which voice model actually produced the dub — written
+    // to dubs.voice_source at Stage 1 complete. 'cloned' = ElevenLabs
+    // Instant Voice Clone of the original speaker. 'premade' = a
+    // pre-made multilingual voice (free-plan default, or paid-plan
+    // fallback on quota exhaust / bad sample).
+    let voiceSource: "cloned" | "premade" = "premade";
 
-    if (sampleBuffer && sampleBuffer.length > 1000 && sampleBuffer.length < 11 * 1024 * 1024) {
-      try {
-        voiceId = await ai.cloneVoice(sampleBuffer, dub.id as string, sampleExt);
-        log(dubId, `Voice cloned from extracted audio: ${voiceId}`);
-      } catch (cloneErr) {
-        if (cloneErr instanceof ai.ElevenLabsQuotaExhaustedError) {
-          log(dubId, `Quota exhausted — falling back to pre-made voice`);
-          voiceFallbackWarning =
-            "Voice cloning quota reached this month — dubbed with a generic multilingual voice instead. Re-run this dub after the next billing cycle for a cloned voice.";
-        } else {
-          log(
-            dubId,
-            `Clone from extracted audio failed: ${
-              cloneErr instanceof Error ? cloneErr.message : "unknown"
-            }`
-          );
-        }
-        voiceId = await ai.getMultilingualVoice();
-        log(dubId, `Using pre-made voice: ${voiceId}`);
-      }
+    if (isFreePlan) {
+      // Skip the clone path entirely for free users — don't even
+      // download the extracted audio sample. Save the ElevenLabs
+      // quota for paying customers.
+      voiceId = await ai.getMultilingualVoice();
+      log(dubId, `Free plan — using pre-made voice: ${voiceId}`);
     } else {
-      log(dubId, `No usable extracted audio (size=${sampleBuffer?.length || 0})`);
-      // Try cloning from video file directly as last resort (if size permits)
-      try {
-        const { data: videoData } = await supabase.storage.from("videos").download(project.original_video_url as string);
-        if (videoData) {
-          const videoBuffer = Buffer.from(await videoData.arrayBuffer());
-          if (videoBuffer.length < 11 * 1024 * 1024) {
-            const ext = ((project.original_video_url as string).split(".").pop() || "mp4").toLowerCase();
-            voiceId = await ai.cloneVoice(videoBuffer, dub.id as string, ext);
-            log(dubId, `Voice cloned from video file: ${voiceId}`);
-          } else {
-            throw new Error(`Video too large for cloning: ${(videoBuffer.length / 1024 / 1024).toFixed(1)}MB`);
+      // Paid plan → try to clone. Same multi-candidate search as
+      // before: extracted audio first, then the raw video file as
+      // a last-resort clone source.
+      const videoDir = (project.original_video_url as string).split("/").slice(0, -1).join("/");
+      const audioCandidates = ["extracted-audio.webm", "extracted-audio.mp4", "voice-sample.wav"];
+      let sampleBuffer: Buffer | null = null;
+      let sampleExt = "webm";
+
+      for (const candidate of audioCandidates) {
+        try {
+          const { data, error } = await supabase.storage.from("videos").download(`${videoDir}/${candidate}`);
+          if (data && !error) {
+            sampleBuffer = Buffer.from(await data.arrayBuffer());
+            sampleExt = candidate.split(".").pop() || "webm";
+            log(dubId, `Found voice sample: ${candidate} (${(sampleBuffer.length / 1024).toFixed(0)}KB)`);
+            break;
           }
-        } else {
-          throw new Error("Could not download video");
+        } catch {
+          continue;
         }
-      } catch (fallbackErr) {
-        if (fallbackErr instanceof ai.ElevenLabsQuotaExhaustedError) {
-          log(dubId, `Quota exhausted on fallback — using pre-made voice`);
-          voiceFallbackWarning =
-            "Voice cloning quota reached this month — dubbed with a generic multilingual voice instead. Re-run this dub after the next billing cycle for a cloned voice.";
-        } else {
-          log(
-            dubId,
-            `Fallback clone failed: ${
-              fallbackErr instanceof Error ? fallbackErr.message : "unknown"
-            }`
-          );
+      }
+
+      if (sampleBuffer && sampleBuffer.length > 1000 && sampleBuffer.length < 11 * 1024 * 1024) {
+        try {
+          voiceId = await ai.cloneVoice(sampleBuffer, dub.id as string, sampleExt);
+          voiceSource = "cloned";
+          log(dubId, `Voice cloned from extracted audio: ${voiceId}`);
+        } catch (cloneErr) {
+          if (cloneErr instanceof ai.ElevenLabsQuotaExhaustedError) {
+            log(dubId, `Quota exhausted — falling back to pre-made voice`);
+          } else {
+            log(
+              dubId,
+              `Clone from extracted audio failed: ${
+                cloneErr instanceof Error ? cloneErr.message : "unknown"
+              }`
+            );
+          }
+          voiceId = await ai.getMultilingualVoice();
+          log(dubId, `Using pre-made voice: ${voiceId}`);
         }
-        voiceId = await ai.getMultilingualVoice();
+      } else {
+        log(dubId, `No usable extracted audio (size=${sampleBuffer?.length || 0})`);
+        // Try cloning from video file directly as last resort (if size permits)
+        try {
+          const { data: videoData } = await supabase.storage.from("videos").download(project.original_video_url as string);
+          if (videoData) {
+            const videoBuffer = Buffer.from(await videoData.arrayBuffer());
+            if (videoBuffer.length < 11 * 1024 * 1024) {
+              const ext = ((project.original_video_url as string).split(".").pop() || "mp4").toLowerCase();
+              voiceId = await ai.cloneVoice(videoBuffer, dub.id as string, ext);
+              voiceSource = "cloned";
+              log(dubId, `Voice cloned from video file: ${voiceId}`);
+            } else {
+              throw new Error(`Video too large for cloning: ${(videoBuffer.length / 1024 / 1024).toFixed(1)}MB`);
+            }
+          } else {
+            throw new Error("Could not download video");
+          }
+        } catch (fallbackErr) {
+          if (fallbackErr instanceof ai.ElevenLabsQuotaExhaustedError) {
+            log(dubId, `Quota exhausted on fallback — using pre-made voice`);
+          } else {
+            log(
+              dubId,
+              `Fallback clone failed: ${
+                fallbackErr instanceof Error ? fallbackErr.message : "unknown"
+              }`
+            );
+          }
+          voiceId = await ai.getMultilingualVoice();
+        }
       }
     }
 
@@ -294,6 +328,11 @@ async function runDubbingAudioOnce(
           try { await ai.deleteClonedVoice(voiceId); } catch { /* ignore */ }
         }
         voiceId = await ai.getMultilingualVoice();
+        // Clone existed but was unusable for this language — the
+        // final audio came from the pre-made voice so downgrade
+        // voice_source accordingly. UI will show the "similar
+        // voice" chip if the owner is on the free plan.
+        voiceSource = "premade";
         log(dubId, `Retrying TTS with pre-made voice ${voiceId}`);
         const out = await ai.generateTimedAudio(segmentsWithTiming, voiceId, videoDuration);
         audioBuffer = out.wav;
@@ -359,15 +398,19 @@ async function runDubbingAudioOnce(
     }
 
     // Mark as audio_ready — user can already download audio.
+    // voice_source lets the UI distinguish cloned-vs-premade so
+    // free-plan dubs can render the "similar voice · upgrade for
+    // exact cloning" chip on the project detail page.
     await supabase.from("dubs").update({
       status: "audio_ready",
       progress: 80,
       dubbed_video_url: audioPath,
       srt_url: srtUploadPath,
       vtt_url: vttUploadPath,
+      voice_source: voiceSource,
     }).eq("id", dubId);
 
-    log(dubId, "Stage 1 COMPLETE — audio ready");
+    log(dubId, `Stage 1 COMPLETE — audio ready (voice=${voiceSource})`);
 
   // Clean up cloned voice
   if (voiceId && !["FGY2WhTYpPnrIDTdsKH5", "EXAVITQu4vr4xnSDxMaL", "XrExE9yKIg1WjnnlVkGX"].includes(voiceId)) {

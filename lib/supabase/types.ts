@@ -105,13 +105,18 @@ export interface Dub {
   dubbed_video_url: string | null;
   progress: number;
   error_message: string | null;
-  /** Soft warning written alongside a successful dub — e.g. voice
-   *  cloning quota was exhausted so the dub was generated with a
-   *  pre-made multilingual voice instead of the speaker's cloned
-   *  voice. Separate from `error_message` so a dub can be both
-   *  status=done AND carry a user-visible warning. Rendered as an
-   *  amber chip on the project detail page. */
+  /** Soft warning written alongside a successful dub — kept for
+   *  potential future use. Currently unused in the UI. */
   warning_message: string | null;
+  /** Which voice model generated this dub:
+   *   - "cloned"  → ElevenLabs Instant Voice Clone of the speaker
+   *                 (paid plans only: starter/pro/enterprise)
+   *   - "premade" → Pre-made multilingual voice (free plan by
+   *                 design, or paid plan as a temporary fallback
+   *                 when the clone API errors)
+   *  Used by the project detail page to show a "similar voice —
+   *  upgrade for exact cloning" chip for free-plan users. */
+  voice_source: "cloned" | "premade" | null;
   created_at: string;
   updated_at: string;
   // fal.ai async lip sync tracking (populated by Stage 2 submit, read by webhook)
