@@ -2,7 +2,7 @@ import { createServiceClient } from "./supabase/server";
 import * as ai from "./ai";
 import { LANGUAGE_MAP } from "./supabase/constants";
 import { getQualityTier } from "./quality-tiers";
-import { toSrt, toVtt } from "./subtitles";
+import { toSrt, toVtt, rechunkSegments } from "./subtitles";
 import type { PlanType, TranscriptSegment } from "./supabase/types";
 
 
@@ -50,12 +50,33 @@ export async function runTranscription(projectId: string) {
     // Transcribe using AssemblyAI (primary) or Whisper (fallback)
     // AssemblyAI accepts ALL formats including iPhone HEVC MOV
     console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Calling transcription API (ext=${ext}, lang=${languageHint || "auto"})`);
-    const { segments, language } = await ai.transcribe(videoBuffer, `video.${ext}`, languageHint);
+    const { segments: rawSegments, language } = await ai.transcribe(videoBuffer, `video.${ext}`, languageHint);
 
-    console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Transcription done: ${segments.length} segments, language=${language}`);
+    console.log(`[TRANSCRIBE:${projectId.slice(0, 8)}] Raw transcription done: ${rawSegments.length} segments, language=${language}`);
 
-    // Calculate duration from last segment end time + buffer
-    // Whisper segments don't capture trailing silence, so add 1s buffer
+    // ── Re-chunk into tight 2–3 second cues ──────────────────
+    // ASR providers (Whisper / AssemblyAI) return segments up to
+    // 15 seconds long, which is way too coarse for subtitles:
+    // TTS can't match the phrasing, captions span multiple lines,
+    // and a viewer reading along can't tell which word is being
+    // spoken at any given moment.
+    //
+    // Re-chunking here means every downstream stage — translation,
+    // TTS, SRT/VTT, burned-in captions — operates on the same
+    // fine-grained 2–3 second boundaries. Result: the audio a
+    // viewer hears and the caption they read start and end at
+    // the same timestamps, word-for-word.
+    const segments = rechunkSegments(rawSegments, {
+      maxChars: 80,
+      maxSeconds: 3,
+      minSeconds: 1,
+    });
+    console.log(
+      `[TRANSCRIBE:${projectId.slice(0, 8)}] Re-chunked: ${rawSegments.length} \u2192 ${segments.length} segments (target \u22643s / \u226480 chars each)`
+    );
+
+    // Calculate duration from last segment end time + buffer.
+    // Whisper segments don't capture trailing silence, so add 1s buffer.
     const rawEnd = segments.length > 0 ? segments[segments.length - 1].end : 0;
     const durationSeconds = Math.ceil(rawEnd + 1);
 

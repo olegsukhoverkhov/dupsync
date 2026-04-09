@@ -1461,14 +1461,20 @@ export async function submitShotstackBurnJob(
   //  - `margin` supports only `top / left / right`. There is no
   //    `bottom` — to push captions toward the bottom of the frame
   //    you set a large `top` (e.g. 0.75 = 75% down from the top).
-  //  - `font.opacity` is valid and useful for hover / fade effects.
-  //  - `background.borderRadius` is valid; `background.padding` is
-  //    in pixels.
+  //  - `font.opacity` is valid; `background.borderRadius` is
+  //    valid; `background.padding` is in pixels.
+  //  - **font.size is LARGER than you think**. At size 38 on a
+  //    1080p canvas the rendered glyphs are ~100px tall and two
+  //    lines of captions consume ~240px. Combined with a
+  //    `margin.top: 0.8` (leaves 216px at the bottom) the second
+  //    line gets cropped off-screen entirely. Target ~220–260
+  //    total height for 2 lines and position with enough breathing
+  //    room. Size 22 + margin.top 0.78 + left/right 0.08 fits well.
   //
-  // Styling tuned for short-form social video: large white text
-  // with a black stroke so it reads on any background, anchored
-  // near the bottom 80% mark so it clears TikTok / Reels UI
-  // chrome but still leaves a few percent of breathing room below.
+  // Styling tuned for short-form social video: white text with
+  // a thick black stroke that reads on any background, sitting
+  // in the bottom safe area with 8% horizontal padding so text
+  // never kisses the frame edges on portrait videos.
   const body = {
     timeline: {
       background: "#000000",
@@ -1483,24 +1489,21 @@ export async function submitShotstackBurnJob(
                   family: "Montserrat ExtraBold",
                   color: "#ffffff",
                   opacity: 1,
-                  size: 38,
-                  lineHeight: 0.9,
+                  size: 22,
+                  lineHeight: 1,
                   stroke: "#000000",
-                  strokeWidth: 3,
+                  strokeWidth: 2,
                 },
                 background: {
                   color: "#000000",
-                  opacity: 0.35,
-                  padding: 14,
+                  opacity: 0.55,
+                  padding: 16,
                   borderRadius: 8,
                 },
-                // Large top margin pushes the caption block down
-                // to the bottom zone. left/right 5% keeps text away
-                // from the safe-area edges on portrait videos.
                 margin: {
-                  top: 0.8,
-                  left: 0.05,
-                  right: 0.05,
+                  top: 0.78,
+                  left: 0.08,
+                  right: 0.08,
                 },
               },
               start: 0,
