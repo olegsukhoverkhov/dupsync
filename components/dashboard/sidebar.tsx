@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -10,6 +11,7 @@ import {
   Languages,
   LogOut,
   Plus,
+  BarChart3,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -22,14 +24,55 @@ export function DashboardSidebar() {
   const supabase = createClient();
   const t = useDashboardT();
 
+  // is_admin is loaded client-side on mount. We deliberately keep
+  // this in a small dedicated effect instead of piggybacking on the
+  // dashboard page's profile fetch — the sidebar is rendered in the
+  // layout above every dashboard route, so it has no other way to
+  // see the profile. A brief flash (admin link appears ~100ms after
+  // paint) is acceptable because the /admin/stats page itself is
+  // server-side gated.
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    async function loadAdmin() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", user.id)
+        .single();
+      if (!cancelled) setIsAdmin(Boolean(data?.is_admin));
+    }
+    loadAdmin();
+    return () => {
+      cancelled = true;
+    };
+    // supabase client identity is stable for the component lifetime
+    // so the empty dep array is correct — re-running this on every
+    // render would hammer auth.getUser.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Build nav items using the locale hook so labels are translated.
-  // Identity is recreated on every render but the list is tiny (4 items)
-  // so the cost is negligible.
+  // Identity is recreated on every render but the list is tiny so
+  // the cost is negligible.
   const navigation = [
     { name: t("dashboard.nav.dashboard", "Dashboard"), href: "/dashboard", icon: LayoutDashboard },
     { name: t("dashboard.nav.settings", "Settings"), href: "/settings", icon: Settings },
     { name: t("dashboard.nav.credits", "Credits"), href: "/credits", icon: CreditCard },
     { name: t("dashboard.nav.api", "API"), href: "/api-keys", icon: Code },
+    ...(isAdmin
+      ? [
+          {
+            name: t("dashboard.nav.admin", "Admin"),
+            href: "/admin/stats",
+            icon: BarChart3,
+          },
+        ]
+      : []),
   ];
   const mobileNavItems = navigation;
 

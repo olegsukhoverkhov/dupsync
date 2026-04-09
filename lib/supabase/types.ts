@@ -59,6 +59,12 @@ export interface Profile {
    * never waste their monthly allocation by accident.
    */
   topup_credits: number;
+  /**
+   * Admin flag. When true, unlocks the private /admin/stats page and
+   * renders an "Admin" link in the dashboard sidebar. Flipped manually
+   * in the DB — there's intentionally no self-serve way to grant this.
+   */
+  is_admin: boolean;
   created_at: string;
   updated_at: string;
 }

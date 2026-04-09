@@ -115,10 +115,13 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protected routes — redirect to login if not authenticated
+  // Protected routes — redirect to login if not authenticated.
+  // /admin is included so scanners hitting /admin/stats while logged
+  // out get bounced to /login instead of seeing the React 404 page.
   if (
     !user &&
-    request.nextUrl.pathname.startsWith("/dashboard")
+    (request.nextUrl.pathname.startsWith("/dashboard") ||
+      request.nextUrl.pathname.startsWith("/admin"))
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
