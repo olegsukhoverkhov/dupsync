@@ -202,15 +202,13 @@ async function runDubbingAudioOnce(
       }
     }
 
-    // Track whether voice cloning succeeded. When the ElevenLabs
-    // monthly voice_add_edit quota is hit we fall back to a
-    // pre-made multilingual voice but we also flag the dub so the
-    // UI can show a "generic voice fallback" warning — the user
-    // shouldn't be surprised that their speaker sounds like a
-    // stranger. Non-quota clone failures (too-short sample, API
-    // glitch) also trigger the fallback but without the quota
-    // warning copy.
+    // Voice quota exhaustion is NOT surfaced to users per-dub —
+    // it's now visible only to operators via /admin/stats (the
+    // ElevenLabs quota cards). The fallback to a pre-made voice
+    // still happens; we just don't nag users about it on their
+    // project page. Leaving the local var for future re-enable.
     let voiceFallbackWarning: string | null = null;
+    void voiceFallbackWarning;
 
     if (sampleBuffer && sampleBuffer.length > 1000 && sampleBuffer.length < 11 * 1024 * 1024) {
       try {
@@ -361,26 +359,15 @@ async function runDubbingAudioOnce(
     }
 
     // Mark as audio_ready — user can already download audio.
-    // voice fallback (quota exhausted, short sample) is persisted
-    // into `warning_message` so subsequent stages (lipsync webhook,
-    // subtitle burn) can null out `error_message` for their own
-    // concerns without clobbering the voice warning. Project detail
-    // page renders both columns separately.
     await supabase.from("dubs").update({
       status: "audio_ready",
       progress: 80,
       dubbed_video_url: audioPath,
       srt_url: srtUploadPath,
       vtt_url: vttUploadPath,
-      warning_message: voiceFallbackWarning,
     }).eq("id", dubId);
 
-    log(
-      dubId,
-      voiceFallbackWarning
-        ? "Stage 1 COMPLETE — audio ready (with voice fallback warning)"
-        : "Stage 1 COMPLETE — audio ready"
-    );
+    log(dubId, "Stage 1 COMPLETE — audio ready");
 
   // Clean up cloned voice
   if (voiceId && !["FGY2WhTYpPnrIDTdsKH5", "EXAVITQu4vr4xnSDxMaL", "XrExE9yKIg1WjnnlVkGX"].includes(voiceId)) {
