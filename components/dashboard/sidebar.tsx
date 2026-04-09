@@ -13,26 +13,25 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-
-const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Settings", href: "/settings", icon: Settings },
-  { name: "Credits", href: "/credits", icon: CreditCard },
-  { name: "API", href: "/api-keys", icon: Code },
-];
-
-// Mobile bottom nav items (Sign Out moves to settings on mobile)
-const mobileNavItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Settings", href: "/settings", icon: Settings },
-  { name: "Credits", href: "/credits", icon: CreditCard },
-  { name: "API", href: "/api-keys", icon: Code },
-];
+import { useDashboardT } from "./locale-provider";
+import { LanguageSwitcher } from "./language-switcher";
 
 export function DashboardSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
+  const t = useDashboardT();
+
+  // Build nav items using the locale hook so labels are translated.
+  // Identity is recreated on every render but the list is tiny (4 items)
+  // so the cost is negligible.
+  const navigation = [
+    { name: t("dashboard.nav.dashboard", "Dashboard"), href: "/dashboard", icon: LayoutDashboard },
+    { name: t("dashboard.nav.settings", "Settings"), href: "/settings", icon: Settings },
+    { name: t("dashboard.nav.credits", "Credits"), href: "/credits", icon: CreditCard },
+    { name: t("dashboard.nav.api", "API"), href: "/api-keys", icon: Code },
+  ];
+  const mobileNavItems = navigation;
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -60,7 +59,7 @@ export function DashboardSidebar() {
             className="gradient-button flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold w-full"
           >
             <Plus className="h-4 w-4" />
-            New Project
+            {t("dashboard.nav.newProject", "New Project")}
           </Link>
         </div>
 
@@ -89,14 +88,15 @@ export function DashboardSidebar() {
           </ul>
         </nav>
 
-        {/* Sign out */}
-        <div className="border-t border-white/5 p-3">
+        {/* Language + Sign out */}
+        <div className="border-t border-white/5 p-3 space-y-1">
+          <LanguageSwitcher />
           <button
             onClick={handleSignOut}
             className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
           >
             <LogOut className="h-4 w-4" />
-            Sign Out
+            {t("dashboard.nav.signOut", "Sign Out")}
           </button>
         </div>
       </aside>
@@ -126,7 +126,7 @@ export function DashboardSidebar() {
         <Link
           href="/projects/new"
           className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-pink-500 to-blue-600 shadow-lg shadow-pink-500/20"
-          aria-label="New Project"
+          aria-label={t("dashboard.nav.newProject", "New Project")}
         >
           <Plus className="h-5 w-5 text-white" />
         </Link>
