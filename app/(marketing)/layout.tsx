@@ -52,7 +52,6 @@ export default async function MarketingLayout({
     h.get("next-url") ||
     "/";
 
-  console.log(`[marketing-layout] scheduling trackVisit ip=${ip?.slice(0, 12)} path=${path}`);
   // Fire-and-forget — runs AFTER the response is streamed to the
   // browser, so page render is not blocked by the tracking insert.
   after(() => trackVisit({ ip, userAgent, country, path }));
