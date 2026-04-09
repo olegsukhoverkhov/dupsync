@@ -44,6 +44,7 @@ export async function POST(request: Request) {
   const typedProfile = profile as Profile;
   // Ensure credits_remaining is a number (DB returns string for numeric type)
   typedProfile.credits_remaining = Number(typedProfile.credits_remaining) || 0;
+  typedProfile.topup_credits = Number(typedProfile.topup_credits) || 0;
   const planLimits = PLAN_LIMITS[typedProfile.plan];
 
   // Check concurrent project limit
@@ -86,12 +87,28 @@ export async function POST(request: Request) {
   const durationMin = Math.ceil(durationSec / 60);
   const requiredCredits = durationMin * languages.length;
 
-  if (
-    planLimits.credits !== -1 &&
-    typedProfile.credits_remaining < requiredCredits
-  ) {
+  // Effective balance = plan credits + one-time top-up credits.
+  // Plan credits are spent first so the user never loses top-up credits
+  // to a plan renewal, then any remainder comes from the top-up pool.
+  const effectiveBalance =
+    planLimits.credits === -1
+      ? Infinity
+      : typedProfile.credits_remaining + typedProfile.topup_credits;
+
+  if (planLimits.credits !== -1 && effectiveBalance < requiredCredits) {
+    // Client detects this exact prefix ("Insufficient credits.") to
+    // swap the modal title from "Dubbing Error" to "Insufficient
+    // credits" and to render the "Buy credits" CTA. Keep the phrase
+    // stable when translating.
     return NextResponse.json(
-      { error: `Insufficient credits. You need ${requiredCredits} credits but have ${Math.floor(typedProfile.credits_remaining)} remaining. Upgrade your plan for more credits.` },
+      {
+        error: `Insufficient credits. You need ${requiredCredits} credits but have ${Math.floor(
+          effectiveBalance
+        )} remaining.`,
+        code: "insufficient_credits",
+        required: requiredCredits,
+        remaining: Math.floor(effectiveBalance),
+      },
       { status: 403 }
     );
   }
@@ -118,12 +135,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Pre-deduct credits immediately to prevent over-spending
+  // Pre-deduct credits immediately to prevent over-spending.
+  // Drain plan credits first, then fall back to the top-up pool for any
+  // remainder. Example: need 15, plan has 10, top-up has 20 →
+  // plan goes to 0, top-up goes to 15.
   if (planLimits.credits !== -1 && requiredCredits > 0) {
+    const fromPlan = Math.min(typedProfile.credits_remaining, requiredCredits);
+    const fromTopup = requiredCredits - fromPlan;
     await supabase
       .from("profiles")
       .update({
-        credits_remaining: Math.max(0, typedProfile.credits_remaining - requiredCredits),
+        credits_remaining: Math.max(
+          0,
+          typedProfile.credits_remaining - fromPlan
+        ),
+        topup_credits: Math.max(0, typedProfile.topup_credits - fromTopup),
       })
       .eq("id", user.id);
 
@@ -143,7 +169,21 @@ export async function POST(request: Request) {
       video_seconds: durationSec,
     }));
 
-    await supabase.from("credit_usage").insert(usageInserts);
+    // Surface any error instead of swallowing it. Historical bug: the
+    // credit_usage table had RLS enabled but no INSERT policy, so
+    // inserts were silently denied and the dashboard showed 0 credits
+    // used for every project. An INSERT policy has since been added,
+    // but we keep the logging so a future regression is immediately
+    // visible in Vercel logs instead of hiding for weeks.
+    const { error: usageError } = await supabase
+      .from("credit_usage")
+      .insert(usageInserts);
+    if (usageError) {
+      console.error(
+        `[DUB] credit_usage insert failed for user=${user.id} project=${projectId}:`,
+        usageError
+      );
+    }
   }
 
   // Run dubbing synchronously — client polls for status

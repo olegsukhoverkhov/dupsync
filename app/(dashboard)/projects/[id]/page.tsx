@@ -34,15 +34,20 @@ import {
   X,
   RefreshCw,
   ArrowUpRight,
+  Upload,
 } from "lucide-react";
 import Link from "next/link";
 import { AlertModal } from "@/components/ui/modal";
+import { UpgradeModal } from "@/components/dashboard/upgrade-modal";
+import { TopupModal } from "@/components/dashboard/topup-modal";
 import { LanguageSelector } from "@/components/project/language-selector";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { Profile, PlanType } from "@/lib/supabase/types";
+import { useDashboardT } from "@/components/dashboard/locale-provider";
 
 // Video info card showing quality details and upgrade CTA
 function DubInfoCard({ dub, plan }: { dub: Dub; plan: PlanType }) {
+  const t = useDashboardT();
   const langName = LANGUAGE_MAP[dub.target_language] || dub.target_language;
   const isVideo = dub.dubbed_video_url?.includes("dubbed-video");
   const planLimits = PLAN_LIMITS[plan];
@@ -59,25 +64,25 @@ function DubInfoCard({ dub, plan }: { dub: Dub; plan: PlanType }) {
     <div className="rounded-xl border border-white/10 bg-slate-800/30 p-4 mt-4">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
         <div>
-          <p className="text-slate-500 mb-0.5">Language</p>
+          <p className="text-slate-500 mb-0.5">{t("dashboard.projectDetail.quality.language", "Language")}</p>
           <p className="text-white font-medium">{langName}</p>
         </div>
         <div>
-          <p className="text-slate-500 mb-0.5">Output</p>
-          <p className="text-white font-medium">{isVideo ? "Video + Audio" : "Audio Only"}</p>
+          <p className="text-slate-500 mb-0.5">{t("dashboard.projectDetail.quality.output", "Output")}</p>
+          <p className="text-white font-medium">{isVideo ? t("dashboard.projectDetail.quality.videoAndAudio", "Video + Audio") : t("dashboard.projectDetail.quality.audioOnly", "Audio Only")}</p>
         </div>
         <div>
-          <p className="text-slate-500 mb-0.5">Video Quality</p>
+          <p className="text-slate-500 mb-0.5">{t("dashboard.projectDetail.quality.videoQuality", "Video Quality")}</p>
           <p className="text-white font-medium">{quality.video}</p>
         </div>
         <div>
-          <p className="text-slate-500 mb-0.5">Audio Quality</p>
+          <p className="text-slate-500 mb-0.5">{t("dashboard.projectDetail.quality.audioQuality", "Audio Quality")}</p>
           <p className="text-white font-medium">{quality.audio}</p>
         </div>
       </div>
       {plan !== "enterprise" && (
         <div className="mt-3 pt-3 border-t border-white/5">
-          <p className="text-xs text-slate-500 mb-2">Upgrade for better quality:</p>
+          <p className="text-xs text-slate-500 mb-2">{t("dashboard.projectDetail.upgradeForBetter", "Upgrade for better quality:")}</p>
           <div className="flex flex-wrap gap-2">
             {plan === "free" && (
               <>
@@ -97,7 +102,7 @@ function DubInfoCard({ dub, plan }: { dub: Dub; plan: PlanType }) {
             )}
           </div>
           <Link href="/settings" className="mt-2 inline-flex items-center gap-1 text-xs text-pink-400 hover:text-pink-300 font-medium">
-            Upgrade Plan <ArrowUpRight className="h-3 w-3" />
+            {t("dashboard.projectDetail.upgradePlanCta", "Upgrade Plan")} <ArrowUpRight className="h-3 w-3" />
           </Link>
         </div>
       )}
@@ -153,17 +158,6 @@ function OriginalVideoPlayer({ videoPath }: { videoPath: string | null }) {
   );
 }
 
-const STATUS_LABELS: Record<DubStatus, string> = {
-  pending: "Waiting...",
-  translating: "Translating",
-  generating_voice: "Generating Voice",
-  audio_ready: "Audio Ready — Syncing Lips...",
-  lip_syncing: "Syncing Lips",
-  merging: "Finalizing",
-  done: "Complete",
-  error: "Failed",
-};
-
 export default function ProjectDetailPage({
   params,
 }: {
@@ -171,10 +165,25 @@ export default function ProjectDetailPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const t = useDashboardT();
   const [project, setProject] = useState<Project | null>(null);
   const [dubs, setDubs] = useState<Dub[]>([]);
   const [activeTab, setActiveTab] = useState<string>("original");
   const [loading, setLoading] = useState(true);
+
+  const statusLabel = (s: DubStatus) => {
+    const map: Record<DubStatus, { key: string; fallback: string }> = {
+      pending: { key: "dashboard.projectDetail.statusLabels.pending", fallback: "Waiting..." },
+      translating: { key: "dashboard.projectDetail.statusLabels.translating", fallback: "Translating" },
+      generating_voice: { key: "dashboard.projectDetail.statusLabels.generatingVoice", fallback: "Generating Voice" },
+      audio_ready: { key: "dashboard.projectDetail.statusLabels.audioReady", fallback: "Audio Ready — Syncing Lips..." },
+      lip_syncing: { key: "dashboard.projectDetail.statusLabels.lipSyncing", fallback: "Syncing Lips" },
+      merging: { key: "dashboard.projectDetail.statusLabels.merging", fallback: "Finalizing" },
+      done: { key: "dashboard.projectDetail.statusLabels.done", fallback: "Complete" },
+      error: { key: "dashboard.projectDetail.statusLabels.error", fallback: "Failed" },
+    };
+    return t(map[s].key, map[s].fallback);
+  };
 
   useEffect(() => {
     const supabase = createClient();
@@ -308,6 +317,15 @@ export default function ProjectDetailPage({
   const [newLanguages, setNewLanguages] = useState<string[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [startingDub, setStartingDub] = useState(false);
+  // Dedicated modal state for the "Insufficient credits" error. Uses
+  // the same UpgradeModal + TopupModal combo as the new-project wizard
+  // so the user can either upgrade the plan or buy one-time top-up
+  // credits without leaving the page. Other dubbing errors continue to
+  // render inline under the language selector.
+  const [creditsAlertOpen, setCreditsAlertOpen] = useState(false);
+  const [creditsAlertMessage, setCreditsAlertMessage] = useState<string>("");
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [topupOpen, setTopupOpen] = useState(false);
 
   const handleDelete = useCallback(async () => {
     const supabase = createClient();
@@ -345,10 +363,18 @@ export default function ProjectDetailPage({
 
       if (!res.ok) {
         const data = await res.json();
-        setDubError(data.error || "Failed to restart dubbing");
+        const msg =
+          data.error ||
+          t("dashboard.projectDetail.failedToRestartDubbing", "Failed to restart dubbing");
+        if (data.code === "insufficient_credits") {
+          setCreditsAlertMessage(msg);
+          setCreditsAlertOpen(true);
+        } else {
+          setDubError(msg);
+        }
       }
     } catch {
-      setDubError("Failed to restart dubbing");
+      setDubError(t("dashboard.projectDetail.failedToRestartDubbing", "Failed to restart dubbing"));
     } finally {
       setRetryLoading(false);
     }
@@ -366,13 +392,25 @@ export default function ProjectDetailPage({
       });
       if (!res.ok) {
         const data = await res.json();
-        setDubError(data.error || "Failed to start dubbing");
+        const msg =
+          data.error ||
+          t("dashboard.projectDetail.failedToStartDubbing", "Failed to start dubbing");
+        // Insufficient credits → dedicated alert modal with upgrade +
+        // buy credits CTAs, matching the new-project wizard. Other
+        // errors stay inline so the user keeps their language
+        // selection and can adjust.
+        if (data.code === "insufficient_credits") {
+          setCreditsAlertMessage(msg);
+          setCreditsAlertOpen(true);
+        } else {
+          setDubError(msg);
+        }
       } else {
         setShowLanguageSelect(false);
         setNewLanguages([]);
       }
     } catch {
-      setDubError("Failed to start dubbing");
+      setDubError(t("dashboard.projectDetail.failedToStartDubbing", "Failed to start dubbing"));
     } finally {
       setStartingDub(false);
     }
@@ -411,7 +449,7 @@ export default function ProjectDetailPage({
               <defs><linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#ec4899" /><stop offset="100%" stopColor="#8b5cf6" /></linearGradient></defs>
             </svg>
           </div>
-          <p className="text-sm text-slate-400">Loading project...</p>
+          <p className="text-sm text-slate-400">{t("dashboard.projectDetail.loading", "Loading project...")}</p>
         </div>
       </div>
     );
@@ -420,9 +458,9 @@ export default function ProjectDetailPage({
   if (!project) {
     return (
       <div className="text-center py-16">
-        <h2 className="text-xl font-semibold">Project not found</h2>
+        <h2 className="text-xl font-semibold">{t("dashboard.projectDetail.projectNotFound", "Project not found")}</h2>
         <Button className="mt-4" onClick={() => router.push("/dashboard")}>
-          Back to Dashboard
+          {t("dashboard.projectDetail.backToDashboard", "Back to Dashboard")}
         </Button>
       </div>
     );
@@ -442,7 +480,7 @@ export default function ProjectDetailPage({
           onClick={() => router.push("/dashboard")}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Dashboard
+          {t("dashboard.projectDetail.backToDashboard", "Back to Dashboard")}
         </Button>
       </div>
 
@@ -450,8 +488,9 @@ export default function ProjectDetailPage({
         <div>
           <h1 className="text-2xl font-bold">{project.title}</h1>
           <p className="text-sm text-muted-foreground">
-            Speaker&apos;s language (original):{" "}
-            {LANGUAGE_MAP[project.original_language] || project.original_language}
+            {t("dashboard.projectDetail.speakerLanguage", "Speaker's language (original): {language}", {
+              language: LANGUAGE_MAP[project.original_language] || project.original_language,
+            })}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -461,10 +500,52 @@ export default function ProjectDetailPage({
             className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer"
           >
             <Trash2 className="h-3 w-3 inline mr-1" />
-            Delete
+            {t("dashboard.projectDetail.delete", "Delete")}
           </button>
         </div>
       </div>
+
+      {/* Friendly error message for failed projects — surfaces the reason
+          transcription/pipeline failed so the user knows what to fix
+          (e.g. "video has no audio track"). Written by runTranscription's
+          catch block; only rendered when present. The "Upload new video"
+          CTA is the standard recovery path for any classified error. */}
+      {project.status === "error" && project.error_message && (
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-start gap-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-4">
+          <div className="flex items-start gap-3 flex-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 text-red-400 shrink-0 mt-0.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div>
+              <p className="text-sm font-semibold text-red-300">
+                {t("dashboard.projectDetail.projectFailed", "Project failed")}
+              </p>
+              <p className="text-sm text-red-200/90 mt-0.5 leading-relaxed">
+                {project.error_message}
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/projects/new"
+            className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-red-400/40 bg-red-400/20 px-3 py-2 text-xs font-semibold text-red-100 hover:bg-red-400/30 hover:text-white transition-colors self-start"
+          >
+            <Upload className="h-3.5 w-3.5" />
+            {t("dashboard.projectDetail.uploadNewVideo", "Upload new video")}
+          </Link>
+        </div>
+      )}
 
       {/* Language tabs */}
       <div className="flex gap-2 overflow-x-auto flex-nowrap pb-2 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible sm:pb-0">
@@ -477,7 +558,7 @@ export default function ProjectDetailPage({
           }}
           className="shrink-0"
         >
-          Original
+          {t("dashboard.projectDetail.originalTab", "Original")}
         </Button>
         {dubs.map((dub) => (
           <Button
@@ -505,9 +586,9 @@ export default function ProjectDetailPage({
       {activeTab === "original" ? (
         <Card>
           <CardHeader>
-            <CardTitle>Original</CardTitle>
+            <CardTitle>{t("dashboard.projectDetail.originalTitle", "Original")}</CardTitle>
             <CardDescription>
-              Original video and transcription
+              {t("dashboard.projectDetail.originalDescription", "Original video and transcription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -516,7 +597,7 @@ export default function ProjectDetailPage({
 
             {project.transcript && (
               <div className="mt-6">
-                <p className="text-xs text-slate-500 mb-3 font-medium uppercase tracking-wider">Transcript</p>
+                <p className="text-xs text-slate-500 mb-3 font-medium uppercase tracking-wider">{t("dashboard.projectDetail.transcriptLabel", "Transcript")}</p>
                 <TranscriptEditor
                   segments={project.transcript}
                   onChange={() => {}}
@@ -536,7 +617,7 @@ export default function ProjectDetailPage({
                     activeDub.target_language}
                 </CardTitle>
                 <CardDescription>
-                  {STATUS_LABELS[activeDub.status]}
+                  {statusLabel(activeDub.status)}
                 </CardDescription>
               </div>
               {(activeDub.status === "done" || activeDub.status === "audio_ready") && activeDub.dubbed_video_url && (
@@ -545,7 +626,7 @@ export default function ProjectDetailPage({
                   className="gradient-button rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1"
                 >
                   <Download className="h-3 w-3" />
-                  {activeDub.status === "audio_ready" ? "Download Audio" : "Download"}
+                  {activeDub.status === "audio_ready" ? t("dashboard.projectDetail.downloadAudio", "Download Audio") : t("dashboard.projectDetail.download", "Download")}
                 </button>
               )}
             </div>
@@ -564,21 +645,21 @@ export default function ProjectDetailPage({
                 status={activeDub.status as Parameters<typeof SmoothDubProgress>[0]["status"]}
                 backendProgress={activeDub.progress}
                 videoDurationSec={project.duration_seconds || 30}
-                label={STATUS_LABELS[activeDub.status]}
+                label={statusLabel(activeDub.status)}
               />
             )}
 
             {activeDub.status === "error" && (
               <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-4 mb-6">
                 <p className="text-sm text-red-400">
-                  {activeDub.error_message || "An error occurred during dubbing"}
+                  {activeDub.error_message || t("dashboard.projectDetail.defaultDubError", "An error occurred during dubbing")}
                 </p>
               </div>
             )}
 
             {activeDub.translated_transcript && (
               <div className="mt-6">
-                <p className="text-xs text-slate-500 mb-3 font-medium uppercase tracking-wider">Translation</p>
+                <p className="text-xs text-slate-500 mb-3 font-medium uppercase tracking-wider">{t("dashboard.projectDetail.translationLabel", "Translation")}</p>
                 <TranscriptEditor
                   segments={activeDub.translated_transcript}
                   onChange={() => {}}
@@ -596,11 +677,18 @@ export default function ProjectDetailPage({
           <CardContent className="py-4">
             <div className="flex items-center justify-between text-sm mb-4">
               <span className="text-white font-medium">
-                {isProcessing ? "Dubbing in progress" : `${dubs.filter((d) => d.status === "done").length}/${dubs.length} languages completed`}
+                {isProcessing
+                  ? t("dashboard.projectDetail.dubbingInProgress", "Dubbing in progress")
+                  : t("dashboard.projectDetail.languagesCompleted", "{done}/{total} languages completed", {
+                      done: String(dubs.filter((d) => d.status === "done").length),
+                      total: String(dubs.length),
+                    })}
               </span>
               {isProcessing && (
                 <span className="text-slate-500 text-xs">
-                  {Math.round(dubs.reduce((sum, d) => sum + d.progress, 0) / dubs.length)}% overall
+                  {t("dashboard.projectDetail.overallPercent", "{n}% overall", {
+                    n: String(Math.round(dubs.reduce((sum, d) => sum + d.progress, 0) / dubs.length)),
+                  })}
                 </span>
               )}
             </div>
@@ -656,30 +744,30 @@ export default function ProjectDetailPage({
                     <div className="flex items-center gap-2">
                       {dub.status === "done" && profile && (
                         <span className="text-xs text-green-400 flex items-center gap-2">
-                          {dub.dubbed_video_url?.includes("dubbed-video") ? "Video" : "Audio"}
+                          {dub.dubbed_video_url?.includes("dubbed-video") ? t("dashboard.projectDetail.video", "Video") : t("dashboard.projectDetail.audio", "Audio")}
                           <span className="text-slate-600">|</span>
                           {(() => { const q: Record<string, string> = { free: "720p", starter: "1080p", pro: "4K", enterprise: "4K" }; return q[profile.plan] || "720p"; })()}
                           <span className="text-slate-600">|</span>
-                          Done
+                          {t("dashboard.projectDetail.done", "Done")}
                         </span>
                       )}
                       {dub.status === "done" && !profile && (
-                        <span className="text-xs text-green-400">Done</span>
+                        <span className="text-xs text-green-400">{t("dashboard.projectDetail.done", "Done")}</span>
                       )}
                       {dub.status === "error" && (
-                        <span className="text-xs text-red-400">Failed</span>
+                        <span className="text-xs text-red-400">{t("dashboard.projectDetail.failed", "Failed")}</span>
                       )}
                       {isActive && (
                         <SmoothDubBadge
                           status={dub.status as Parameters<typeof SmoothDubBadge>[0]["status"]}
                           backendProgress={dub.progress}
                           videoDurationSec={project.duration_seconds || 30}
-                          label={STATUS_LABELS[dub.status]}
+                          label={statusLabel(dub.status)}
                         />
                       )}
                       {isPending && (
                         <span className="text-xs text-slate-500 flex items-center gap-1.5">
-                          Waiting
+                          {t("dashboard.projectDetail.waiting", "Waiting")}
                           <span className="inline-flex gap-[3px]">
                             <span className="h-1 w-1 rounded-full bg-slate-500 animate-pulse" style={{ animationDelay: "0ms" }} />
                             <span className="h-1 w-1 rounded-full bg-slate-500 animate-pulse" style={{ animationDelay: "300ms" }} />
@@ -718,10 +806,10 @@ export default function ProjectDetailPage({
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-white">
-                  {dubs.filter((d) => d.status === "error").length} dub(s) failed
+                  {t("dashboard.projectDetail.dubsFailedCount", "{n} dub(s) failed", { n: String(dubs.filter((d) => d.status === "error").length) })}
                 </p>
                 <p className="text-xs text-slate-400 mt-1">
-                  {dubs.find((d) => d.status === "error")?.error_message || "An error occurred during dubbing"}
+                  {dubs.find((d) => d.status === "error")?.error_message || t("dashboard.projectDetail.defaultDubError", "An error occurred during dubbing")}
                 </p>
                 {dubError && (
                   <div className="mt-3 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2">
@@ -731,7 +819,7 @@ export default function ProjectDetailPage({
                         href="/settings"
                         className="inline-flex items-center gap-1 mt-2 text-xs text-pink-400 hover:text-pink-300 font-medium"
                       >
-                        Upgrade your plan <ArrowUpRight className="h-3 w-3" />
+                        {t("dashboard.projectDetail.upgradeYourPlan", "Upgrade your plan")} <ArrowUpRight className="h-3 w-3" />
                       </Link>
                     ) : null}
                   </div>
@@ -742,7 +830,7 @@ export default function ProjectDetailPage({
                   className="mt-3 inline-flex items-center gap-2 gradient-button rounded-lg px-4 py-2 text-xs font-semibold disabled:opacity-50"
                 >
                   {retryLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
-                  Retry Failed Dubs
+                  {t("dashboard.projectDetail.retryFailedDubs", "Retry Failed Dubs")}
                 </button>
               </div>
             </div>
@@ -754,7 +842,10 @@ export default function ProjectDetailPage({
       {(() => {
         const doneLangs = dubs.filter(d => d.status === "done").length;
         const maxLangs = profile ? PLAN_LIMITS[profile.plan].maxLanguages : 2;
-        const hasCredits = profile ? Number(profile.credits_remaining) > 0 : false;
+        // Effective balance = plan credits + one-time top-up credits
+        const hasCredits = profile
+          ? Number(profile.credits_remaining) + Number(profile.topup_credits ?? 0) > 0
+          : false;
         const canAddNewLanguages = doneLangs < maxLangs && hasCredits;
         const hasNoDubs = dubs.length === 0;
 
@@ -772,20 +863,20 @@ export default function ProjectDetailPage({
               <div className="text-center">
                 <p className="text-sm text-slate-400">
                   {dubs.length === 0
-                    ? "Transcription is ready. Select languages to start dubbing."
-                    : "Add more languages to this project."}
+                    ? t("dashboard.projectDetail.transcriptionReadyPrompt", "Transcription is ready. Select languages to start dubbing.")
+                    : t("dashboard.projectDetail.addMoreLanguagesPrompt", "Add more languages to this project.")}
                 </p>
                 <button
                   onClick={() => setShowLanguageSelect(true)}
                   className="mt-3 inline-flex items-center gap-2 gradient-button rounded-xl px-5 py-2.5 text-sm font-semibold"
                 >
-                  {dubs.length === 0 ? "Start Dubbing" : "Add Languages"}
+                  {dubs.length === 0 ? t("dashboard.projectDetail.startDubbing", "Start Dubbing") : t("dashboard.projectDetail.addLanguages", "Add Languages")}
                   <ArrowUpRight className="h-4 w-4" />
                 </button>
               </div>
             ) : (
               <div>
-                <h3 className="text-sm font-semibold text-white mb-4">Select target languages</h3>
+                <h3 className="text-sm font-semibold text-white mb-4">{t("dashboard.projectDetail.selectTargetLanguagesHeading", "Select target languages")}</h3>
                 <LanguageSelector
                   selected={newLanguages}
                   onChange={setNewLanguages}
@@ -797,7 +888,7 @@ export default function ProjectDetailPage({
                     <p className="text-xs text-red-400">{dubError}</p>
                     {dubError.includes("Upgrade") && (
                       <Link href="/settings" className="inline-flex items-center gap-1 mt-1 text-xs text-pink-400 hover:text-pink-300 font-medium">
-                        Upgrade plan <ArrowUpRight className="h-3 w-3" />
+                        {t("dashboard.projectDetail.upgradePlan", "Upgrade plan")} <ArrowUpRight className="h-3 w-3" />
                       </Link>
                     )}
                   </div>
@@ -807,7 +898,7 @@ export default function ProjectDetailPage({
                     onClick={() => { setShowLanguageSelect(false); setNewLanguages([]); setDubError(null); }}
                     className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white hover:bg-white/10 cursor-pointer"
                   >
-                    Cancel
+                    {t("dashboard.projectDetail.cancel", "Cancel")}
                   </button>
                   <button
                     onClick={handleStartNewDubs}
@@ -815,7 +906,7 @@ export default function ProjectDetailPage({
                     className="gradient-button rounded-xl px-4 py-2.5 text-sm font-semibold disabled:opacity-50 flex items-center gap-2"
                   >
                     {startingDub ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
-                    Start Dubbing ({newLanguages.length})
+                    {t("dashboard.projectDetail.startDubbingCount", "Start Dubbing ({n})", { n: String(newLanguages.length) })}
                   </button>
                 </div>
               </div>
@@ -828,11 +919,36 @@ export default function ProjectDetailPage({
         open={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDelete}
-        title="Delete Project"
-        message="Are you sure you want to delete this project? This will remove all dubs and cannot be undone."
-        confirmLabel="Delete Project"
+        title={t("dashboard.projectDetail.deleteModalTitle", "Delete Project")}
+        message={t("dashboard.projectDetail.deleteModalMessage", "Are you sure you want to delete this project? This will remove all dubs and cannot be undone.")}
+        confirmLabel={t("dashboard.projectDetail.deleteModalConfirm", "Delete Project")}
         destructive
       />
+
+      {/* Insufficient credits alert — primary CTA opens the same
+          UpgradeModal used on the dashboard Plan card; secondary CTA
+          opens the TopupModal for one-time credit purchase. */}
+      <AlertModal
+        open={creditsAlertOpen}
+        onClose={() => setCreditsAlertOpen(false)}
+        title={t("dashboard.newProject.insufficientCreditsTitle", "Insufficient credits")}
+        message={creditsAlertMessage}
+        type="error"
+        actionLabel={t("dashboard.home.upgrade", "Upgrade")}
+        actionOnClick={() => setUpgradeOpen(true)}
+        secondaryActionLabel={t("dashboard.credits.buyMoreCredits", "Buy more credits")}
+        secondaryActionOnClick={() => setTopupOpen(true)}
+      />
+
+      {profile && (
+        <UpgradeModal
+          open={upgradeOpen}
+          onClose={() => setUpgradeOpen(false)}
+          currentPlan={profile.plan}
+        />
+      )}
+
+      <TopupModal open={topupOpen} onClose={() => setTopupOpen(false)} />
     </div>
   );
 }

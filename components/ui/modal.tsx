@@ -58,19 +58,50 @@ interface AlertModalProps {
   title: string;
   message: string;
   type?: "error" | "success" | "info";
+  /**
+   * Primary CTA — either a link (`actionHref`) or click handler
+   * (`actionOnClick`). On the insufficient-credits error this is the
+   * "Upgrade plan" CTA.
+   */
   actionHref?: string;
   actionLabel?: string;
+  actionOnClick?: () => void;
+  /**
+   * Optional secondary CTA rendered BELOW the primary one. Used on the
+   * insufficient-credits error to show "Buy credits" (opens the
+   * TopupModal) alongside "Upgrade plan". Outlined styling so the
+   * primary CTA keeps visual priority.
+   */
+  secondaryActionLabel?: string;
+  secondaryActionOnClick?: () => void;
 }
 
-export function AlertModal({ open, onClose, title, message, type = "info", actionHref, actionLabel }: AlertModalProps) {
+export function AlertModal({
+  open,
+  onClose,
+  title,
+  message,
+  type = "info",
+  actionHref,
+  actionLabel,
+  actionOnClick,
+  secondaryActionLabel,
+  secondaryActionOnClick,
+}: AlertModalProps) {
   const colors = {
     error: "text-red-400 bg-red-500/10 border-red-500/20",
     success: "text-green-400 bg-green-500/10 border-green-500/20",
     info: "text-blue-400 bg-blue-500/10 border-blue-500/20",
   };
 
-  // Auto-detect upgrade CTA from message
-  const showUpgrade = !actionHref && (message.includes("Upgrade") || message.includes("Insufficient credits"));
+  // Auto-detect upgrade CTA from message (legacy path for "Upgrade" /
+  // "Insufficient credits" error strings that don't set actionHref).
+  const showUpgrade =
+    !actionHref &&
+    !actionOnClick &&
+    (message.includes("Upgrade") || message.includes("Insufficient credits"));
+  const hasCustomAction = Boolean(actionHref || actionOnClick);
+  const hasSecondary = Boolean(secondaryActionOnClick);
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -83,23 +114,55 @@ export function AlertModal({ open, onClose, title, message, type = "info", actio
         <h3 className="text-lg font-semibold text-white">{title}</h3>
         <p className="mt-2 text-sm text-slate-400">{message}</p>
         <div className="mt-6 space-y-2">
-          {(showUpgrade || actionHref) && (
+          {hasCustomAction && actionOnClick ? (
+            <button
+              type="button"
+              onClick={() => {
+                actionOnClick();
+                onClose();
+              }}
+              className="block w-full gradient-button rounded-xl px-4 py-3 text-sm font-semibold text-center cursor-pointer"
+            >
+              {actionLabel || "Retry"}
+            </button>
+          ) : hasCustomAction ? (
             <a
               href={actionHref || "/settings"}
               className="block w-full gradient-button rounded-xl px-4 py-3 text-sm font-semibold text-center"
             >
               {actionLabel || "Upgrade Plan"}
             </a>
+          ) : showUpgrade ? (
+            <a
+              href="/settings"
+              className="block w-full gradient-button rounded-xl px-4 py-3 text-sm font-semibold text-center"
+            >
+              Upgrade Plan
+            </a>
+          ) : null}
+          {hasSecondary && secondaryActionOnClick && (
+            <button
+              type="button"
+              onClick={() => {
+                // Intentionally do NOT call onClose() — the secondary
+                // action (typically "Buy credits") opens its own modal
+                // on top. The parent decides when to close the alert.
+                secondaryActionOnClick();
+              }}
+              className="block w-full rounded-xl border border-pink-500/40 bg-pink-500/10 px-4 py-3 text-sm font-semibold text-pink-200 hover:bg-pink-500/20 transition-colors cursor-pointer"
+            >
+              {secondaryActionLabel}
+            </button>
           )}
           <button
             onClick={onClose}
             className={`w-full rounded-xl px-4 py-3 text-sm font-semibold cursor-pointer ${
-              showUpgrade || actionHref
+              showUpgrade || hasCustomAction
                 ? "border border-white/10 bg-white/5 text-white hover:bg-white/10"
                 : "gradient-button"
             }`}
           >
-            {showUpgrade || actionHref ? "Close" : "OK"}
+            {showUpgrade || hasCustomAction ? "Close" : "OK"}
           </button>
         </div>
       </div>

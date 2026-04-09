@@ -22,6 +22,9 @@ import { ArrowLeft, ArrowRight, Loader2, Check, AlertTriangle, Globe } from "luc
 import { ProcessingIndicator } from "@/components/ui/processing-indicator";
 import { AlertModal } from "@/components/ui/modal";
 import { LANGUAGE_MAP } from "@/lib/supabase/constants";
+import { useDashboardT } from "@/components/dashboard/locale-provider";
+import { UpgradeModal } from "@/components/dashboard/upgrade-modal";
+import { TopupModal } from "@/components/dashboard/topup-modal";
 
 type Step = "upload" | "confirm-language" | "transcript" | "languages" | "processing";
 
@@ -47,6 +50,7 @@ const SOURCE_LANGUAGES = [
 
 export default function NewProjectPage() {
   const router = useRouter();
+  const t = useDashboardT();
   const [step, setStep] = useState<Step>("upload");
   const [title, setTitle] = useState("");
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -59,7 +63,18 @@ export default function NewProjectPage() {
   const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
   const [correctedLanguage, setCorrectedLanguage] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [alertModal, setAlertModal] = useState<{ title: string; message: string; type: "error" | "success" | "info" } | null>(null);
+  const [alertModal, setAlertModal] = useState<{
+    title: string;
+    message: string;
+    type: "error" | "success" | "info";
+    actionHref?: string;
+    actionLabel?: string;
+    actionOnClick?: () => void;
+    secondaryActionLabel?: string;
+    secondaryActionOnClick?: () => void;
+  } | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [topupOpen, setTopupOpen] = useState(false);
 
   useEffect(() => {
     async function loadProfile() {
@@ -91,7 +106,7 @@ export default function NewProjectPage() {
 
   async function createProject(path?: string, fallbackTitle?: string) {
     const videoPath = path || uploadedPath;
-    const projectTitle = title || fallbackTitle || "Untitled";
+    const projectTitle = title || fallbackTitle || t("dashboard.newProject.untitled", "Untitled");
     if (!videoPath) return;
 
     setLoading(true);
@@ -109,7 +124,7 @@ export default function NewProjectPage() {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || "Failed to create project");
+        throw new Error(errData.error || t("dashboard.newProject.failedToCreateProject", "Failed to create project"));
       }
 
       const proj = await res.json();
@@ -128,7 +143,28 @@ export default function NewProjectPage() {
         setUploadedFile(null);
         setProject(null);
         setLoading(false);
-        setAlertModal({ title: "Transcription Failed", message: "Could not transcribe the video. Please try again.", type: "error" });
+        // Surface the classified error_message written by runTranscription
+        // (e.g. "Your video has no audio track…"). Fall back to the generic
+        // message only when the backend didn't attach a specific reason.
+        setAlertModal({
+          title: t("dashboard.newProject.transcriptionFailedTitle", "Transcription Failed"),
+          message:
+            proj.error_message ||
+            t(
+              "dashboard.newProject.transcriptionFailedMessage",
+              "Could not transcribe the video. Please try again."
+            ),
+          type: "error",
+          actionLabel: t(
+            "dashboard.projectCard.uploadNewVideo",
+            "Upload new video"
+          ),
+          // State was already reset above (uploadedPath/File/project=null)
+          // so just closing the modal drops the user back into the upload
+          // step ready to drop another file. Use onClick instead of a
+          // same-URL href which Next.js would treat as a no-op nav.
+          actionOnClick: () => setStep("upload"),
+        });
         return;
       }
 
@@ -154,14 +190,35 @@ export default function NewProjectPage() {
           setUploadedPath(null);
           setUploadedFile(null);
           setProject(null);
-          setAlertModal({ title: "Transcription Failed", message: "Could not transcribe the video. Please try again or use a different file.", type: "error" });
+          // Prefer the specific classified error (e.g. "no audio track")
+          // over the generic fallback so users understand what to fix.
+          setAlertModal({
+            title: t(
+              "dashboard.newProject.transcriptionFailedTitle",
+              "Transcription Failed"
+            ),
+            message:
+              (data.error_message as string | null) ||
+              t(
+                "dashboard.newProject.transcriptionFailedRetryMessage",
+                "Could not transcribe the video. Please try again or use a different file."
+              ),
+            type: "error",
+            actionLabel: t(
+              "dashboard.projectCard.uploadNewVideo",
+              "Upload new video"
+            ),
+            actionOnClick: () => setStep("upload"),
+          });
         }
       }, 3000);
     } catch (err) {
       setLoading(false);
-      const msg = err instanceof Error ? err.message : "Failed to create project.";
+      const msg = err instanceof Error ? err.message : t("dashboard.newProject.failedToCreateProjectDot", "Failed to create project.");
       setAlertModal({
-        title: msg.includes("already exists") ? "Duplicate Name" : "Error",
+        title: msg.includes("already exists")
+          ? t("dashboard.newProject.duplicateNameTitle", "Duplicate Name")
+          : t("dashboard.newProject.errorTitle", "Error"),
         message: msg,
         type: "error",
       });
@@ -206,13 +263,42 @@ export default function NewProjectPage() {
         } else if (data?.status === "error") {
           clearInterval(pollInterval);
           setLoading(false);
-          setAlertModal({ title: "Transcription Failed", message: "Could not transcribe the video. Please try again or use a different file.", type: "error" });
+          setAlertModal({
+            title: t(
+              "dashboard.newProject.transcriptionFailedTitle",
+              "Transcription Failed"
+            ),
+            message:
+              (data.error_message as string | null) ||
+              t(
+                "dashboard.newProject.transcriptionFailedRetryMessage",
+                "Could not transcribe the video. Please try again or use a different file."
+              ),
+            type: "error",
+            actionLabel: t(
+              "dashboard.projectCard.uploadNewVideo",
+              "Upload new video"
+            ),
+            // Clear the current project so "Upload new video" restarts
+            // the wizard from scratch instead of re-running transcription
+            // on the same broken file.
+            actionOnClick: () => {
+              setUploadedPath(null);
+              setUploadedFile(null);
+              setProject(null);
+              setStep("upload");
+            },
+          });
           setStep("confirm-language");
         }
       }, 3000);
     } catch {
       setLoading(false);
-      setAlertModal({ title: "Error", message: "Re-transcription failed. Please try again.", type: "error" });
+      setAlertModal({
+        title: t("dashboard.newProject.errorTitle", "Error"),
+        message: t("dashboard.newProject.retranscriptionFailed", "Re-transcription failed. Please try again."),
+        type: "error",
+      });
       setStep("confirm-language");
     }
   }
@@ -235,13 +321,58 @@ export default function NewProjectPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to start dubbing");
+        // Preserve the structured error so the catch block below can
+        // distinguish insufficient_credits from generic failures.
+        const e = new Error(
+          data.error || t("dashboard.newProject.failedToStartDubbing", "Failed to start dubbing")
+        ) as Error & { code?: string };
+        if (data.code) e.code = data.code;
+        throw e;
       }
 
       router.push(`/projects/${project.id}`);
     } catch (err) {
       setLoading(false);
-      setAlertModal({ title: "Dubbing Error", message: err instanceof Error ? err.message : "Failed to start dubbing", type: "error" });
+      const errMsg =
+        err instanceof Error
+          ? err.message
+          : t("dashboard.newProject.failedToStartDubbing", "Failed to start dubbing");
+      const errCode =
+        err instanceof Error && "code" in err
+          ? (err as Error & { code?: string }).code
+          : undefined;
+
+      // Insufficient credits gets a dedicated title ("Insufficient
+      // credits" instead of "Dubbing Error") and two CTAs: the primary
+      // opens the UpgradeModal used on the dashboard, the secondary
+      // opens the TopupModal for one-time credit purchase.
+      const isInsufficient =
+        errCode === "insufficient_credits" ||
+        errMsg.startsWith("Insufficient credits");
+
+      if (isInsufficient) {
+        setAlertModal({
+          title: t(
+            "dashboard.newProject.insufficientCreditsTitle",
+            "Insufficient credits"
+          ),
+          message: errMsg,
+          type: "error",
+          actionLabel: t("dashboard.home.upgrade", "Upgrade"),
+          actionOnClick: () => setUpgradeOpen(true),
+          secondaryActionLabel: t(
+            "dashboard.credits.buyMoreCredits",
+            "Buy more credits"
+          ),
+          secondaryActionOnClick: () => setTopupOpen(true),
+        });
+      } else {
+        setAlertModal({
+          title: t("dashboard.newProject.dubbingErrorTitle", "Dubbing Error"),
+          message: errMsg,
+          type: "error",
+        });
+      }
       setStep("languages");
     }
   }
@@ -251,13 +382,17 @@ export default function NewProjectPage() {
       <div className="mb-8">
         <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Dashboard
+          {t("dashboard.newProject.backToDashboard", "Back to Dashboard")}
         </Button>
       </div>
 
       {/* Step indicators */}
       <div className="flex items-center gap-2 mb-8">
-        {["Upload", "Transcript", "Languages"].map((label, i) => {
+        {[
+          t("dashboard.newProject.stepUpload", "Upload"),
+          t("dashboard.newProject.stepTranscript", "Transcript"),
+          t("dashboard.newProject.stepLanguages", "Languages"),
+        ].map((label, i) => {
           const steps: Step[] = ["upload", "transcript", "languages"];
           const isActive = step === steps[i];
           const isPast =
@@ -294,17 +429,17 @@ export default function NewProjectPage() {
       {step === "upload" && (
         <Card>
           <CardHeader>
-            <CardTitle>Upload Video</CardTitle>
+            <CardTitle>{t("dashboard.newProject.uploadVideo", "Upload Video")}</CardTitle>
             <CardDescription>
-              Upload your video to get started with dubbing
+              {t("dashboard.newProject.uploadVideoDescription", "Upload your video to get started with dubbing")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="title">Project Title (optional)</Label>
+              <Label htmlFor="title">{t("dashboard.newProject.projectTitleLabel", "Project Title (optional)")}</Label>
               <Input
                 id="title"
-                placeholder="My Video"
+                placeholder={t("dashboard.newProject.projectTitlePlaceholder", "My Video")}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="mt-1"
@@ -313,10 +448,13 @@ export default function NewProjectPage() {
 
             <div>
               <Label htmlFor="language">
-                What language is the speaker in your video using?
+                {t("dashboard.newProject.sourceLanguageLabel", "What language is the speaker in your video using?")}
               </Label>
               <p className="mt-1 text-xs text-slate-500">
-                This is the <strong className="text-slate-300">original</strong> language of the speech in your video — not the language you want to translate it to. You&apos;ll choose target languages in the next step.
+                {t(
+                  "dashboard.newProject.sourceLanguageHelp",
+                  "This is the original language of the speech in your video — not the language you want to translate it to. You'll choose target languages in the next step."
+                )}
               </p>
               <select
                 id="language"
@@ -324,7 +462,7 @@ export default function NewProjectPage() {
                 onChange={(e) => setSourceLanguage(e.target.value)}
                 className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-pink-500/50 focus:outline-none focus:ring-1 focus:ring-pink-500/50"
               >
-                <option value="auto">Auto-detect (recommended)</option>
+                <option value="auto">{t("dashboard.newProject.autoDetect", "Auto-detect (recommended)")}</option>
                 <option value="en">English</option>
                 <option value="es">Spanish</option>
                 <option value="fr">French</option>
@@ -361,7 +499,7 @@ export default function NewProjectPage() {
                     <Check className="h-4 w-4 text-green-400" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-white">Video uploaded successfully</p>
+                    <p className="text-sm font-medium text-white">{t("dashboard.newProject.videoUploadedSuccess", "Video uploaded successfully")}</p>
                     <p className="text-xs text-slate-400">{uploadedFile?.name} ({((uploadedFile?.size || 0) / 1024 / 1024).toFixed(1)} MB)</p>
                   </div>
                 </div>
@@ -369,20 +507,20 @@ export default function NewProjectPage() {
                   onClick={() => createProject()}
                   className="w-full gradient-button inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold"
                 >
-                  Create Project
+                  {t("dashboard.newProject.createProject", "Create Project")}
                 </button>
               </div>
             )}
 
             {loading && (
               <ProcessingIndicator
-                label="Transcribing your video"
-                sublabel="AI is converting speech to text"
+                label={t("dashboard.newProject.transcribingLabel", "Transcribing your video")}
+                sublabel={t("dashboard.newProject.transcribingSublabel", "AI is converting speech to text")}
                 steps={[
-                  "Uploading video",
-                  "Extracting audio",
-                  "Running speech recognition",
-                  "Generating transcript",
+                  t("dashboard.newProject.stepUploadingVideo", "Uploading video"),
+                  t("dashboard.newProject.stepExtractingAudio", "Extracting audio"),
+                  t("dashboard.newProject.stepSpeechRecognition", "Running speech recognition"),
+                  t("dashboard.newProject.stepGeneratingTranscript", "Generating transcript"),
                 ]}
                 currentStep={2}
               />
@@ -399,19 +537,19 @@ export default function NewProjectPage() {
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-500/10 border border-blue-500/20">
                 <Globe className="h-7 w-7 text-blue-400" />
               </div>
-              <h3 className="text-lg font-semibold text-white">Language Detected</h3>
+              <h3 className="text-lg font-semibold text-white">{t("dashboard.newProject.languageDetected", "Language Detected")}</h3>
               <p className="mt-2 text-sm text-slate-400">
-                We detected the original language as:
+                {t("dashboard.newProject.detectedAs", "We detected the original language as:")}
               </p>
               <p className="mt-2 text-2xl font-bold text-white">
-                {LANGUAGE_MAP[detectedLanguage || ""] || detectedLanguage || "Unknown"}
+                {LANGUAGE_MAP[detectedLanguage || ""] || detectedLanguage || t("dashboard.newProject.unknown", "Unknown")}
               </p>
             </div>
 
             {/* Preview first few transcript lines */}
             {transcript.length > 0 && (
               <div className="mb-6 rounded-xl border border-white/10 bg-white/5 p-4 max-h-32 overflow-y-auto">
-                <p className="text-xs text-slate-500 mb-2">Transcript preview:</p>
+                <p className="text-xs text-slate-500 mb-2">{t("dashboard.newProject.transcriptPreview", "Transcript preview:")}</p>
                 <p className="text-sm text-slate-300 italic">
                   &ldquo;{transcript.slice(0, 3).map(s => s.text).join(" ")}&rdquo;
                 </p>
@@ -424,21 +562,21 @@ export default function NewProjectPage() {
                 className="gradient-button inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold"
               >
                 <Check className="h-4 w-4" />
-                Yes, this is correct
+                {t("dashboard.newProject.yesCorrect", "Yes, this is correct")}
               </button>
               <button
                 onClick={() => setCorrectedLanguage(detectedLanguage || "")}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <AlertTriangle className="h-4 w-4 text-amber-400" />
-                No, wrong language
+                {t("dashboard.newProject.noWrongLanguage", "No, wrong language")}
               </button>
             </div>
 
             {/* Language correction selector */}
             {correctedLanguage !== "" && (
               <div className="mt-6 border-t border-white/10 pt-6">
-                <p className="text-sm text-slate-400 mb-3">Select the correct original language:</p>
+                <p className="text-sm text-slate-400 mb-3">{t("dashboard.newProject.selectCorrectLanguage", "Select the correct original language:")}</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
                   {SOURCE_LANGUAGES.map((lang) => (
                     <button
@@ -467,7 +605,7 @@ export default function NewProjectPage() {
                   {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <>Re-transcribe with {SOURCE_LANGUAGES.find(l => l.code === correctedLanguage)?.name || correctedLanguage}</>
+                    <>{t("dashboard.newProject.reTranscribeWith", "Re-transcribe with {language}", { language: SOURCE_LANGUAGES.find(l => l.code === correctedLanguage)?.name || correctedLanguage })}</>
                   )}
                 </button>
               </div>
@@ -480,9 +618,9 @@ export default function NewProjectPage() {
       {step === "transcript" && (
         <Card>
           <CardHeader>
-            <CardTitle>Review Transcript</CardTitle>
+            <CardTitle>{t("dashboard.newProject.reviewTranscript", "Review Transcript")}</CardTitle>
             <CardDescription>
-              Click on any segment to edit the text before dubbing
+              {t("dashboard.newProject.reviewTranscriptDescription", "Click on any segment to edit the text before dubbing")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -492,7 +630,7 @@ export default function NewProjectPage() {
             />
             <div className="flex justify-end mt-6">
               <Button onClick={() => setStep("languages")}>
-                Next: Select Languages
+                {t("dashboard.newProject.nextSelectLanguages", "Next: Select Languages")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
@@ -504,9 +642,9 @@ export default function NewProjectPage() {
       {step === "languages" && (
         <Card>
           <CardHeader>
-            <CardTitle>Select Target Languages</CardTitle>
+            <CardTitle>{t("dashboard.newProject.selectTargetLanguages", "Select Target Languages")}</CardTitle>
             <CardDescription>
-              Choose which languages to dub your video into
+              {t("dashboard.newProject.selectTargetLanguagesDescription", "Choose which languages to dub your video into")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -519,7 +657,7 @@ export default function NewProjectPage() {
             <div className="flex justify-between mt-6">
               <Button variant="outline" onClick={() => setStep("transcript")}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
+                {t("dashboard.newProject.back", "Back")}
               </Button>
               <Button
                 onClick={handleStartDubbing}
@@ -528,7 +666,7 @@ export default function NewProjectPage() {
                 {loading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : null}
-                Start Dubbing ({selectedLanguages.length} languages)
+                {t("dashboard.newProject.startDubbingCount", "Start Dubbing ({count} languages)", { count: String(selectedLanguages.length) })}
               </Button>
             </div>
           </CardContent>
@@ -540,12 +678,12 @@ export default function NewProjectPage() {
         <Card>
           <CardContent>
             <ProcessingIndicator
-              label="Starting dubbing"
-              sublabel="Preparing your video for AI processing"
+              label={t("dashboard.newProject.startingDubbingLabel", "Starting dubbing")}
+              sublabel={t("dashboard.newProject.startingDubbingSublabel", "Preparing your video for AI processing")}
               steps={[
-                "Creating dub jobs",
-                "Initializing AI pipeline",
-                "Redirecting to project...",
+                t("dashboard.newProject.stepCreatingDubJobs", "Creating dub jobs"),
+                t("dashboard.newProject.stepInitializingAi", "Initializing AI pipeline"),
+                t("dashboard.newProject.stepRedirecting", "Redirecting to project..."),
               ]}
               currentStep={1}
             />
@@ -560,8 +698,27 @@ export default function NewProjectPage() {
           title={alertModal.title}
           message={alertModal.message}
           type={alertModal.type}
+          actionHref={alertModal.actionHref}
+          actionLabel={alertModal.actionLabel}
+          actionOnClick={alertModal.actionOnClick}
+          secondaryActionLabel={alertModal.secondaryActionLabel}
+          secondaryActionOnClick={alertModal.secondaryActionOnClick}
         />
       )}
+
+      {/* Upgrade plan modal — opened from the "Insufficient credits"
+          alert's primary CTA. Matches the dashboard Plan card flow. */}
+      {profile && (
+        <UpgradeModal
+          open={upgradeOpen}
+          onClose={() => setUpgradeOpen(false)}
+          currentPlan={profile.plan}
+        />
+      )}
+
+      {/* Topup modal — opened from the "Insufficient credits" alert's
+          secondary "Buy more credits" CTA. Stacks on top of the alert. */}
+      <TopupModal open={topupOpen} onClose={() => setTopupOpen(false)} />
     </div>
   );
 }
