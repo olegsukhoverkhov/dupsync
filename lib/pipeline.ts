@@ -134,8 +134,17 @@ export async function runDubbingAudio(dubId: string) {
     }
   }
 
-  // All attempts failed — record the final error
-  const errMsg = lastError instanceof Error ? lastError.message : "Unknown error";
+  // All attempts failed — record the final error. Quota exhaustion
+  // gets a user-friendly message because the raw ElevenLabs API
+  // response is useless ("voice_add_edit_limit_reached") and also
+  // a lot less scary to read as plain English.
+  let errMsg = lastError instanceof Error ? lastError.message : "Unknown error";
+  if (lastError instanceof ai.ElevenLabsQuotaExhaustedError) {
+    errMsg =
+      "Voice cloning is temporarily unavailable — our ElevenLabs monthly " +
+      "quota was reached. Dubbing will resume automatically at the next " +
+      "billing cycle. Contact support if you need this dub sooner.";
+  }
   log(dubId, `Stage 1 FAILED after retries: ${errMsg}`);
   await supabase
     .from("dubs")
@@ -198,6 +207,16 @@ async function runDubbingAudioOnce(
         voiceId = await ai.cloneVoice(sampleBuffer, dub.id as string, sampleExt);
         log(dubId, `Voice cloned from extracted audio: ${voiceId}`);
       } catch (cloneErr) {
+        // Quota exhausted errors are permanent until the ElevenLabs
+        // billing cycle resets. Surfacing them via silent fallback to a
+        // pre-made voice makes the user hear a random speaker — this
+        // happened on a real Ukrainian dub before this guardrail landed.
+        // Re-throw so the outer catch writes a clear error_message and
+        // marks the dub as `error` instead of silently completing with
+        // the wrong voice.
+        if (cloneErr instanceof ai.ElevenLabsQuotaExhaustedError) {
+          throw cloneErr;
+        }
         log(dubId, `Clone from extracted audio failed: ${cloneErr instanceof Error ? cloneErr.message : "unknown"}`);
         voiceId = await ai.getMultilingualVoice();
         log(dubId, `Using pre-made voice: ${voiceId}`);
@@ -220,6 +239,13 @@ async function runDubbingAudioOnce(
           throw new Error("Could not download video");
         }
       } catch (fallbackErr) {
+        // Same quota exhaustion guard as the primary clone path. Do
+        // NOT silently reach for the multilingual pre-made voice —
+        // that produces wrong-sounding dubs that users rightfully
+        // complain about.
+        if (fallbackErr instanceof ai.ElevenLabsQuotaExhaustedError) {
+          throw fallbackErr;
+        }
         log(dubId, `Fallback clone failed: ${fallbackErr instanceof Error ? fallbackErr.message : "unknown"}`);
         voiceId = await ai.getMultilingualVoice();
       }

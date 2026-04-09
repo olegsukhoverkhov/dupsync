@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { runDubbing } from "@/lib/pipeline";
+import { canCloneVoiceNow } from "@/lib/ai";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { Profile } from "@/lib/supabase/types";
 
@@ -74,6 +75,24 @@ export async function POST(request: Request) {
         error: `Your ${planLimits.name} plan allows max ${planLimits.maxLanguages} languages`,
       },
       { status: 403 }
+    );
+  }
+
+  // Pre-flight: refuse the dub if our ElevenLabs voice cloning
+  // quota is exhausted. Without this check the pipeline would
+  // quietly fall back to a pre-made multilingual voice and the user
+  // would hear a random speaker with no way to tell why. Bail before
+  // deducting credits so the user isn't billed for a failed dub.
+  const vcCheck = await canCloneVoiceNow();
+  if (!vcCheck.ok) {
+    return NextResponse.json(
+      {
+        error:
+          "Voice cloning is temporarily unavailable. Our voice provider's monthly quota has been reached — dubbing will resume automatically when it resets. Contact support if you need this dub sooner.",
+        code: "voice_clone_unavailable",
+        reason: vcCheck.reason,
+      },
+      { status: 503 }
     );
   }
 

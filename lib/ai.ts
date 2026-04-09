@@ -17,6 +17,99 @@ export class ElevenLabsVoicePermissionError extends Error {
 }
 
 /**
+ * ElevenLabs account has hit its monthly voice add/edit quota
+ * (`voice_add_edit_limit_reached`). On Creator tier that's 95 per
+ * billing cycle and it does NOT reset when old voices are deleted —
+ * only on the next cycle. When this fires we MUST NOT silently fall
+ * back to a pre-made voice because the user will hear a random
+ * generic voice instead of their speaker. Surface the specific error
+ * so the pipeline can mark the dub as error with a clear message.
+ */
+export class ElevenLabsQuotaExhaustedError extends Error {
+  constructor(body: string) {
+    super(`ElevenLabs voice quota exhausted: ${body}`);
+    this.name = "ElevenLabsQuotaExhaustedError";
+  }
+}
+
+/**
+ * Pre-flight check: is the ElevenLabs account able to create at
+ * least one more voice clone right now? Returns `{ ok: false }` when
+ * the monthly `voice_add_edit_counter` has reached the plan cap.
+ *
+ * Used by `/api/dub` to refuse the request BEFORE deducting credits,
+ * so the user isn't charged for a dub that will inevitably fail on
+ * Stage 1 voice cloning and produce a wrong-sounding fallback voice.
+ *
+ * The check is cheap (one GET /user/subscription) and cached for 60s
+ * in-process to avoid hammering ElevenLabs on a burst of parallel
+ * dub requests.
+ */
+type ElevenLabsQuota = {
+  voiceAddEditUsed: number;
+  voiceAddEditMax: number;
+  voiceSlotsUsed: number;
+  voiceSlotsMax: number;
+  characterUsed: number;
+  characterMax: number;
+};
+let quotaCache: { at: number; data: ElevenLabsQuota } | null = null;
+
+export async function getElevenLabsQuota(): Promise<ElevenLabsQuota | null> {
+  try {
+    const now = Date.now();
+    if (quotaCache && now - quotaCache.at < 60_000) return quotaCache.data;
+
+    const res = await fetch(
+      "https://api.elevenlabs.io/v1/user/subscription",
+      { headers: { "xi-api-key": process.env.ELEVENLABS_API_KEY! } }
+    );
+    if (!res.ok) return null;
+    const j = (await res.json()) as Record<string, number>;
+    const data: ElevenLabsQuota = {
+      voiceAddEditUsed: Number(j.voice_add_edit_counter ?? 0),
+      voiceAddEditMax: Number(j.max_voice_add_edits ?? 0),
+      voiceSlotsUsed: Number(j.voice_slots_used ?? 0),
+      voiceSlotsMax: Number(j.voice_limit ?? 0),
+      characterUsed: Number(j.character_count ?? 0),
+      characterMax: Number(j.character_limit ?? 0),
+    };
+    quotaCache = { at: now, data };
+    return data;
+  } catch {
+    // Non-fatal: if the probe fails, we don't block the dub.
+    // Stage 1 will catch the real error if quota is actually hit.
+    return null;
+  }
+}
+
+/**
+ * Convenience wrapper: true if a new dubbing pipeline run can
+ * reasonably expect voice cloning to succeed right now. Conservative
+ * by design — we need at least 1 free add/edit AND at least 1 free
+ * voice slot, with a small safety margin so a burst of parallel
+ * Stage 1 runs doesn't trip the limit mid-flight.
+ */
+export async function canCloneVoiceNow(): Promise<{
+  ok: boolean;
+  reason?: string;
+}> {
+  const q = await getElevenLabsQuota();
+  if (!q) return { ok: true }; // probe failed — let the actual call decide
+  if (q.voiceAddEditUsed >= q.voiceAddEditMax) {
+    return {
+      ok: false,
+      reason: "elevenlabs_voice_add_edit_quota_exhausted",
+    };
+  }
+  // Keep at least 1 slot free for subsequent dubs in the same second
+  if (q.voiceSlotsUsed >= q.voiceSlotsMax) {
+    return { ok: false, reason: "elevenlabs_voice_slots_full" };
+  }
+  return { ok: true };
+}
+
+/**
  * Classified transcription failure. Raised by `transcribe()` when either
  * Whisper or AssemblyAI reject the file for a reason that is meaningful to
  * the end user — so we can surface a friendly error message on the project
@@ -111,6 +204,7 @@ export function classifyTranscriptionError(
  */
 export function isTransientError(err: unknown): boolean {
   if (err instanceof ElevenLabsVoicePermissionError) return false; // permanent
+  if (err instanceof ElevenLabsQuotaExhaustedError) return false; // permanent until billing cycle reset
   const msg = err instanceof Error ? err.message : String(err);
   return (
     /timed out|timeout/i.test(msg) ||
@@ -573,6 +667,19 @@ async function cloneVoiceOnce(
   if (!response.ok) {
     const errBody = await response.text().catch(() => "");
     console.error(`[VOICE_CLONE] Error ${response.status}: ${errBody}`);
+    // Detect the monthly voice add/edit quota limit. ElevenLabs
+    // returns 403 with `voice_add_edit_limit_reached` — this cannot
+    // be recovered by retry and deleting existing clones doesn't
+    // reset the counter. Surface as a dedicated error so the
+    // pipeline can fail the dub with a clear user-facing message
+    // instead of silently falling back to a pre-made voice (which
+    // plays the speaker's voice as someone completely different).
+    if (
+      response.status === 403 &&
+      /voice_add_edit_limit_reached|monthly limit of voice add/i.test(errBody)
+    ) {
+      throw new ElevenLabsQuotaExhaustedError(errBody.slice(0, 300));
+    }
     throw new Error(`ElevenLabs clone error: ${response.status} ${response.statusText} ${errBody.slice(0, 200)}`);
   }
 
