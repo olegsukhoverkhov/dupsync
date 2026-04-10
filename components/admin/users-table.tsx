@@ -132,7 +132,12 @@ export function UsersTable({ initial }: { initial: AdminUsersPage }) {
                               { method: "POST" }
                             );
                             if (!res.ok) throw new Error("Failed");
-                            const { url } = await res.json();
+                            const { email, otp } = await res.json();
+                            // Open the impersonate page in a new tab.
+                            // It calls verifyOtp() client-side which
+                            // properly sets the session cookie through
+                            // the Supabase SSR auth flow.
+                            const url = `/admin/impersonate?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`;
                             window.open(url, "_blank");
                           } catch {
                             alert("Could not generate login link");
