@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Loader2 } from "lucide-react";
@@ -15,11 +15,22 @@ import { Loader2 } from "lucide-react";
  * which exchanges the one-time token for a proper session cookie.
  * Once the session is set, redirects to /dashboard — the admin is
  * now browsing as the target user in this tab.
- *
- * The original admin tab keeps its own session intact because
- * cookies are per-tab for Supabase SSR.
  */
 export default function ImpersonatePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
+          <Loader2 className="h-8 w-8 text-pink-400 animate-spin" />
+        </div>
+      }
+    >
+      <ImpersonateInner />
+    </Suspense>
+  );
+}
+
+function ImpersonateInner() {
   const params = useSearchParams();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
