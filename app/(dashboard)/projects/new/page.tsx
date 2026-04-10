@@ -218,13 +218,23 @@ export default function NewProjectPage() {
     } catch (err) {
       setLoading(false);
       const msg = err instanceof Error ? err.message : t("dashboard.newProject.failedToCreateProjectDot", "Failed to create project.");
-      setAlertModal({
-        title: msg.includes("already exists")
-          ? t("dashboard.newProject.duplicateNameTitle", "Duplicate Name")
-          : t("dashboard.newProject.errorTitle", "Error"),
-        message: msg,
-        type: "error",
-      });
+      if (msg.includes("already exists")) {
+        // Show the upload section again with title editable so the
+        // user can rename and retry without re-uploading.
+        setAlertModal({
+          title: t("dashboard.newProject.duplicateNameTitle", "Duplicate Name"),
+          message: t("dashboard.newProject.duplicateNameMessage", "A project with this name already exists. Please change the title and try again."),
+          type: "error",
+          actionLabel: t("dashboard.newProject.ok", "OK"),
+          actionOnClick: () => setAlertModal(null),
+        });
+      } else {
+        setAlertModal({
+          title: t("dashboard.newProject.errorTitle", "Error"),
+          message: msg,
+          type: "error",
+        });
+      }
     }
   }
 
@@ -492,6 +502,17 @@ export default function NewProjectPage() {
                           <p className="text-xs text-slate-400">{uploadedFile?.name} ({((uploadedFile?.size || 0) / 1024 / 1024).toFixed(1)} MB)</p>
                         </div>
                       </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="title">{t("dashboard.newProject.projectTitleLabel", "Project Title (optional)")}</Label>
+                      <Input
+                        id="title"
+                        placeholder={t("dashboard.newProject.projectTitlePlaceholder", "My Video")}
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="mt-1"
+                      />
                     </div>
 
                     <div>
