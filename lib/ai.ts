@@ -89,6 +89,36 @@ export async function getElevenLabsQuota(): Promise<ElevenLabsQuota | null> {
 }
 
 /**
+ * fal.ai account balance. Used by /admin/stats to show remaining
+ * credits for lip sync and ffmpeg operations.
+ */
+export type FalAiBalance = {
+  balance: number;
+  currency: string;
+};
+
+export async function getFalAiBalance(): Promise<FalAiBalance | null> {
+  try {
+    const key = process.env.FAL_KEY;
+    if (!key) return null;
+    const res = await fetch(
+      "https://api.fal.ai/v1/account/billing?expand=credits",
+      { headers: { Authorization: `Key ${key}` } }
+    );
+    if (!res.ok) return null;
+    const j = (await res.json()) as {
+      credits?: { current_balance?: number; currency?: string };
+    };
+    return {
+      balance: Number(j.credits?.current_balance ?? 0),
+      currency: j.credits?.currency || "USD",
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Advisory: true if a new dubbing pipeline run can reasonably
  * expect voice cloning to succeed right now. NOT used by `/api/dub`
  * as a hard gate anymore — see the `getElevenLabsQuota` docblock.

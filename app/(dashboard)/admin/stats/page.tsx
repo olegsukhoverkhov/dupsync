@@ -4,7 +4,7 @@ import { getVisitStats, getVisitDailyChart } from "@/lib/analytics";
 import { VisitsChart } from "@/components/admin/visits-chart";
 import { getAdminUsers } from "@/lib/admin";
 import { resolveRange, type RangePreset } from "@/lib/admin";
-import { getElevenLabsQuota } from "@/lib/ai";
+import { getElevenLabsQuota, getFalAiBalance } from "@/lib/ai";
 import { getFishAudioQuota } from "@/lib/fish-audio";
 import { RangeFilter } from "@/components/admin/range-filter";
 import { UsersTable } from "@/components/admin/users-table";
@@ -17,6 +17,7 @@ import {
   Archive,
   Fish,
   Type,
+  Video,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -83,12 +84,13 @@ export default async function AdminStatsPage({
   );
 
   // Run all queries in parallel — they're independent.
-  const [stats, dailyData, usersPageData, elevenLabsQuota, fishQuota] = await Promise.all([
+  const [stats, dailyData, usersPageData, elevenLabsQuota, fishQuota, falBalance] = await Promise.all([
     getVisitStats({ from: range.from, to: range.to }),
     getVisitDailyChart({ from: range.from, to: range.to }),
     getAdminUsers(usersPage, 10),
     getElevenLabsQuota(),
     getFishAudioQuota(),
+    getFalAiBalance(),
   ]);
 
   return (
@@ -157,6 +159,49 @@ export default async function AdminStatsPage({
 
       <div className="mt-6">
         <VisitsChart data={dailyData} label={range.label} />
+      </div>
+
+      {/* ── fal.ai balance ──────────────────────────────────── */}
+      <div className="mt-10 mb-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+          fal.ai — Lip sync & video processing
+        </h2>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
+        <div className={`rounded-2xl border p-5 ${
+          falBalance && falBalance.balance < 1
+            ? "border-red-500/20 bg-slate-800/50"
+            : "border-white/10 bg-slate-800/50"
+        }`}>
+          <div className="flex items-center gap-3">
+            <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+              falBalance && falBalance.balance < 1
+                ? "bg-red-500/10"
+                : "bg-violet-500/10"
+            }`}>
+              <Video className={`h-5 w-5 ${
+                falBalance && falBalance.balance < 1
+                  ? "text-red-400"
+                  : "text-violet-400"
+              }`} />
+            </div>
+            <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+              Account balance
+            </p>
+          </div>
+          <p className={`mt-3 text-3xl font-bold tabular-nums ${
+            falBalance && falBalance.balance < 1
+              ? "text-red-400"
+              : "text-violet-400"
+          }`}>
+            {falBalance ? `$${falBalance.balance.toFixed(2)}` : "—"}
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            {falBalance && falBalance.balance < 1
+              ? "⚠ Balance exhausted — lip sync will fail"
+              : "Lip sync (latentsync) + ffmpeg compose"}
+          </p>
+        </div>
       </div>
 
       {/* ── Voice cloning provider ─────────────────────────────
