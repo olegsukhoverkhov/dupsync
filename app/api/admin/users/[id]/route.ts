@@ -112,7 +112,7 @@ export async function DELETE(
 
   const admin = await createServiceClient();
 
-  // Delete user's data: fetch project IDs, delete dubs, then projects
+  // 1. Delete dubs (child of projects)
   const { data: userProjects } = await admin
     .from("projects")
     .select("id")
@@ -121,10 +121,30 @@ export async function DELETE(
     const projectIds = userProjects.map((p: { id: string }) => p.id);
     await admin.from("dubs").delete().in("project_id", projectIds);
   }
+
+  // 2. Delete all user-owned rows across every table
+  await admin.from("credit_usage").delete().eq("user_id", targetId);
+  await admin.from("transactions").delete().eq("user_id", targetId);
+  await admin.from("api_keys").delete().eq("user_id", targetId);
   await admin.from("projects").delete().eq("user_id", targetId);
+
+  // 3. Delete user's files from storage (non-fatal)
+  try {
+    const { data: files } = await admin.storage
+      .from("videos")
+      .list(targetId, { limit: 1000 });
+    if (files && files.length > 0) {
+      const paths = files.map((f: { name: string }) => `${targetId}/${f.name}`);
+      await admin.storage.from("videos").remove(paths);
+    }
+  } catch {
+    // Storage cleanup is best-effort
+  }
+
+  // 4. Delete profile
   await admin.from("profiles").delete().eq("id", targetId);
 
-  // Delete from auth.users via admin API
+  // 5. Delete from auth.users (the authoritative record)
   const { error } = await admin.auth.admin.deleteUser(targetId);
   if (error) {
     console.error("[admin/users DELETE] failed", error);
