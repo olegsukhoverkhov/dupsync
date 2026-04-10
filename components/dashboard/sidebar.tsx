@@ -13,6 +13,7 @@ import {
   Plus,
   BarChart3,
   Gauge,
+  LineChart,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -68,7 +69,12 @@ export function DashboardSidebar() {
     ...(isAdmin
       ? [
           {
-            name: t("dashboard.nav.admin", "Analytics"),
+            name: t("dashboard.nav.analytics", "Site Analytics"),
+            href: "/admin/analytics",
+            icon: LineChart,
+          },
+          {
+            name: t("dashboard.nav.admin", "Users"),
             href: "/admin/stats",
             icon: BarChart3,
           },
