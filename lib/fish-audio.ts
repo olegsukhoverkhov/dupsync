@@ -47,7 +47,7 @@ export async function createVoiceModel(
   fd.append("type", "tts");
   fd.append("title", `dubsync-${name.slice(0, 8)}-${Date.now()}`);
   fd.append("visibility", "private");
-  fd.append("train_mode", "fast");
+  fd.append("train_mode", "regular");
   fd.append(
     "voices",
     new Blob([new Uint8Array(audioBuffer)], { type: "audio/wav" }),
@@ -80,9 +80,9 @@ export async function createVoiceModel(
     `[FISH_CLONE] Created model ${modelId} (${(audioBuffer.length / 1024).toFixed(0)}KB sample)`
   );
 
-  // Wait for training to complete (fast mode = ~1-2s)
-  for (let i = 0; i < 30; i++) {
-    await new Promise((r) => setTimeout(r, 1500));
+  // Wait for training to complete (regular mode = ~20-40s)
+  for (let i = 0; i < 60; i++) {
+    await new Promise((r) => setTimeout(r, 2000));
     const statusRes = await fetch(`${FISH_API}/model/${modelId}`, {
       headers: { Authorization: `Bearer ${key}` },
     });
@@ -134,11 +134,11 @@ export async function textToSpeech(
   const body: Record<string, unknown> = {
     text,
     format: "wav",
-    temperature: 0.7,
-    top_p: 0.7,
-    chunk_length: 300,
+    temperature: 0.3,
+    top_p: 0.8,
+    chunk_length: 150,
     normalize: true,
-    latency: "normal",
+    latency: "balanced",
     prosody: { speed, volume: 0 },
   };
 
