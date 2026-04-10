@@ -448,81 +448,86 @@ export default function NewProjectPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="title">{t("dashboard.newProject.projectTitleLabel", "Project Title (optional)")}</Label>
-              <Input
-                id="title"
-                placeholder={t("dashboard.newProject.projectTitlePlaceholder", "My Video")}
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="language">
-                {t("dashboard.newProject.sourceLanguageLabel", "What language is the speaker in your video using?")}
-              </Label>
-              <p className="mt-1 text-xs text-slate-500">
-                {t(
-                  "dashboard.newProject.sourceLanguageHelp",
-                  "This is the original language of the speech in your video — not the language you want to translate it to. You'll choose target languages in the next step."
-                )}
-              </p>
-              <select
-                id="language"
-                value={sourceLanguage}
-                onChange={(e) => setSourceLanguage(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-pink-500/50 focus:outline-none focus:ring-1 focus:ring-pink-500/50"
-              >
-                <option value="auto">{t("dashboard.newProject.autoDetect", "Auto-detect (recommended)")}</option>
-                <option value="en">English</option>
-                <option value="es">Spanish</option>
-                <option value="fr">French</option>
-                <option value="de">German</option>
-                <option value="pt">Portuguese</option>
-                <option value="ja">Japanese</option>
-                <option value="ko">Korean</option>
-                <option value="zh">Chinese</option>
-                <option value="hi">Hindi</option>
-                <option value="ar">Arabic</option>
-                <option value="it">Italian</option>
-                <option value="tr">Turkish</option>
-                <option value="uk">Ukrainian</option>
-                <option value="ru">Russian</option>
-              </select>
-            </div>
-
-            {/* Video upload — hide after file is uploaded */}
-            {profile && !uploadedPath && (
-              <VideoUpload
-                userId={profile.id}
-                maxSizeMB={planLimits.maxFileSize}
-                maxDurationSec={planLimits.maxVideoSeconds}
-                planName={planLimits.name}
-                onUploadComplete={handleUploadComplete}
-              />
-            )}
-
-            {/* After upload succeeded but project creation failed (e.g. duplicate name) */}
-            {uploadedPath && !loading && !project && (
-              <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-8 w-8 rounded-lg bg-green-500/20 flex items-center justify-center">
-                    <Check className="h-4 w-4 text-green-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">{t("dashboard.newProject.videoUploadedSuccess", "Video uploaded successfully")}</p>
-                    <p className="text-xs text-slate-400">{uploadedFile?.name} ({((uploadedFile?.size || 0) / 1024 / 1024).toFixed(1)} MB)</p>
-                  </div>
+            {/* Hide settings while transcription is in progress */}
+            {!loading && (
+              <>
+                <div>
+                  <Label htmlFor="title">{t("dashboard.newProject.projectTitleLabel", "Project Title (optional)")}</Label>
+                  <Input
+                    id="title"
+                    placeholder={t("dashboard.newProject.projectTitlePlaceholder", "My Video")}
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="mt-1"
+                  />
                 </div>
-                <button
-                  onClick={() => createProject()}
-                  className="w-full gradient-button inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold"
-                >
-                  {t("dashboard.newProject.createProject", "Create Project")}
-                </button>
-              </div>
+
+                <div>
+                  <Label htmlFor="language">
+                    {t("dashboard.newProject.sourceLanguageLabel", "What language is the speaker in your video using?")}
+                  </Label>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {t(
+                      "dashboard.newProject.sourceLanguageHelp",
+                      "This is the original language of the speech in your video — not the language you want to translate it to. You'll choose target languages in the next step."
+                    )}
+                  </p>
+                  <select
+                    id="language"
+                    value={sourceLanguage}
+                    onChange={(e) => setSourceLanguage(e.target.value)}
+                    className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-pink-500/50 focus:outline-none focus:ring-1 focus:ring-pink-500/50"
+                  >
+                    <option value="auto">{t("dashboard.newProject.autoDetect", "Auto-detect (recommended)")}</option>
+                    <option value="en">English</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                    <option value="de">German</option>
+                    <option value="pt">Portuguese</option>
+                    <option value="ja">Japanese</option>
+                    <option value="ko">Korean</option>
+                    <option value="zh">Chinese</option>
+                    <option value="hi">Hindi</option>
+                    <option value="ar">Arabic</option>
+                    <option value="it">Italian</option>
+                    <option value="tr">Turkish</option>
+                    <option value="uk">Ukrainian</option>
+                    <option value="ru">Russian</option>
+                  </select>
+                </div>
+
+                {/* Video upload — hide after file is uploaded */}
+                {profile && !uploadedPath && (
+                  <VideoUpload
+                    userId={profile.id}
+                    maxSizeMB={planLimits.maxFileSize}
+                    maxDurationSec={planLimits.maxVideoSeconds}
+                    planName={planLimits.name}
+                    onUploadComplete={handleUploadComplete}
+                  />
+                )}
+
+                {/* After upload succeeded but project creation failed (e.g. duplicate name) */}
+                {uploadedPath && !project && (
+                  <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="h-8 w-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                        <Check className="h-4 w-4 text-green-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-white">{t("dashboard.newProject.videoUploadedSuccess", "Video uploaded successfully")}</p>
+                        <p className="text-xs text-slate-400">{uploadedFile?.name} ({((uploadedFile?.size || 0) / 1024 / 1024).toFixed(1)} MB)</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => createProject()}
+                      className="w-full gradient-button inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold"
+                    >
+                      {t("dashboard.newProject.createProject", "Create Project")}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
 
             {loading && (

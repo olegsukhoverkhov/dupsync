@@ -74,6 +74,30 @@ export async function trackVisit(ctx: VisitContext): Promise<void> {
 }
 
 /**
+ * Daily visit counts for the chart on /admin/stats. Returns an
+ * array of { day: "YYYY-MM-DD", visits: number } ordered by date.
+ */
+export async function getVisitDailyChart(range?: {
+  from?: string | null;
+  to?: string | null;
+}): Promise<Array<{ day: string; visits: number }>> {
+  try {
+    const supabase = await createServiceClient();
+    const { data, error } = await supabase.rpc("site_visit_daily", {
+      p_from: range?.from ?? null,
+      p_to: range?.to ?? null,
+    });
+    if (error || !data) return [];
+    return (data as Array<{ day: string; visits: number }>).map((r) => ({
+      day: String(r.day),
+      visits: Number(r.visits),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Read visit counters for the admin stats page. Accepts an optional
  * ISO date range. `from`/`to` are INCLUSIVE of `from` and EXCLUSIVE
  * of `to` on the SQL side so callers can safely pass "start of next

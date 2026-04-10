@@ -170,26 +170,44 @@ export async function textToSpeech(
 export type FishAudioQuota = {
   credit: number;
   userId: string;
+  /** How many private voice models currently exist in the account. */
+  privateModelsUsed: number;
+  /** Max private voice slots allowed by the plan (10 for Plus). */
+  privateModelsMax: number;
 };
 
 /**
- * Fetch current API credit balance. Used by /admin/stats to show
- * the Fish Audio quota card alongside ElevenLabs.
+ * Fetch current API credit balance AND private voice slot usage.
+ * Used by /admin/stats to show the Fish Audio quota card.
  */
 export async function getFishAudioQuota(): Promise<FishAudioQuota | null> {
   try {
     const key = getApiKey();
-    const res = await fetch(`${FISH_API}/wallet/self/api-credit`, {
-      headers: { Authorization: `Bearer ${key}` },
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as {
+    // Fetch credits + model count in parallel
+    const [creditRes, modelsRes] = await Promise.all([
+      fetch(`${FISH_API}/wallet/self/api-credit`, {
+        headers: { Authorization: `Bearer ${key}` },
+      }),
+      // self=true returns only OUR models, not the 1.6M public ones
+      fetch(`${FISH_API}/model?page_size=1&page_number=1&self=true`, {
+        headers: { Authorization: `Bearer ${key}` },
+      }),
+    ]);
+    if (!creditRes.ok) return null;
+    const creditData = (await creditRes.json()) as {
       credit?: string;
       user_id?: string;
     };
+    let privateModelsUsed = 0;
+    if (modelsRes.ok) {
+      const modelsData = (await modelsRes.json()) as { total?: number };
+      privateModelsUsed = modelsData.total || 0;
+    }
     return {
-      credit: parseFloat(data.credit || "0"),
-      userId: data.user_id || "",
+      credit: parseFloat(creditData.credit || "0"),
+      userId: creditData.user_id || "",
+      privateModelsUsed,
+      privateModelsMax: 10, // Plus plan limit
     };
   } catch {
     return null;

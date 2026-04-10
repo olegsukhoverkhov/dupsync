@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getVisitStats } from "@/lib/analytics";
+import { getVisitStats, getVisitDailyChart } from "@/lib/analytics";
+import { VisitsChart } from "@/components/admin/visits-chart";
 import { getAdminUsers } from "@/lib/admin";
 import { resolveRange, type RangePreset } from "@/lib/admin";
 import { getElevenLabsQuota } from "@/lib/ai";
@@ -82,8 +83,9 @@ export default async function AdminStatsPage({
   );
 
   // Run all queries in parallel — they're independent.
-  const [stats, usersPageData, elevenLabsQuota, fishQuota] = await Promise.all([
+  const [stats, dailyData, usersPageData, elevenLabsQuota, fishQuota] = await Promise.all([
     getVisitStats({ from: range.from, to: range.to }),
+    getVisitDailyChart({ from: range.from, to: range.to }),
     getAdminUsers(usersPage, 10),
     getElevenLabsQuota(),
     getFishAudioQuota(),
@@ -153,6 +155,10 @@ export default async function AdminStatsPage({
         />
       </div>
 
+      <div className="mt-6">
+        <VisitsChart data={dailyData} label={range.label} />
+      </div>
+
       {/* ── Voice cloning provider ─────────────────────────────
           Fish Audio is the active provider for ALL plans (free +
           paid). ElevenLabs is kept as a fallback for languages
@@ -179,7 +185,7 @@ export default async function AdminStatsPage({
               <Fish className="h-5 w-5 text-emerald-400" />
             </div>
             <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
-              Fish Audio credits
+              API credits
             </p>
           </div>
           <p className="mt-3 text-3xl font-bold tabular-nums text-emerald-400">
@@ -189,6 +195,13 @@ export default async function AdminStatsPage({
             Pay-as-you-go · ~$0.0006/clone · No monthly quota
           </p>
         </div>
+        <QuotaCard
+          icon={<Mic className="h-5 w-5" />}
+          label="Private voice slots"
+          used={fishQuota?.privateModelsUsed}
+          max={fishQuota?.privateModelsMax}
+          subtitle="Models created by DubSync — freed after each dub"
+        />
       </div>
 
       {/* ── ElevenLabs quota (fallback) ────────────────────────
