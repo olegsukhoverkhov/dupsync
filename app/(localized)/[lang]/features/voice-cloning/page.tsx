@@ -240,9 +240,9 @@ const TRANSLATIONS = {
   },
 
   hi: {
-    title: "Clonaci\u00f3n de Voz con IA para Doblaje de Video \u2014 Tu Voz en Cualquier Idioma | DubSync",
+    title: "AI वॉइस क्लोनिंग — किसी भी भाषा में आपकी आवाज़ | DubSync",
     description:
-      "Clona tu voz con IA y dobla videos en m\u00e1s de 30 idiomas manteniendo tu tono, tono y cadencia \u00fanicos. Resultados de calidad de estudio en minutos.",
+      "किसी भी वक्ता की आवाज़ क्लोन करें और हर लक्ष्य भाषा में उनका अनूठा टोन बनाए रखें।",
     badge: "Clonaci\u00f3n de Voz",
     h1: "Clonaci\u00f3n de voz con IA \u2014",
     h1Highlight: "tu voz, cualquier idioma",
@@ -280,13 +280,13 @@ const TRANSLATIONS = {
       { question: "\u00bfPuedo usar la clonaci\u00f3n de voz en contenido que no cre\u00e9?", answer: "La clonaci\u00f3n de voz solo est\u00e1 disponible para contenido que posees o para el que tienes derechos expl\u00edcitos de doblaje." },
       { question: "\u00bfCu\u00e1l es la diferencia entre clonaci\u00f3n Standard y Ultra?", answer: "Standard est\u00e1 optimizada para velocidad y es adecuada para la mayor\u00eda del contenido. Ultra usa un modelo neuronal m\u00e1s grande con m\u00e1s par\u00e1metros vocales para m\u00e1xima fidelidad profesional." },
     ],
-    breadcrumbFeatures: "Funciones",
+    breadcrumbFeatures: "सुविधाएं",
     breadcrumbVoiceCloning: "Clonaci\u00f3n de Voz",
   },
   ar: {
-    title: "Clonaci\u00f3n de Voz con IA para Doblaje de Video \u2014 Tu Voz en Cualquier Idioma | DubSync",
+    title: "استنساخ الصوت بالذكاء الاصطناعي — صوتك بأي لغة | DubSync",
     description:
-      "Clona tu voz con IA y dobla videos en m\u00e1s de 30 idiomas manteniendo tu tono, tono y cadencia \u00fanicos. Resultados de calidad de estudio en minutos.",
+      "استنسخ صوت أي متحدث واحتفظ بنبرته الفريدة في كل لغة مستهدفة.",
     badge: "Clonaci\u00f3n de Voz",
     h1: "Clonaci\u00f3n de voz con IA \u2014",
     h1Highlight: "tu voz, cualquier idioma",
@@ -324,13 +324,13 @@ const TRANSLATIONS = {
       { question: "\u00bfPuedo usar la clonaci\u00f3n de voz en contenido que no cre\u00e9?", answer: "La clonaci\u00f3n de voz solo est\u00e1 disponible para contenido que posees o para el que tienes derechos expl\u00edcitos de doblaje." },
       { question: "\u00bfCu\u00e1l es la diferencia entre clonaci\u00f3n Standard y Ultra?", answer: "Standard est\u00e1 optimizada para velocidad y es adecuada para la mayor\u00eda del contenido. Ultra usa un modelo neuronal m\u00e1s grande con m\u00e1s par\u00e1metros vocales para m\u00e1xima fidelidad profesional." },
     ],
-    breadcrumbFeatures: "Funciones",
+    breadcrumbFeatures: "الميزات",
     breadcrumbVoiceCloning: "Clonaci\u00f3n de Voz",
   },
   id: {
-    title: "Clonaci\u00f3n de Voz con IA para Doblaje de Video \u2014 Tu Voz en Cualquier Idioma | DubSync",
+    title: "Kloning Suara AI — Suara Anda dalam Bahasa Apa Pun | DubSync",
     description:
-      "Clona tu voz con IA y dobla videos en m\u00e1s de 30 idiomas manteniendo tu tono, tono y cadencia \u00fanicos. Resultados de calidad de estudio en minutos.",
+      "Kloning suara pembicara mana pun dan pertahankan nada unik mereka di setiap bahasa target.",
     badge: "Clonaci\u00f3n de Voz",
     h1: "Clonaci\u00f3n de voz con IA \u2014",
     h1Highlight: "tu voz, cualquier idioma",
@@ -368,13 +368,13 @@ const TRANSLATIONS = {
       { question: "\u00bfPuedo usar la clonaci\u00f3n de voz en contenido que no cre\u00e9?", answer: "La clonaci\u00f3n de voz solo est\u00e1 disponible para contenido que posees o para el que tienes derechos expl\u00edcitos de doblaje." },
       { question: "\u00bfCu\u00e1l es la diferencia entre clonaci\u00f3n Standard y Ultra?", answer: "Standard est\u00e1 optimizada para velocidad y es adecuada para la mayor\u00eda del contenido. Ultra usa un modelo neuronal m\u00e1s grande con m\u00e1s par\u00e1metros vocales para m\u00e1xima fidelidad profesional." },
     ],
-    breadcrumbFeatures: "Funciones",
+    breadcrumbFeatures: "Fitur",
     breadcrumbVoiceCloning: "Clonaci\u00f3n de Voz",
   },
   tr: {
-    title: "Clonaci\u00f3n de Voz con IA para Doblaje de Video \u2014 Tu Voz en Cualquier Idioma | DubSync",
+    title: "AI Ses Klonlama — Herhangi Bir Dilde Sesiniz | DubSync",
     description:
-      "Clona tu voz con IA y dobla videos en m\u00e1s de 30 idiomas manteniendo tu tono, tono y cadencia \u00fanicos. Resultados de calidad de estudio en minutos.",
+      "Herhangi bir konuşmacının sesini klonlayın ve her hedef dilde benzersiz tonlarını koruyun.",
     badge: "Clonaci\u00f3n de Voz",
     h1: "Clonaci\u00f3n de voz con IA \u2014",
     h1Highlight: "tu voz, cualquier idioma",
@@ -412,13 +412,13 @@ const TRANSLATIONS = {
       { question: "\u00bfPuedo usar la clonaci\u00f3n de voz en contenido que no cre\u00e9?", answer: "La clonaci\u00f3n de voz solo est\u00e1 disponible para contenido que posees o para el que tienes derechos expl\u00edcitos de doblaje." },
       { question: "\u00bfCu\u00e1l es la diferencia entre clonaci\u00f3n Standard y Ultra?", answer: "Standard est\u00e1 optimizada para velocidad y es adecuada para la mayor\u00eda del contenido. Ultra usa un modelo neuronal m\u00e1s grande con m\u00e1s par\u00e1metros vocales para m\u00e1xima fidelidad profesional." },
     ],
-    breadcrumbFeatures: "Funciones",
+    breadcrumbFeatures: "Özellikler",
     breadcrumbVoiceCloning: "Clonaci\u00f3n de Voz",
   },
   ko: {
-    title: "Clonaci\u00f3n de Voz con IA para Doblaje de Video \u2014 Tu Voz en Cualquier Idioma | DubSync",
+    title: "AI 음성 클론 — 어떤 언어로든 당신의 목소리 | DubSync",
     description:
-      "Clona tu voz con IA y dobla videos en m\u00e1s de 30 idiomas manteniendo tu tono, tono y cadencia \u00fanicos. Resultados de calidad de estudio en minutos.",
+      "모든 화자의 목소리를 클론하고 모든 대상 언어에서 고유한 톤을 유지하세요.",
     badge: "Clonaci\u00f3n de Voz",
     h1: "Clonaci\u00f3n de voz con IA \u2014",
     h1Highlight: "tu voz, cualquier idioma",
@@ -456,7 +456,7 @@ const TRANSLATIONS = {
       { question: "\u00bfPuedo usar la clonaci\u00f3n de voz en contenido que no cre\u00e9?", answer: "La clonaci\u00f3n de voz solo est\u00e1 disponible para contenido que posees o para el que tienes derechos expl\u00edcitos de doblaje." },
       { question: "\u00bfCu\u00e1l es la diferencia entre clonaci\u00f3n Standard y Ultra?", answer: "Standard est\u00e1 optimizada para velocidad y es adecuada para la mayor\u00eda del contenido. Ultra usa un modelo neuronal m\u00e1s grande con m\u00e1s par\u00e1metros vocales para m\u00e1xima fidelidad profesional." },
     ],
-    breadcrumbFeatures: "Funciones",
+    breadcrumbFeatures: "기능",
     breadcrumbVoiceCloning: "Clonaci\u00f3n de Voz",
   },};
 

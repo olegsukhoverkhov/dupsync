@@ -220,10 +220,10 @@ const TRANSLATIONS: Record<Lang, AboutCopy> = {
   },
 
   hi: {
-    title: "Sobre DubSync — Doblaje de Video con IA para Cada Creador",
+    title: "DubSync के बारे में — हर क्रिएटर के लिए AI वीडियो डबिंग",
     description:
-      "DubSync hace que el contenido de video sea accesible globalmente con clonación de voz, lip sync y traducción con IA en más de 30 idiomas.",
-    h1: "Sobre DubSync",
+      "DubSync AI वॉइस क्लोनिंग, लिप सिंक और 30+ भाषाओं में अनुवाद के साथ वीडियो कंटेंट को वैश्विक रूप से सुलभ बनाता है।",
+    h1: "DubSync के बारे में",
     missionHeading: "Nuestra misión",
     missionBody:
       "DubSync existe para hacer que el contenido de video sea accesible para cada audiencia del planeta. El idioma nunca debería ser una barrera para una gran narración, educación o entretenimiento. Damos a creadores, educadores y empresas el poder de llegar a audiencias globales en minutos, no en meses.",
@@ -254,13 +254,13 @@ const TRANSLATIONS: Record<Lang, AboutCopy> = {
       { value: "30+", label: "Idiomas" },
       { value: "96%+", label: "Precisión de lip sync" },
     ],
-    breadcrumb: "Nosotros",
+    breadcrumb: "हमारे बारे में",
   },
   ar: {
-    title: "Sobre DubSync — Doblaje de Video con IA para Cada Creador",
+    title: "حول DubSync — دبلجة فيديو بالذكاء الاصطناعي لكل منشئ",
     description:
-      "DubSync hace que el contenido de video sea accesible globalmente con clonación de voz, lip sync y traducción con IA en más de 30 idiomas.",
-    h1: "Sobre DubSync",
+      "DubSync يجعل محتوى الفيديو متاحاً عالمياً مع استنساخ الصوت ومزامنة الشفاه والترجمة بأكثر من 30 لغة.",
+    h1: "حول DubSync",
     missionHeading: "Nuestra misión",
     missionBody:
       "DubSync existe para hacer que el contenido de video sea accesible para cada audiencia del planeta. El idioma nunca debería ser una barrera para una gran narración, educación o entretenimiento. Damos a creadores, educadores y empresas el poder de llegar a audiencias globales en minutos, no en meses.",
@@ -291,13 +291,13 @@ const TRANSLATIONS: Record<Lang, AboutCopy> = {
       { value: "30+", label: "Idiomas" },
       { value: "96%+", label: "Precisión de lip sync" },
     ],
-    breadcrumb: "Nosotros",
+    breadcrumb: "حولنا",
   },
   id: {
-    title: "Sobre DubSync — Doblaje de Video con IA para Cada Creador",
+    title: "Tentang DubSync — Dubbing Video AI untuk Setiap Kreator",
     description:
-      "DubSync hace que el contenido de video sea accesible globalmente con clonación de voz, lip sync y traducción con IA en más de 30 idiomas.",
-    h1: "Sobre DubSync",
+      "DubSync membuat konten video dapat diakses secara global dengan kloning suara, lip sync, dan terjemahan ke 30+ bahasa.",
+    h1: "Tentang DubSync",
     missionHeading: "Nuestra misión",
     missionBody:
       "DubSync existe para hacer que el contenido de video sea accesible para cada audiencia del planeta. El idioma nunca debería ser una barrera para una gran narración, educación o entretenimiento. Damos a creadores, educadores y empresas el poder de llegar a audiencias globales en minutos, no en meses.",
@@ -328,13 +328,13 @@ const TRANSLATIONS: Record<Lang, AboutCopy> = {
       { value: "30+", label: "Idiomas" },
       { value: "96%+", label: "Precisión de lip sync" },
     ],
-    breadcrumb: "Nosotros",
+    breadcrumb: "Tentang Kami",
   },
   tr: {
-    title: "Sobre DubSync — Doblaje de Video con IA para Cada Creador",
+    title: "DubSync Hakkında — Her Üretici İçin AI Video Dublaj",
     description:
-      "DubSync hace que el contenido de video sea accesible globalmente con clonación de voz, lip sync y traducción con IA en más de 30 idiomas.",
-    h1: "Sobre DubSync",
+      "DubSync, ses klonlama, dudak senkronu ve 30+ dile çeviri ile video içeriği küresel erişime açar.",
+    h1: "DubSync Hakkında",
     missionHeading: "Nuestra misión",
     missionBody:
       "DubSync existe para hacer que el contenido de video sea accesible para cada audiencia del planeta. El idioma nunca debería ser una barrera para una gran narración, educación o entretenimiento. Damos a creadores, educadores y empresas el poder de llegar a audiencias globales en minutos, no en meses.",
@@ -365,13 +365,13 @@ const TRANSLATIONS: Record<Lang, AboutCopy> = {
       { value: "30+", label: "Idiomas" },
       { value: "96%+", label: "Precisión de lip sync" },
     ],
-    breadcrumb: "Nosotros",
+    breadcrumb: "Hakkımızda",
   },
   ko: {
-    title: "Sobre DubSync — Doblaje de Video con IA para Cada Creador",
+    title: "DubSync 소개 — 모든 크리에이터를 위한 AI 비디오 더빙",
     description:
-      "DubSync hace que el contenido de video sea accesible globalmente con clonación de voz, lip sync y traducción con IA en más de 30 idiomas.",
-    h1: "Sobre DubSync",
+      "DubSync는 음성 클론, 립싱크, 30개 이상 언어 번역으로 비디오 콘텐츠를 글로벌하게 만듭니다.",
+    h1: "DubSync 소개",
     missionHeading: "Nuestra misión",
     missionBody:
       "DubSync existe para hacer que el contenido de video sea accesible para cada audiencia del planeta. El idioma nunca debería ser una barrera para una gran narración, educación o entretenimiento. Damos a creadores, educadores y empresas el poder de llegar a audiencias globales en minutos, no en meses.",
@@ -402,7 +402,7 @@ const TRANSLATIONS: Record<Lang, AboutCopy> = {
       { value: "30+", label: "Idiomas" },
       { value: "96%+", label: "Precisión de lip sync" },
     ],
-    breadcrumb: "Nosotros",
+    breadcrumb: "소개",
   },};
 
 export function generateStaticParams() {

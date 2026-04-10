@@ -128,10 +128,10 @@ const TRANSLATIONS = {
   },
 
   hi: {
-    title: "Dobla Cursos Online y E-Learning con IA — Clonación de Voz | DubSync",
+    title: "E-Learning के लिए AI डबिंग — ऑनलाइन कोर्स | DubSync",
     description:
-      "Traduce y dobla cursos online y contenido de e-learning en más de 30 idiomas con clonación de voz con IA. Mantén la voz del instructor.",
-    h1: "Dobla cursos online para estudiantes globales",
+      "वैश्विक शिक्षार्थियों के लिए ई-लर्निंग कोर्स AI डबिंग से डब करें।",
+    h1: "ई-लर्निंग कोर्स AI से डब करें",
     subtitle:
       "Traduce tus cursos y materiales de e-learning a cualquier idioma. Mantén la voz del instructor consistente en todas las versiones.",
     ctaText: "Doblar mi curso",
@@ -145,17 +145,17 @@ const TRANSLATIONS = {
       { q: "¿Se generan subtítulos traducidos?", a: "Sí. DubSync genera subtítulos SRT/VTT traducidos que puedes descargar junto al video." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "प्लेटफ़ॉर्म",
     breadcrumbElearning: "E-Learning",
     ctaTitle: "Lleva tus cursos a estudiantes de todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   ar: {
-    title: "Dobla Cursos Online y E-Learning con IA — Clonación de Voz | DubSync",
+    title: "دبلجة AI للتعليم الإلكتروني — الدورات عبر الإنترنت | DubSync",
     description:
-      "Traduce y dobla cursos online y contenido de e-learning en más de 30 idiomas con clonación de voz con IA. Mantén la voz del instructor.",
-    h1: "Dobla cursos online para estudiantes globales",
+      "دبلج دورات التعليم الإلكتروني للمتعلمين حول العالم بدبلجة الذكاء الاصطناعي.",
+    h1: "دبلج دورات التعليم الإلكتروني بالذكاء الاصطناعي",
     subtitle:
       "Traduce tus cursos y materiales de e-learning a cualquier idioma. Mantén la voz del instructor consistente en todas las versiones.",
     ctaText: "Doblar mi curso",
@@ -169,17 +169,17 @@ const TRANSLATIONS = {
       { q: "¿Se generan subtítulos traducidos?", a: "Sí. DubSync genera subtítulos SRT/VTT traducidos que puedes descargar junto al video." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "المنصات",
     breadcrumbElearning: "E-Learning",
     ctaTitle: "Lleva tus cursos a estudiantes de todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   id: {
-    title: "Dobla Cursos Online y E-Learning con IA — Clonación de Voz | DubSync",
+    title: "Dubbing AI untuk E-Learning — Kursus Online | DubSync",
     description:
-      "Traduce y dobla cursos online y contenido de e-learning en más de 30 idiomas con clonación de voz con IA. Mantén la voz del instructor.",
-    h1: "Dobla cursos online para estudiantes globales",
+      "Dubbing kursus e-learning untuk pelajar global dengan dubbing AI.",
+    h1: "Dubbing kursus e-learning dengan AI",
     subtitle:
       "Traduce tus cursos y materiales de e-learning a cualquier idioma. Mantén la voz del instructor consistente en todas las versiones.",
     ctaText: "Doblar mi curso",
@@ -193,17 +193,17 @@ const TRANSLATIONS = {
       { q: "¿Se generan subtítulos traducidos?", a: "Sí. DubSync genera subtítulos SRT/VTT traducidos que puedes descargar junto al video." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "Platform",
     breadcrumbElearning: "E-Learning",
     ctaTitle: "Lleva tus cursos a estudiantes de todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   tr: {
-    title: "Dobla Cursos Online y E-Learning con IA — Clonación de Voz | DubSync",
+    title: "E-Learning için AI Dublaj — Online Kurslar | DubSync",
     description:
-      "Traduce y dobla cursos online y contenido de e-learning en más de 30 idiomas con clonación de voz con IA. Mantén la voz del instructor.",
-    h1: "Dobla cursos online para estudiantes globales",
+      "Küresel öğrenciler için e-öğrenme kurslarını AI dublajla dublajlayın.",
+    h1: "E-öğrenme kurslarını AI ile dublajlayın",
     subtitle:
       "Traduce tus cursos y materiales de e-learning a cualquier idioma. Mantén la voz del instructor consistente en todas las versiones.",
     ctaText: "Doblar mi curso",
@@ -217,17 +217,17 @@ const TRANSLATIONS = {
       { q: "¿Se generan subtítulos traducidos?", a: "Sí. DubSync genera subtítulos SRT/VTT traducidos que puedes descargar junto al video." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "Platformlar",
     breadcrumbElearning: "E-Learning",
     ctaTitle: "Lleva tus cursos a estudiantes de todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   ko: {
-    title: "Dobla Cursos Online y E-Learning con IA — Clonación de Voz | DubSync",
+    title: "E-Learning AI 더빙 — 온라인 강좌 | DubSync",
     description:
-      "Traduce y dobla cursos online y contenido de e-learning en más de 30 idiomas con clonación de voz con IA. Mantén la voz del instructor.",
-    h1: "Dobla cursos online para estudiantes globales",
+      "글로벌 학습자를 위해 E-Learning 강좌를 AI 더빙으로 더빙하세요.",
+    h1: "E-Learning 강좌를 AI로 더빙",
     subtitle:
       "Traduce tus cursos y materiales de e-learning a cualquier idioma. Mantén la voz del instructor consistente en todas las versiones.",
     ctaText: "Doblar mi curso",
@@ -241,7 +241,7 @@ const TRANSLATIONS = {
       { q: "¿Se generan subtítulos traducidos?", a: "Sí. DubSync genera subtítulos SRT/VTT traducidos que puedes descargar junto al video." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "플랫폼",
     breadcrumbElearning: "E-Learning",
     ctaTitle: "Lleva tus cursos a estudiantes de todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",

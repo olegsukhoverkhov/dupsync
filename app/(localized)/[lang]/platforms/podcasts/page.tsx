@@ -128,10 +128,10 @@ const TRANSLATIONS = {
   },
 
   hi: {
-    title: "Dobla tu Podcast a Cualquier Idioma con IA — Clonación de Voz | DubSync",
+    title: "Podcasts के लिए AI डबिंग — किसी भी भाषा में | DubSync",
     description:
-      "Traduce y dobla episodios de podcast en más de 30 idiomas con clonación de voz con IA. Mantén tu voz auténtica en cada idioma.",
-    h1: "Dobla tu podcast a cualquier idioma",
+      "AI डबिंग से अपने पॉडकास्ट को किसी भी भाषा में बदलें।",
+    h1: "पॉडकास्ट AI से किसी भी भाषा में डब करें",
     subtitle:
       "Traduce tus episodios de podcast a cualquier idioma con tu voz clonada. Expande tu audiencia sin perder autenticidad.",
     ctaText: "Doblar mi podcast",
@@ -145,17 +145,17 @@ const TRANSLATIONS = {
       { q: "¿Qué formatos de audio soporta?", a: "DubSync soporta MP3, WAV, M4A, FLAC y OGG. La salida está disponible en MP3 y WAV." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "प्लेटफ़ॉर्म",
     breadcrumbPodcasts: "Podcasts",
     ctaTitle: "Lleva tu podcast a oyentes de todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   ar: {
-    title: "Dobla tu Podcast a Cualquier Idioma con IA — Clonación de Voz | DubSync",
+    title: "دبلجة AI للبودكاست — بأي لغة | DubSync",
     description:
-      "Traduce y dobla episodios de podcast en más de 30 idiomas con clonación de voz con IA. Mantén tu voz auténtica en cada idioma.",
-    h1: "Dobla tu podcast a cualquier idioma",
+      "حوّل بودكاستك إلى أي لغة بدبلجة الذكاء الاصطناعي.",
+    h1: "دبلج البودكاست بالذكاء الاصطناعي بأي لغة",
     subtitle:
       "Traduce tus episodios de podcast a cualquier idioma con tu voz clonada. Expande tu audiencia sin perder autenticidad.",
     ctaText: "Doblar mi podcast",
@@ -169,17 +169,17 @@ const TRANSLATIONS = {
       { q: "¿Qué formatos de audio soporta?", a: "DubSync soporta MP3, WAV, M4A, FLAC y OGG. La salida está disponible en MP3 y WAV." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "المنصات",
     breadcrumbPodcasts: "Podcasts",
     ctaTitle: "Lleva tu podcast a oyentes de todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   id: {
-    title: "Dobla tu Podcast a Cualquier Idioma con IA — Clonación de Voz | DubSync",
+    title: "Dubbing AI untuk Podcast — Bahasa Apa Pun | DubSync",
     description:
-      "Traduce y dobla episodios de podcast en más de 30 idiomas con clonación de voz con IA. Mantén tu voz auténtica en cada idioma.",
-    h1: "Dobla tu podcast a cualquier idioma",
+      "Ubah podcast Anda ke bahasa apa pun dengan dubbing AI.",
+    h1: "Dubbing podcast dengan AI ke bahasa apa pun",
     subtitle:
       "Traduce tus episodios de podcast a cualquier idioma con tu voz clonada. Expande tu audiencia sin perder autenticidad.",
     ctaText: "Doblar mi podcast",
@@ -193,17 +193,17 @@ const TRANSLATIONS = {
       { q: "¿Qué formatos de audio soporta?", a: "DubSync soporta MP3, WAV, M4A, FLAC y OGG. La salida está disponible en MP3 y WAV." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "Platform",
     breadcrumbPodcasts: "Podcasts",
     ctaTitle: "Lleva tu podcast a oyentes de todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   tr: {
-    title: "Dobla tu Podcast a Cualquier Idioma con IA — Clonación de Voz | DubSync",
+    title: "Podcast için AI Dublaj — Her Dilde | DubSync",
     description:
-      "Traduce y dobla episodios de podcast en más de 30 idiomas con clonación de voz con IA. Mantén tu voz auténtica en cada idioma.",
-    h1: "Dobla tu podcast a cualquier idioma",
+      "Podcast'inizi AI dublajla herhangi bir dile dönüştürün.",
+    h1: "Podcast'i AI ile herhangi bir dile dublajlayın",
     subtitle:
       "Traduce tus episodios de podcast a cualquier idioma con tu voz clonada. Expande tu audiencia sin perder autenticidad.",
     ctaText: "Doblar mi podcast",
@@ -217,17 +217,17 @@ const TRANSLATIONS = {
       { q: "¿Qué formatos de audio soporta?", a: "DubSync soporta MP3, WAV, M4A, FLAC y OGG. La salida está disponible en MP3 y WAV." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "Platformlar",
     breadcrumbPodcasts: "Podcasts",
     ctaTitle: "Lleva tu podcast a oyentes de todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   ko: {
-    title: "Dobla tu Podcast a Cualquier Idioma con IA — Clonación de Voz | DubSync",
+    title: "팟캐스트 AI 더빙 — 어떤 언어로든 | DubSync",
     description:
-      "Traduce y dobla episodios de podcast en más de 30 idiomas con clonación de voz con IA. Mantén tu voz auténtica en cada idioma.",
-    h1: "Dobla tu podcast a cualquier idioma",
+      "AI 더빙으로 팟캐스트를 어떤 언어로든 변환하세요.",
+    h1: "팟캐스트를 AI로 어떤 언어로든 더빙",
     subtitle:
       "Traduce tus episodios de podcast a cualquier idioma con tu voz clonada. Expande tu audiencia sin perder autenticidad.",
     ctaText: "Doblar mi podcast",
@@ -241,7 +241,7 @@ const TRANSLATIONS = {
       { q: "¿Qué formatos de audio soporta?", a: "DubSync soporta MP3, WAV, M4A, FLAC y OGG. La salida está disponible en MP3 y WAV." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "플랫폼",
     breadcrumbPodcasts: "Podcasts",
     ctaTitle: "Lleva tu podcast a oyentes de todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",

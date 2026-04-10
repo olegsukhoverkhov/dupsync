@@ -263,9 +263,9 @@ const TRANSLATIONS = {
   },
 
   hi: {
-    title: "API de Doblaje de Video \u2014 Integra Doblaje con IA en Tu Producto | DubSync",
+    title: "वीडियो डबिंग API — अपने प्रोडक्ट में इंटीग्रेट करें | DubSync",
     description:
-      "Integra el doblaje de video con IA de DubSync en tu producto con nuestra API REST. Clonaci\u00f3n de voz, lip sync y traducci\u00f3n, todo programable.",
+      "DubSync REST API के साथ वीडियो डबिंग को अपने प्रोडक्ट में इंटीग्रेट करें।",
     badge: "API",
     h1: "API de doblaje de video",
     h1Highlight: "para desarrolladores y equipos",
@@ -303,13 +303,13 @@ const TRANSLATIONS = {
       { question: "\u00bfHay un entorno sandbox para pruebas?", answer: "S\u00ed. Cada clave API funciona en modo sandbox por defecto. Las solicitudes sandbox procesan una vista previa de 30 segundos sin costo." },
       { question: "\u00bfQu\u00e9 pasa si un trabajo de doblaje falla?", answer: "Los trabajos fallidos devuelven un objeto de error detallado con un c\u00f3digo de error legible por m\u00e1quina y un mensaje legible por humanos." },
     ],
-    breadcrumbFeatures: "Funciones",
+    breadcrumbFeatures: "सुविधाएं",
     breadcrumbApi: "API",
   },
   ar: {
-    title: "API de Doblaje de Video \u2014 Integra Doblaje con IA en Tu Producto | DubSync",
+    title: "واجهة برمجة دبلجة الفيديو — دمج في منتجك | DubSync",
     description:
-      "Integra el doblaje de video con IA de DubSync en tu producto con nuestra API REST. Clonaci\u00f3n de voz, lip sync y traducci\u00f3n, todo programable.",
+      "دمج دبلجة الفيديو في منتجك باستخدام DubSync REST API.",
     badge: "API",
     h1: "API de doblaje de video",
     h1Highlight: "para desarrolladores y equipos",
@@ -347,13 +347,13 @@ const TRANSLATIONS = {
       { question: "\u00bfHay un entorno sandbox para pruebas?", answer: "S\u00ed. Cada clave API funciona en modo sandbox por defecto. Las solicitudes sandbox procesan una vista previa de 30 segundos sin costo." },
       { question: "\u00bfQu\u00e9 pasa si un trabajo de doblaje falla?", answer: "Los trabajos fallidos devuelven un objeto de error detallado con un c\u00f3digo de error legible por m\u00e1quina y un mensaje legible por humanos." },
     ],
-    breadcrumbFeatures: "Funciones",
+    breadcrumbFeatures: "الميزات",
     breadcrumbApi: "API",
   },
   id: {
-    title: "API de Doblaje de Video \u2014 Integra Doblaje con IA en Tu Producto | DubSync",
+    title: "API Dubbing Video — Integrasikan ke Produk Anda | DubSync",
     description:
-      "Integra el doblaje de video con IA de DubSync en tu producto con nuestra API REST. Clonaci\u00f3n de voz, lip sync y traducci\u00f3n, todo programable.",
+      "Integrasikan dubbing video ke produk Anda dengan DubSync REST API.",
     badge: "API",
     h1: "API de doblaje de video",
     h1Highlight: "para desarrolladores y equipos",
@@ -391,13 +391,13 @@ const TRANSLATIONS = {
       { question: "\u00bfHay un entorno sandbox para pruebas?", answer: "S\u00ed. Cada clave API funciona en modo sandbox por defecto. Las solicitudes sandbox procesan una vista previa de 30 segundos sin costo." },
       { question: "\u00bfQu\u00e9 pasa si un trabajo de doblaje falla?", answer: "Los trabajos fallidos devuelven un objeto de error detallado con un c\u00f3digo de error legible por m\u00e1quina y un mensaje legible por humanos." },
     ],
-    breadcrumbFeatures: "Funciones",
+    breadcrumbFeatures: "Fitur",
     breadcrumbApi: "API",
   },
   tr: {
-    title: "API de Doblaje de Video \u2014 Integra Doblaje con IA en Tu Producto | DubSync",
+    title: "Video Dublaj API'si — Ürününüze Entegre Edin | DubSync",
     description:
-      "Integra el doblaje de video con IA de DubSync en tu producto con nuestra API REST. Clonaci\u00f3n de voz, lip sync y traducci\u00f3n, todo programable.",
+      "DubSync REST API ile video dublajı ürününüze entegre edin.",
     badge: "API",
     h1: "API de doblaje de video",
     h1Highlight: "para desarrolladores y equipos",
@@ -435,13 +435,13 @@ const TRANSLATIONS = {
       { question: "\u00bfHay un entorno sandbox para pruebas?", answer: "S\u00ed. Cada clave API funciona en modo sandbox por defecto. Las solicitudes sandbox procesan una vista previa de 30 segundos sin costo." },
       { question: "\u00bfQu\u00e9 pasa si un trabajo de doblaje falla?", answer: "Los trabajos fallidos devuelven un objeto de error detallado con un c\u00f3digo de error legible por m\u00e1quina y un mensaje legible por humanos." },
     ],
-    breadcrumbFeatures: "Funciones",
+    breadcrumbFeatures: "Özellikler",
     breadcrumbApi: "API",
   },
   ko: {
-    title: "API de Doblaje de Video \u2014 Integra Doblaje con IA en Tu Producto | DubSync",
+    title: "비디오 더빙 API — 제품에 통합 | DubSync",
     description:
-      "Integra el doblaje de video con IA de DubSync en tu producto con nuestra API REST. Clonaci\u00f3n de voz, lip sync y traducci\u00f3n, todo programable.",
+      "DubSync REST API로 비디오 더빙을 제품에 통합하세요.",
     badge: "API",
     h1: "API de doblaje de video",
     h1Highlight: "para desarrolladores y equipos",
@@ -479,7 +479,7 @@ const TRANSLATIONS = {
       { question: "\u00bfHay un entorno sandbox para pruebas?", answer: "S\u00ed. Cada clave API funciona en modo sandbox por defecto. Las solicitudes sandbox procesan una vista previa de 30 segundos sin costo." },
       { question: "\u00bfQu\u00e9 pasa si un trabajo de doblaje falla?", answer: "Los trabajos fallidos devuelven un objeto de error detallado con un c\u00f3digo de error legible por m\u00e1quina y un mensaje legible por humanos." },
     ],
-    breadcrumbFeatures: "Funciones",
+    breadcrumbFeatures: "기능",
     breadcrumbApi: "API",
   },};
 

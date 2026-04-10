@@ -128,10 +128,10 @@ const TRANSLATIONS = {
   },
 
   hi: {
-    title: "Dobla Videos de TikTok con IA — Viralízate Globalmente | DubSync",
+    title: "TikTok के लिए AI डबिंग — वैश्विक वायरल | DubSync",
     description:
-      "Traduce y dobla tus TikToks en más de 30 idiomas con clonación de voz con IA. Lip sync automático. Hazte viral en todo el mundo.",
-    h1: "Dobla videos de TikTok — viralízate globalmente",
+      "AI वॉइस क्लोनिंग और लिप सिंक के साथ TikTok वीडियो डब करें।",
+    h1: "TikTok वीडियो हर भाषा में डब करें",
     subtitle:
       "Traduce tus TikToks a cualquier idioma con tu propia voz clonada. Lip sync perfecto para formato vertical.",
     ctaText: "Doblar mi TikTok",
@@ -145,17 +145,17 @@ const TRANSLATIONS = {
       { q: "¿Puedo doblar videos de TikTok de otros creadores?", a: "Solo puedes doblar contenido que posees o para el que tienes derechos explícitos de doblaje." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "प्लेटफ़ॉर्म",
     breadcrumbTikTok: "TikTok",
     ctaTitle: "Haz viral tu contenido en todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   ar: {
-    title: "Dobla Videos de TikTok con IA — Viralízate Globalmente | DubSync",
+    title: "دبلجة AI لتيك توك — انتشار عالمي | DubSync",
     description:
-      "Traduce y dobla tus TikToks en más de 30 idiomas con clonación de voz con IA. Lip sync automático. Hazte viral en todo el mundo.",
-    h1: "Dobla videos de TikTok — viralízate globalmente",
+      "دبلج فيديوهات تيك توك مع استنساخ الصوت ومزامنة الشفاه.",
+    h1: "دبلج فيديوهات تيك توك بكل لغة",
     subtitle:
       "Traduce tus TikToks a cualquier idioma con tu propia voz clonada. Lip sync perfecto para formato vertical.",
     ctaText: "Doblar mi TikTok",
@@ -169,17 +169,17 @@ const TRANSLATIONS = {
       { q: "¿Puedo doblar videos de TikTok de otros creadores?", a: "Solo puedes doblar contenido que posees o para el que tienes derechos explícitos de doblaje." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "المنصات",
     breadcrumbTikTok: "TikTok",
     ctaTitle: "Haz viral tu contenido en todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   id: {
-    title: "Dobla Videos de TikTok con IA — Viralízate Globalmente | DubSync",
+    title: "Dubbing AI untuk TikTok — Viral Global | DubSync",
     description:
-      "Traduce y dobla tus TikToks en más de 30 idiomas con clonación de voz con IA. Lip sync automático. Hazte viral en todo el mundo.",
-    h1: "Dobla videos de TikTok — viralízate globalmente",
+      "Dubbing video TikTok dengan kloning suara AI dan lip sync.",
+    h1: "Dubbing video TikTok ke setiap bahasa",
     subtitle:
       "Traduce tus TikToks a cualquier idioma con tu propia voz clonada. Lip sync perfecto para formato vertical.",
     ctaText: "Doblar mi TikTok",
@@ -193,17 +193,17 @@ const TRANSLATIONS = {
       { q: "¿Puedo doblar videos de TikTok de otros creadores?", a: "Solo puedes doblar contenido que posees o para el que tienes derechos explícitos de doblaje." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "Platform",
     breadcrumbTikTok: "TikTok",
     ctaTitle: "Haz viral tu contenido en todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   tr: {
-    title: "Dobla Videos de TikTok con IA — Viralízate Globalmente | DubSync",
+    title: "TikTok için AI Dublaj — Küresel Viral | DubSync",
     description:
-      "Traduce y dobla tus TikToks en más de 30 idiomas con clonación de voz con IA. Lip sync automático. Hazte viral en todo el mundo.",
-    h1: "Dobla videos de TikTok — viralízate globalmente",
+      "AI ses klonlama ve dudak senkronuyla TikTok videolarını dublajlayın.",
+    h1: "TikTok videolarını her dilde dublajlayın",
     subtitle:
       "Traduce tus TikToks a cualquier idioma con tu propia voz clonada. Lip sync perfecto para formato vertical.",
     ctaText: "Doblar mi TikTok",
@@ -217,17 +217,17 @@ const TRANSLATIONS = {
       { q: "¿Puedo doblar videos de TikTok de otros creadores?", a: "Solo puedes doblar contenido que posees o para el que tienes derechos explícitos de doblaje." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "Platformlar",
     breadcrumbTikTok: "TikTok",
     ctaTitle: "Haz viral tu contenido en todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   ko: {
-    title: "Dobla Videos de TikTok con IA — Viralízate Globalmente | DubSync",
+    title: "TikTok AI 더빙 — 글로벌 바이럴 | DubSync",
     description:
-      "Traduce y dobla tus TikToks en más de 30 idiomas con clonación de voz con IA. Lip sync automático. Hazte viral en todo el mundo.",
-    h1: "Dobla videos de TikTok — viralízate globalmente",
+      "AI 음성 클론과 립싱크로 TikTok 비디오를 더빙하세요.",
+    h1: "TikTok 비디오를 모든 언어로 더빙",
     subtitle:
       "Traduce tus TikToks a cualquier idioma con tu propia voz clonada. Lip sync perfecto para formato vertical.",
     ctaText: "Doblar mi TikTok",
@@ -241,7 +241,7 @@ const TRANSLATIONS = {
       { q: "¿Puedo doblar videos de TikTok de otros creadores?", a: "Solo puedes doblar contenido que posees o para el que tienes derechos explícitos de doblaje." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "플랫폼",
     breadcrumbTikTok: "TikTok",
     ctaTitle: "Haz viral tu contenido en todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",

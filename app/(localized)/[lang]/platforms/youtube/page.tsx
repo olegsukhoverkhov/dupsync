@@ -129,10 +129,10 @@ const TRANSLATIONS = {
   },
 
   hi: {
-    title: "Dobla Videos de YouTube con IA — Clonación de Voz en 30+ Idiomas | DubSync",
+    title: "YouTube के लिए AI डबिंग — 30+ भाषाओं में | DubSync",
     description:
-      "Traduce y dobla videos de YouTube en más de 30 idiomas con clonación de voz con IA y lip sync. Mantén tu voz original. Crece globalmente.",
-    h1: "Dobla videos de YouTube en 30+ idiomas",
+      "AI वॉइस क्लोनिंग और लिप सिंक के साथ YouTube वीडियो को 30+ भाषाओं में अनुवाद और डब करें।",
+    h1: "YouTube वीडियो 30+ भाषाओं में डब करें",
     subtitle:
       "Traduce automáticamente tus videos de YouTube conservando tu voz, tono y personalidad. Lip sync perfecto en cada idioma.",
     ctaText: "Doblar mi video de YouTube",
@@ -146,17 +146,17 @@ const TRANSLATIONS = {
       { q: "¿Necesito descargar algún software?", a: "No. DubSync funciona completamente en la nube. Solo sube tu video y recibe el resultado doblado." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "प्लेटफ़ॉर्म",
     breadcrumbYouTube: "YouTube",
     ctaTitle: "Lleva tu canal de YouTube al mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   ar: {
-    title: "Dobla Videos de YouTube con IA — Clonación de Voz en 30+ Idiomas | DubSync",
+    title: "دبلجة AI لليوتيوب — 30+ لغة | DubSync",
     description:
-      "Traduce y dobla videos de YouTube en más de 30 idiomas con clonación de voz con IA y lip sync. Mantén tu voz original. Crece globalmente.",
-    h1: "Dobla videos de YouTube en 30+ idiomas",
+      "ترجم ودبلج فيديوهات يوتيوب إلى أكثر من 30 لغة باستخدام استنساخ الصوت ومزامنة الشفاه.",
+    h1: "دبلج فيديوهات يوتيوب بـ 30+ لغة",
     subtitle:
       "Traduce automáticamente tus videos de YouTube conservando tu voz, tono y personalidad. Lip sync perfecto en cada idioma.",
     ctaText: "Doblar mi video de YouTube",
@@ -170,17 +170,17 @@ const TRANSLATIONS = {
       { q: "¿Necesito descargar algún software?", a: "No. DubSync funciona completamente en la nube. Solo sube tu video y recibe el resultado doblado." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
-    breadcrumbYouTube: "YouTube",
+    breadcrumbPlatforms: "المنصات",
+    breadcrumbYouTube: "يوتيوب",
     ctaTitle: "Lleva tu canal de YouTube al mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   id: {
-    title: "Dobla Videos de YouTube con IA — Clonación de Voz en 30+ Idiomas | DubSync",
+    title: "Dubbing AI untuk YouTube — 30+ Bahasa | DubSync",
     description:
-      "Traduce y dobla videos de YouTube en más de 30 idiomas con clonación de voz con IA y lip sync. Mantén tu voz original. Crece globalmente.",
-    h1: "Dobla videos de YouTube en 30+ idiomas",
+      "Terjemahkan dan dubbing video YouTube ke 30+ bahasa dengan kloning suara AI dan lip sync.",
+    h1: "Dubbing video YouTube ke 30+ bahasa",
     subtitle:
       "Traduce automáticamente tus videos de YouTube conservando tu voz, tono y personalidad. Lip sync perfecto en cada idioma.",
     ctaText: "Doblar mi video de YouTube",
@@ -194,17 +194,17 @@ const TRANSLATIONS = {
       { q: "¿Necesito descargar algún software?", a: "No. DubSync funciona completamente en la nube. Solo sube tu video y recibe el resultado doblado." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "Platform",
     breadcrumbYouTube: "YouTube",
     ctaTitle: "Lleva tu canal de YouTube al mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   tr: {
-    title: "Dobla Videos de YouTube con IA — Clonación de Voz en 30+ Idiomas | DubSync",
+    title: "YouTube için AI Dublaj — 30+ Dil | DubSync",
     description:
-      "Traduce y dobla videos de YouTube en más de 30 idiomas con clonación de voz con IA y lip sync. Mantén tu voz original. Crece globalmente.",
-    h1: "Dobla videos de YouTube en 30+ idiomas",
+      "YouTube videolarını AI ses klonlama ve dudak senkronuyla 30+ dile çevirin ve dublajlayın.",
+    h1: "YouTube videolarını 30+ dile dublajlayın",
     subtitle:
       "Traduce automáticamente tus videos de YouTube conservando tu voz, tono y personalidad. Lip sync perfecto en cada idioma.",
     ctaText: "Doblar mi video de YouTube",
@@ -218,17 +218,17 @@ const TRANSLATIONS = {
       { q: "¿Necesito descargar algún software?", a: "No. DubSync funciona completamente en la nube. Solo sube tu video y recibe el resultado doblado." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "Platformlar",
     breadcrumbYouTube: "YouTube",
     ctaTitle: "Lleva tu canal de YouTube al mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   ko: {
-    title: "Dobla Videos de YouTube con IA — Clonación de Voz en 30+ Idiomas | DubSync",
+    title: "YouTube AI 더빙 — 30개 이상 언어 | DubSync",
     description:
-      "Traduce y dobla videos de YouTube en más de 30 idiomas con clonación de voz con IA y lip sync. Mantén tu voz original. Crece globalmente.",
-    h1: "Dobla videos de YouTube en 30+ idiomas",
+      "AI 음성 클론과 립싱크로 YouTube 비디오를 30개 이상 언어로 번역하고 더빙하세요.",
+    h1: "YouTube 비디오를 30개 이상 언어로 더빙",
     subtitle:
       "Traduce automáticamente tus videos de YouTube conservando tu voz, tono y personalidad. Lip sync perfecto en cada idioma.",
     ctaText: "Doblar mi video de YouTube",
@@ -242,7 +242,7 @@ const TRANSLATIONS = {
       { q: "¿Necesito descargar algún software?", a: "No. DubSync funciona completamente en la nube. Solo sube tu video y recibe el resultado doblado." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "플랫폼",
     breadcrumbYouTube: "YouTube",
     ctaTitle: "Lleva tu canal de YouTube al mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",

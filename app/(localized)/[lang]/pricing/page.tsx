@@ -229,19 +229,19 @@ const t: Record<
   },
 
   hi: {
-    title: "Precios de DubSync — Planes de Doblaje de Video con IA",
+    title: "DubSync मूल्य — AI डबिंग प्लान $0 से",
     metaTitle:
-      "Precios de DubSync — Planes de Doblaje de Video con IA desde Gratis hasta Enterprise",
+      "DubSync मूल्य — AI डबिंग प्लान $0 से",
     metaDescription:
-      "Elige el plan de DubSync que se adapte a tus necesidades. Planes Gratis, Starter, Pro y Enterprise para doblaje de video con IA, clonación de voz y sincronización labial.",
+      "DubSync AI वीडियो डबिंग प्लान की तुलना करें। फ्री $0, Starter $19.99, Pro $49.99, Business $149.99।",
     ogDescription:
       "Elige el plan de DubSync ideal. Planes Gratis, Starter, Pro y Enterprise con sincronización labial incluida.",
     heading:
-      "Precios de DubSync — Planes de Doblaje de Video con IA para Cada Creador",
+      "सरल, पारदर्शी मूल्य",
     subheading:
-      "Comienza gratis con 5 minutos de doblaje al mes. Actualiza cuando necesites más minutos, idiomas y funciones de equipo.",
-    faqHeading: "Preguntas Frecuentes sobre Precios",
-    breadcrumb: "Precios",
+      "मुफ़्त शुरू करें। जैसे-जैसे बढ़ें, स्केल करें। कोई छिपी फीस नहीं।",
+    faqHeading: "अक्सर पूछे जाने वाले प्रश्न",
+    breadcrumb: "मूल्य",
     faqs: [
       {
         q: "¿Puedo cambiar de plan en cualquier momento?",
@@ -270,19 +270,19 @@ const t: Record<
     ],
   },
   ar: {
-    title: "Precios de DubSync — Planes de Doblaje de Video con IA",
+    title: "أسعار DubSync — خطط دبلجة AI من $0",
     metaTitle:
-      "Precios de DubSync — Planes de Doblaje de Video con IA desde Gratis hasta Enterprise",
+      "أسعار DubSync — خطط دبلجة AI من $0",
     metaDescription:
-      "Elige el plan de DubSync que se adapte a tus necesidades. Planes Gratis, Starter, Pro y Enterprise para doblaje de video con IA, clonación de voz y sincronización labial.",
+      "قارن خطط دبلجة الفيديو بالذكاء الاصطناعي من DubSync. مجاني $0، Starter $19.99، Pro $49.99، Business $149.99.",
     ogDescription:
       "Elige el plan de DubSync ideal. Planes Gratis, Starter, Pro y Enterprise con sincronización labial incluida.",
     heading:
-      "Precios de DubSync — Planes de Doblaje de Video con IA para Cada Creador",
+      "أسعار بسيطة وشفافة",
     subheading:
-      "Comienza gratis con 5 minutos de doblaje al mes. Actualiza cuando necesites más minutos, idiomas y funciones de equipo.",
-    faqHeading: "Preguntas Frecuentes sobre Precios",
-    breadcrumb: "Precios",
+      "ابدأ مجاناً. قم بالتوسع كما تنمو. لا رسوم مخفية.",
+    faqHeading: "الأسئلة الشائعة",
+    breadcrumb: "الأسعار",
     faqs: [
       {
         q: "¿Puedo cambiar de plan en cualquier momento?",
@@ -311,19 +311,19 @@ const t: Record<
     ],
   },
   id: {
-    title: "Precios de DubSync — Planes de Doblaje de Video con IA",
+    title: "Harga DubSync — Paket Dubbing AI dari $0",
     metaTitle:
-      "Precios de DubSync — Planes de Doblaje de Video con IA desde Gratis hasta Enterprise",
+      "Harga DubSync — Paket Dubbing AI dari $0",
     metaDescription:
-      "Elige el plan de DubSync que se adapte a tus necesidades. Planes Gratis, Starter, Pro y Enterprise para doblaje de video con IA, clonación de voz y sincronización labial.",
+      "Bandingkan paket dubbing video AI DubSync. Gratis $0, Starter $19.99, Pro $49.99, Business $149.99.",
     ogDescription:
       "Elige el plan de DubSync ideal. Planes Gratis, Starter, Pro y Enterprise con sincronización labial incluida.",
     heading:
-      "Precios de DubSync — Planes de Doblaje de Video con IA para Cada Creador",
+      "Harga sederhana, transparan",
     subheading:
-      "Comienza gratis con 5 minutos de doblaje al mes. Actualiza cuando necesites más minutos, idiomas y funciones de equipo.",
-    faqHeading: "Preguntas Frecuentes sobre Precios",
-    breadcrumb: "Precios",
+      "Mulai gratis. Skalakan saat Anda tumbuh. Tanpa biaya tersembunyi.",
+    faqHeading: "Pertanyaan yang sering diajukan",
+    breadcrumb: "Harga",
     faqs: [
       {
         q: "¿Puedo cambiar de plan en cualquier momento?",
@@ -352,19 +352,19 @@ const t: Record<
     ],
   },
   tr: {
-    title: "Precios de DubSync — Planes de Doblaje de Video con IA",
+    title: "DubSync Fiyatları — AI Dublaj Planları $0'dan",
     metaTitle:
-      "Precios de DubSync — Planes de Doblaje de Video con IA desde Gratis hasta Enterprise",
+      "DubSync Fiyatları — AI Dublaj Planları $0'dan",
     metaDescription:
-      "Elige el plan de DubSync que se adapte a tus necesidades. Planes Gratis, Starter, Pro y Enterprise para doblaje de video con IA, clonación de voz y sincronización labial.",
+      "DubSync AI video dublaj planlarını karşılaştırın. Ücretsiz $0, Starter $19.99, Pro $49.99, Business $149.99.",
     ogDescription:
       "Elige el plan de DubSync ideal. Planes Gratis, Starter, Pro y Enterprise con sincronización labial incluida.",
     heading:
-      "Precios de DubSync — Planes de Doblaje de Video con IA para Cada Creador",
+      "Basit, şeffaf fiyatlandırma",
     subheading:
-      "Comienza gratis con 5 minutos de doblaje al mes. Actualiza cuando necesites más minutos, idiomas y funciones de equipo.",
-    faqHeading: "Preguntas Frecuentes sobre Precios",
-    breadcrumb: "Precios",
+      "Ücretsiz başlayın. Büyüdükçe ölçeklendirin. Gizli ücret yok.",
+    faqHeading: "Sıkça sorulan sorular",
+    breadcrumb: "Fiyatlar",
     faqs: [
       {
         q: "¿Puedo cambiar de plan en cualquier momento?",
@@ -393,19 +393,19 @@ const t: Record<
     ],
   },
   ko: {
-    title: "Precios de DubSync — Planes de Doblaje de Video con IA",
+    title: "DubSync 요금 — AI 더빙 플랜 $0부터",
     metaTitle:
-      "Precios de DubSync — Planes de Doblaje de Video con IA desde Gratis hasta Enterprise",
+      "DubSync 요금 — AI 더빙 플랜 $0부터",
     metaDescription:
-      "Elige el plan de DubSync que se adapte a tus necesidades. Planes Gratis, Starter, Pro y Enterprise para doblaje de video con IA, clonación de voz y sincronización labial.",
+      "DubSync AI 비디오 더빙 플랜을 비교하세요. 무료 $0, Starter $19.99, Pro $49.99, Business $149.99.",
     ogDescription:
       "Elige el plan de DubSync ideal. Planes Gratis, Starter, Pro y Enterprise con sincronización labial incluida.",
     heading:
-      "Precios de DubSync — Planes de Doblaje de Video con IA para Cada Creador",
+      "간단하고 투명한 요금",
     subheading:
-      "Comienza gratis con 5 minutos de doblaje al mes. Actualiza cuando necesites más minutos, idiomas y funciones de equipo.",
-    faqHeading: "Preguntas Frecuentes sobre Precios",
-    breadcrumb: "Precios",
+      "무료로 시작. 성장에 따라 확장. 숨겨진 수수료 없음.",
+    faqHeading: "자주 묻는 질문",
+    breadcrumb: "요금",
     faqs: [
       {
         q: "¿Puedo cambiar de plan en cualquier momento?",

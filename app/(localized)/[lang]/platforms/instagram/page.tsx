@@ -129,10 +129,10 @@ const TRANSLATIONS = {
   },
 
   hi: {
-    title: "Dobla Reels y Stories de Instagram con IA — Clonación de Voz | DubSync",
+    title: "Instagram के लिए AI डबिंग — Reels और Stories | DubSync",
     description:
-      "Traduce y dobla tus Instagram Reels y Stories en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
-    h1: "Dobla Reels y Stories de Instagram",
+      "AI वॉइस क्लोनिंग और लिप सिंक के साथ Instagram Reels और Stories डब करें।",
+    h1: "Instagram Reels और Stories डब करें",
     subtitle:
       "Traduce tus Reels y Stories de Instagram a cualquier idioma con tu voz clonada. Lip sync y formatos optimizados para Instagram.",
     ctaText: "Doblar mi Reel",
@@ -146,17 +146,17 @@ const TRANSLATIONS = {
       { q: "¿Se mantienen los subtítulos originales?", a: "DubSync genera nuevos subtítulos traducidos que puedes descargar por separado." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "प्लेटफ़ॉर्म",
     breadcrumbInstagram: "Instagram",
     ctaTitle: "Conquista Instagram en todos los idiomas",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   ar: {
-    title: "Dobla Reels y Stories de Instagram con IA — Clonación de Voz | DubSync",
+    title: "دبلجة AI لإنستغرام — Reels وStories | DubSync",
     description:
-      "Traduce y dobla tus Instagram Reels y Stories en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
-    h1: "Dobla Reels y Stories de Instagram",
+      "دبلج Instagram Reels وStories مع استنساخ الصوت ومزامنة الشفاه.",
+    h1: "دبلج Instagram Reels وStories",
     subtitle:
       "Traduce tus Reels y Stories de Instagram a cualquier idioma con tu voz clonada. Lip sync y formatos optimizados para Instagram.",
     ctaText: "Doblar mi Reel",
@@ -170,17 +170,17 @@ const TRANSLATIONS = {
       { q: "¿Se mantienen los subtítulos originales?", a: "DubSync genera nuevos subtítulos traducidos que puedes descargar por separado." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "المنصات",
     breadcrumbInstagram: "Instagram",
     ctaTitle: "Conquista Instagram en todos los idiomas",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   id: {
-    title: "Dobla Reels y Stories de Instagram con IA — Clonación de Voz | DubSync",
+    title: "Dubbing AI untuk Instagram — Reels dan Stories | DubSync",
     description:
-      "Traduce y dobla tus Instagram Reels y Stories en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
-    h1: "Dobla Reels y Stories de Instagram",
+      "Dubbing Instagram Reels dan Stories dengan kloning suara AI dan lip sync.",
+    h1: "Dubbing Instagram Reels dan Stories",
     subtitle:
       "Traduce tus Reels y Stories de Instagram a cualquier idioma con tu voz clonada. Lip sync y formatos optimizados para Instagram.",
     ctaText: "Doblar mi Reel",
@@ -194,17 +194,17 @@ const TRANSLATIONS = {
       { q: "¿Se mantienen los subtítulos originales?", a: "DubSync genera nuevos subtítulos traducidos que puedes descargar por separado." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "Platform",
     breadcrumbInstagram: "Instagram",
     ctaTitle: "Conquista Instagram en todos los idiomas",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   tr: {
-    title: "Dobla Reels y Stories de Instagram con IA — Clonación de Voz | DubSync",
+    title: "Instagram için AI Dublaj — Reels ve Stories | DubSync",
     description:
-      "Traduce y dobla tus Instagram Reels y Stories en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
-    h1: "Dobla Reels y Stories de Instagram",
+      "AI ses klonlama ve dudak senkronuyla Instagram Reels ve Stories dublajlayın.",
+    h1: "Instagram Reels ve Stories'i dublajlayın",
     subtitle:
       "Traduce tus Reels y Stories de Instagram a cualquier idioma con tu voz clonada. Lip sync y formatos optimizados para Instagram.",
     ctaText: "Doblar mi Reel",
@@ -218,17 +218,17 @@ const TRANSLATIONS = {
       { q: "¿Se mantienen los subtítulos originales?", a: "DubSync genera nuevos subtítulos traducidos que puedes descargar por separado." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "Platformlar",
     breadcrumbInstagram: "Instagram",
     ctaTitle: "Conquista Instagram en todos los idiomas",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   ko: {
-    title: "Dobla Reels y Stories de Instagram con IA — Clonación de Voz | DubSync",
+    title: "Instagram AI 더빙 — Reels와 Stories | DubSync",
     description:
-      "Traduce y dobla tus Instagram Reels y Stories en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
-    h1: "Dobla Reels y Stories de Instagram",
+      "AI 음성 클론과 립싱크로 Instagram Reels와 Stories를 더빙하세요.",
+    h1: "Instagram Reels와 Stories 더빙",
     subtitle:
       "Traduce tus Reels y Stories de Instagram a cualquier idioma con tu voz clonada. Lip sync y formatos optimizados para Instagram.",
     ctaText: "Doblar mi Reel",
@@ -242,7 +242,7 @@ const TRANSLATIONS = {
       { q: "¿Se mantienen los subtítulos originales?", a: "DubSync genera nuevos subtítulos traducidos que puedes descargar por separado." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "플랫폼",
     breadcrumbInstagram: "Instagram",
     ctaTitle: "Conquista Instagram en todos los idiomas",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",

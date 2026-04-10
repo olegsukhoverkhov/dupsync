@@ -169,14 +169,14 @@ const TRANSLATIONS: Record<"es" | "pt" | "de" | "fr" | "ja" | "hi" | "ar" | "id"
   },
 
   hi: {
-    title: "DubSync para Cada Plataforma — YouTube, TikTok, Instagram y Más",
+    title: "हर प्लेटफ़ॉर्म के लिए DubSync — YouTube, TikTok, Instagram और अधिक",
     description:
-      "Dobla videos para YouTube, TikTok, Instagram, Facebook, e-learning y podcasts. Clonación de voz y lip sync con IA para cada plataforma.",
-    h1: "Doblaje con IA para cada plataforma",
+      "YouTube, TikTok, Instagram, Facebook, ई-लर्निंग और पॉडकास्ट के लिए वीडियो डब करें।",
+    h1: "हर प्लेटफ़ॉर्म के लिए AI डबिंग",
     subtitle:
       "Contenido optimizado para cada plataforma. Clonación de voz, lip sync y traducción automática adaptados a las especificaciones de cada canal.",
-    cta: "Empezar gratis",
-    breadcrumbPlatforms: "Plataformas",
+    cta: "मुफ़्त शुरू करें",
+    breadcrumbPlatforms: "प्लेटफ़ॉर्म",
     faqs: [
       {
         q: "¿Qué plataformas admite DubSync?",
@@ -197,14 +197,14 @@ const TRANSLATIONS: Record<"es" | "pt" | "de" | "fr" | "ja" | "hi" | "ar" | "id"
     ],
   },
   ar: {
-    title: "DubSync para Cada Plataforma — YouTube, TikTok, Instagram y Más",
+    title: "DubSync لكل منصة — يوتيوب، تيك توك، إنستغرام والمزيد",
     description:
-      "Dobla videos para YouTube, TikTok, Instagram, Facebook, e-learning y podcasts. Clonación de voz y lip sync con IA para cada plataforma.",
-    h1: "Doblaje con IA para cada plataforma",
+      "دبلج فيديوهات يوتيوب، تيك توك، إنستغرام، فيسبوك، التعليم الإلكتروني والبودكاست.",
+    h1: "دبلجة بالذكاء الاصطناعي لكل منصة",
     subtitle:
       "Contenido optimizado para cada plataforma. Clonación de voz, lip sync y traducción automática adaptados a las especificaciones de cada canal.",
-    cta: "Empezar gratis",
-    breadcrumbPlatforms: "Plataformas",
+    cta: "ابدأ مجاناً",
+    breadcrumbPlatforms: "المنصات",
     faqs: [
       {
         q: "¿Qué plataformas admite DubSync?",
@@ -225,14 +225,14 @@ const TRANSLATIONS: Record<"es" | "pt" | "de" | "fr" | "ja" | "hi" | "ar" | "id"
     ],
   },
   id: {
-    title: "DubSync para Cada Plataforma — YouTube, TikTok, Instagram y Más",
+    title: "DubSync untuk Setiap Platform — YouTube, TikTok, Instagram dan Lainnya",
     description:
-      "Dobla videos para YouTube, TikTok, Instagram, Facebook, e-learning y podcasts. Clonación de voz y lip sync con IA para cada plataforma.",
-    h1: "Doblaje con IA para cada plataforma",
+      "Dubbing video untuk YouTube, TikTok, Instagram, Facebook, e-learning dan podcast.",
+    h1: "Dubbing AI untuk setiap platform",
     subtitle:
       "Contenido optimizado para cada plataforma. Clonación de voz, lip sync y traducción automática adaptados a las especificaciones de cada canal.",
-    cta: "Empezar gratis",
-    breadcrumbPlatforms: "Plataformas",
+    cta: "Mulai gratis",
+    breadcrumbPlatforms: "Platform",
     faqs: [
       {
         q: "¿Qué plataformas admite DubSync?",
@@ -253,14 +253,14 @@ const TRANSLATIONS: Record<"es" | "pt" | "de" | "fr" | "ja" | "hi" | "ar" | "id"
     ],
   },
   tr: {
-    title: "DubSync para Cada Plataforma — YouTube, TikTok, Instagram y Más",
+    title: "Her Platform için DubSync — YouTube, TikTok, Instagram ve Daha Fazlası",
     description:
-      "Dobla videos para YouTube, TikTok, Instagram, Facebook, e-learning y podcasts. Clonación de voz y lip sync con IA para cada plataforma.",
-    h1: "Doblaje con IA para cada plataforma",
+      "YouTube, TikTok, Instagram, Facebook, e-öğrenme ve podcast için video dublajlayın.",
+    h1: "Her platform için AI dublaj",
     subtitle:
       "Contenido optimizado para cada plataforma. Clonación de voz, lip sync y traducción automática adaptados a las especificaciones de cada canal.",
-    cta: "Empezar gratis",
-    breadcrumbPlatforms: "Plataformas",
+    cta: "Ücretsiz başlayın",
+    breadcrumbPlatforms: "Platformlar",
     faqs: [
       {
         q: "¿Qué plataformas admite DubSync?",
@@ -281,14 +281,14 @@ const TRANSLATIONS: Record<"es" | "pt" | "de" | "fr" | "ja" | "hi" | "ar" | "id"
     ],
   },
   ko: {
-    title: "DubSync para Cada Plataforma — YouTube, TikTok, Instagram y Más",
+    title: "모든 플랫폼을 위한 DubSync — YouTube, TikTok, Instagram 등",
     description:
-      "Dobla videos para YouTube, TikTok, Instagram, Facebook, e-learning y podcasts. Clonación de voz y lip sync con IA para cada plataforma.",
-    h1: "Doblaje con IA para cada plataforma",
+      "YouTube, TikTok, Instagram, Facebook, E-Learning, 팟캐스트 비디오를 더빙하세요.",
+    h1: "모든 플랫폼을 위한 AI 더빙",
     subtitle:
       "Contenido optimizado para cada plataforma. Clonación de voz, lip sync y traducción automática adaptados a las especificaciones de cada canal.",
-    cta: "Empezar gratis",
-    breadcrumbPlatforms: "Plataformas",
+    cta: "무료로 시작",
+    breadcrumbPlatforms: "플랫폼",
     faqs: [
       {
         q: "¿Qué plataformas admite DubSync?",

@@ -129,10 +129,10 @@ const TRANSLATIONS = {
   },
 
   hi: {
-    title: "Dobla Anuncios de Video y Contenido de Facebook con IA | DubSync",
+    title: "Facebook के लिए AI डबिंग — वीडियो विज्ञापन | DubSync",
     description:
-      "Traduce y dobla anuncios de video y contenido de Facebook en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
-    h1: "Dobla anuncios de video y contenido de Facebook",
+      "AI डबिंग के साथ Facebook वीडियो विज्ञापन और कंटेंट लोकलाइज़ करें।",
+    h1: "Facebook वीडियो विज्ञापन डब करें",
     subtitle:
       "Localiza tus anuncios de video y contenido de Facebook para audiencias globales. Clonación de voz y lip sync con IA.",
     ctaText: "Doblar mi video de Facebook",
@@ -146,17 +146,17 @@ const TRANSLATIONS = {
       { q: "¿Qué formatos de video soporta?", a: "DubSync soporta MP4, MOV, AVI y WebM en formatos horizontal, vertical y cuadrado." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "प्लेटफ़ॉर्म",
     breadcrumbFacebook: "Facebook",
     ctaTitle: "Localiza tu presencia en Facebook globalmente",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   ar: {
-    title: "Dobla Anuncios de Video y Contenido de Facebook con IA | DubSync",
+    title: "دبلجة AI لفيسبوك — إعلانات الفيديو | DubSync",
     description:
-      "Traduce y dobla anuncios de video y contenido de Facebook en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
-    h1: "Dobla anuncios de video y contenido de Facebook",
+      "وطّن إعلانات فيديو فيسبوك ومحتواها بدبلجة الذكاء الاصطناعي.",
+    h1: "دبلج إعلانات فيديو فيسبوك",
     subtitle:
       "Localiza tus anuncios de video y contenido de Facebook para audiencias globales. Clonación de voz y lip sync con IA.",
     ctaText: "Doblar mi video de Facebook",
@@ -170,17 +170,17 @@ const TRANSLATIONS = {
       { q: "¿Qué formatos de video soporta?", a: "DubSync soporta MP4, MOV, AVI y WebM en formatos horizontal, vertical y cuadrado." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "المنصات",
     breadcrumbFacebook: "Facebook",
     ctaTitle: "Localiza tu presencia en Facebook globalmente",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   id: {
-    title: "Dobla Anuncios de Video y Contenido de Facebook con IA | DubSync",
+    title: "Dubbing AI untuk Facebook — Iklan Video | DubSync",
     description:
-      "Traduce y dobla anuncios de video y contenido de Facebook en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
-    h1: "Dobla anuncios de video y contenido de Facebook",
+      "Lokalkan iklan video Facebook dan konten dengan dubbing AI.",
+    h1: "Dubbing iklan video Facebook",
     subtitle:
       "Localiza tus anuncios de video y contenido de Facebook para audiencias globales. Clonación de voz y lip sync con IA.",
     ctaText: "Doblar mi video de Facebook",
@@ -194,17 +194,17 @@ const TRANSLATIONS = {
       { q: "¿Qué formatos de video soporta?", a: "DubSync soporta MP4, MOV, AVI y WebM en formatos horizontal, vertical y cuadrado." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "Platform",
     breadcrumbFacebook: "Facebook",
     ctaTitle: "Localiza tu presencia en Facebook globalmente",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   tr: {
-    title: "Dobla Anuncios de Video y Contenido de Facebook con IA | DubSync",
+    title: "Facebook için AI Dublaj — Video Reklamları | DubSync",
     description:
-      "Traduce y dobla anuncios de video y contenido de Facebook en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
-    h1: "Dobla anuncios de video y contenido de Facebook",
+      "Facebook video reklamlarını ve içeriği AI dublajla yerelleştirin.",
+    h1: "Facebook video reklamlarını dublajlayın",
     subtitle:
       "Localiza tus anuncios de video y contenido de Facebook para audiencias globales. Clonación de voz y lip sync con IA.",
     ctaText: "Doblar mi video de Facebook",
@@ -218,17 +218,17 @@ const TRANSLATIONS = {
       { q: "¿Qué formatos de video soporta?", a: "DubSync soporta MP4, MOV, AVI y WebM en formatos horizontal, vertical y cuadrado." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "Platformlar",
     breadcrumbFacebook: "Facebook",
     ctaTitle: "Localiza tu presencia en Facebook globalmente",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
   },
   ko: {
-    title: "Dobla Anuncios de Video y Contenido de Facebook con IA | DubSync",
+    title: "Facebook AI 더빙 — 비디오 광고 | DubSync",
     description:
-      "Traduce y dobla anuncios de video y contenido de Facebook en más de 30 idiomas con clonación de voz con IA y lip sync automático.",
-    h1: "Dobla anuncios de video y contenido de Facebook",
+      "AI 더빙으로 Facebook 비디오 광고와 콘텐츠를 로컬라이즈하세요.",
+    h1: "Facebook 비디오 광고 더빙",
     subtitle:
       "Localiza tus anuncios de video y contenido de Facebook para audiencias globales. Clonación de voz y lip sync con IA.",
     ctaText: "Doblar mi video de Facebook",
@@ -242,7 +242,7 @@ const TRANSLATIONS = {
       { q: "¿Qué formatos de video soporta?", a: "DubSync soporta MP4, MOV, AVI y WebM en formatos horizontal, vertical y cuadrado." },
     ],
     alsoWorksWith: "También funciona con",
-    breadcrumbPlatforms: "Plataformas",
+    breadcrumbPlatforms: "플랫폼",
     breadcrumbFacebook: "Facebook",
     ctaTitle: "Localiza tu presencia en Facebook globalmente",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",

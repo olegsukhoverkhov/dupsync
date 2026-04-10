@@ -241,9 +241,9 @@ const TRANSLATIONS = {
   },
 
   hi: {
-    title: "Traducci\u00f3n de Video con IA \u2014 Traduce Videos a M\u00e1s de 30 Idiomas | DubSync",
+    title: "AI वीडियो ट्रांसलेशन — 30+ भाषाओं में अनुवाद | DubSync",
     description:
-      "Traduce y dobla videos en m\u00e1s de 30 idiomas con IA. Soporte para espa\u00f1ol, franc\u00e9s, japon\u00e9s, hindi, \u00e1rabe y m\u00e1s. Calidad de estudio en minutos.",
+      "30+ भाषाओं में वीडियो का अनुवाद और डबिंग करें।",
     badge: "Traducci\u00f3n de Video",
     h1: "Traduce videos a m\u00e1s de 30 idiomas",
     h1Highlight: "con IA",
@@ -281,14 +281,14 @@ const TRANSLATIONS = {
       { question: "\u00bfPuedo agregar idiomas que no est\u00e1n listados?", answer: "Constantemente agregamos nuevos idiomas. Si necesitas un idioma que a\u00fan no est\u00e1 disponible, cont\u00e1ctanos y lo priorizaremos seg\u00fan la demanda." },
       { question: "\u00bfLa traducci\u00f3n de video incluye subt\u00edtulos?", answer: "DubSync se enfoca en doblaje de audio, no subt\u00edtulos. Sin embargo, la transcripci\u00f3n traducida est\u00e1 disponible para descargar en formato SRT." },
     ],
-    breadcrumbFeatures: "Funciones",
+    breadcrumbFeatures: "सुविधाएं",
     breadcrumbVideoTranslation: "Traducci\u00f3n de Video",
     regions: { europe: "Europa", asia: "Asia y Pac\u00edfico", middleEast: "Medio Oriente y \u00c1frica" },
   },
   ar: {
-    title: "Traducci\u00f3n de Video con IA \u2014 Traduce Videos a M\u00e1s de 30 Idiomas | DubSync",
+    title: "ترجمة الفيديو بالذكاء الاصطناعي — 30+ لغة | DubSync",
     description:
-      "Traduce y dobla videos en m\u00e1s de 30 idiomas con IA. Soporte para espa\u00f1ol, franc\u00e9s, japon\u00e9s, hindi, \u00e1rabe y m\u00e1s. Calidad de estudio en minutos.",
+      "ترجمة ودبلجة الفيديوهات إلى أكثر من 30 لغة.",
     badge: "Traducci\u00f3n de Video",
     h1: "Traduce videos a m\u00e1s de 30 idiomas",
     h1Highlight: "con IA",
@@ -326,14 +326,14 @@ const TRANSLATIONS = {
       { question: "\u00bfPuedo agregar idiomas que no est\u00e1n listados?", answer: "Constantemente agregamos nuevos idiomas. Si necesitas un idioma que a\u00fan no est\u00e1 disponible, cont\u00e1ctanos y lo priorizaremos seg\u00fan la demanda." },
       { question: "\u00bfLa traducci\u00f3n de video incluye subt\u00edtulos?", answer: "DubSync se enfoca en doblaje de audio, no subt\u00edtulos. Sin embargo, la transcripci\u00f3n traducida est\u00e1 disponible para descargar en formato SRT." },
     ],
-    breadcrumbFeatures: "Funciones",
+    breadcrumbFeatures: "الميزات",
     breadcrumbVideoTranslation: "Traducci\u00f3n de Video",
     regions: { europe: "Europa", asia: "Asia y Pac\u00edfico", middleEast: "Medio Oriente y \u00c1frica" },
   },
   id: {
-    title: "Traducci\u00f3n de Video con IA \u2014 Traduce Videos a M\u00e1s de 30 Idiomas | DubSync",
+    title: "Terjemahan Video AI — Terjemahkan ke 30+ Bahasa | DubSync",
     description:
-      "Traduce y dobla videos en m\u00e1s de 30 idiomas con IA. Soporte para espa\u00f1ol, franc\u00e9s, japon\u00e9s, hindi, \u00e1rabe y m\u00e1s. Calidad de estudio en minutos.",
+      "Terjemahkan dan dubbing video ke 30+ bahasa.",
     badge: "Traducci\u00f3n de Video",
     h1: "Traduce videos a m\u00e1s de 30 idiomas",
     h1Highlight: "con IA",
@@ -371,14 +371,14 @@ const TRANSLATIONS = {
       { question: "\u00bfPuedo agregar idiomas que no est\u00e1n listados?", answer: "Constantemente agregamos nuevos idiomas. Si necesitas un idioma que a\u00fan no est\u00e1 disponible, cont\u00e1ctanos y lo priorizaremos seg\u00fan la demanda." },
       { question: "\u00bfLa traducci\u00f3n de video incluye subt\u00edtulos?", answer: "DubSync se enfoca en doblaje de audio, no subt\u00edtulos. Sin embargo, la transcripci\u00f3n traducida est\u00e1 disponible para descargar en formato SRT." },
     ],
-    breadcrumbFeatures: "Funciones",
+    breadcrumbFeatures: "Fitur",
     breadcrumbVideoTranslation: "Traducci\u00f3n de Video",
     regions: { europe: "Europa", asia: "Asia y Pac\u00edfico", middleEast: "Medio Oriente y \u00c1frica" },
   },
   tr: {
-    title: "Traducci\u00f3n de Video con IA \u2014 Traduce Videos a M\u00e1s de 30 Idiomas | DubSync",
+    title: "AI Video Çeviri — 30+ Dile Otomatik Çeviri | DubSync",
     description:
-      "Traduce y dobla videos en m\u00e1s de 30 idiomas con IA. Soporte para espa\u00f1ol, franc\u00e9s, japon\u00e9s, hindi, \u00e1rabe y m\u00e1s. Calidad de estudio en minutos.",
+      "Videoları 30+ dile çevirin ve dublajlayın.",
     badge: "Traducci\u00f3n de Video",
     h1: "Traduce videos a m\u00e1s de 30 idiomas",
     h1Highlight: "con IA",
@@ -416,14 +416,14 @@ const TRANSLATIONS = {
       { question: "\u00bfPuedo agregar idiomas que no est\u00e1n listados?", answer: "Constantemente agregamos nuevos idiomas. Si necesitas un idioma que a\u00fan no est\u00e1 disponible, cont\u00e1ctanos y lo priorizaremos seg\u00fan la demanda." },
       { question: "\u00bfLa traducci\u00f3n de video incluye subt\u00edtulos?", answer: "DubSync se enfoca en doblaje de audio, no subt\u00edtulos. Sin embargo, la transcripci\u00f3n traducida est\u00e1 disponible para descargar en formato SRT." },
     ],
-    breadcrumbFeatures: "Funciones",
+    breadcrumbFeatures: "Özellikler",
     breadcrumbVideoTranslation: "Traducci\u00f3n de Video",
     regions: { europe: "Europa", asia: "Asia y Pac\u00edfico", middleEast: "Medio Oriente y \u00c1frica" },
   },
   ko: {
-    title: "Traducci\u00f3n de Video con IA \u2014 Traduce Videos a M\u00e1s de 30 Idiomas | DubSync",
+    title: "AI 비디오 번역 — 30개 이상 언어로 번역 | DubSync",
     description:
-      "Traduce y dobla videos en m\u00e1s de 30 idiomas con IA. Soporte para espa\u00f1ol, franc\u00e9s, japon\u00e9s, hindi, \u00e1rabe y m\u00e1s. Calidad de estudio en minutos.",
+      "비디오를 30개 이상 언어로 번역하고 더빙하세요.",
     badge: "Traducci\u00f3n de Video",
     h1: "Traduce videos a m\u00e1s de 30 idiomas",
     h1Highlight: "con IA",
@@ -461,7 +461,7 @@ const TRANSLATIONS = {
       { question: "\u00bfPuedo agregar idiomas que no est\u00e1n listados?", answer: "Constantemente agregamos nuevos idiomas. Si necesitas un idioma que a\u00fan no est\u00e1 disponible, cont\u00e1ctanos y lo priorizaremos seg\u00fan la demanda." },
       { question: "\u00bfLa traducci\u00f3n de video incluye subt\u00edtulos?", answer: "DubSync se enfoca en doblaje de audio, no subt\u00edtulos. Sin embargo, la transcripci\u00f3n traducida est\u00e1 disponible para descargar en formato SRT." },
     ],
-    breadcrumbFeatures: "Funciones",
+    breadcrumbFeatures: "기능",
     breadcrumbVideoTranslation: "Traducci\u00f3n de Video",
     regions: { europe: "Europa", asia: "Asia y Pac\u00edfico", middleEast: "Medio Oriente y \u00c1frica" },
   },};
