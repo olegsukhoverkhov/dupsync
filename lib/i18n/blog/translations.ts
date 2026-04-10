@@ -32,6 +32,11 @@ const translationLoaders: Record<string, () => Promise<TranslationModule>> = {
   de: () => import("./de.json") as unknown as Promise<TranslationModule>,
   fr: () => import("./fr.json") as unknown as Promise<TranslationModule>,
   ja: () => import("./ja.json") as unknown as Promise<TranslationModule>,
+  hi: () => import("./hi.json") as unknown as Promise<TranslationModule>,
+  ar: () => import("./ar.json") as unknown as Promise<TranslationModule>,
+  id: () => import("./id.json") as unknown as Promise<TranslationModule>,
+  tr: () => import("./tr.json") as unknown as Promise<TranslationModule>,
+  ko: () => import("./ko.json") as unknown as Promise<TranslationModule>,
 };
 
 export async function getArticleTranslation(
