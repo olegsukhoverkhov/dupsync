@@ -104,8 +104,7 @@ export default function NewProjectPage() {
     setUploadedPath(path);
     setUploadedFile(file);
     if (!title) setTitle(file.name.replace(/\.[^.]+$/, ""));
-    // Auto-start project creation
-    createProject(path, file.name.replace(/\.[^.]+$/, ""));
+    // Don't auto-start — let the user pick source language first
   }
 
   async function createProject(path?: string, fallbackTitle?: string) {
