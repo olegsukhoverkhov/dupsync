@@ -106,3 +106,31 @@ export async function PATCH(
 
   return NextResponse.json({ ok: true });
 }
+
+/**
+ * DELETE /api/support/tickets/[id] — delete ticket + messages (admin only)
+ */
+export async function DELETE(
+  _req: NextRequest,
+  ctx: { params: Promise<{ id: string }> }
+) {
+  const { id } = await ctx.params;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .single();
+  if (!profile?.is_admin) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const service = await createServiceClient();
+  await service.from("support_messages").delete().eq("ticket_id", id);
+  await service.from("support_tickets").delete().eq("id", id);
+
+  return NextResponse.json({ ok: true });
+}

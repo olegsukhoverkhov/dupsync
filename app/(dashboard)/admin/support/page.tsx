@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { MessageCircle, Filter } from "lucide-react";
+import { MessageCircle, Filter, Trash2 } from "lucide-react";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { ConfirmModal } from "@/components/ui/modal";
 import { TicketDetail } from "@/components/support/ticket-detail";
 import type { SupportTicket, SupportMessage } from "@/lib/supabase/types";
 
@@ -37,6 +38,7 @@ export default function AdminSupportPage() {
   const [filter, setFilter] = useState("");
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [ticketDetail, setTicketDetail] = useState<{ ticket: SupportTicket; messages: SupportMessage[] } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<SupportTicket | null>(null);
 
   const fetchTickets = useCallback(async () => {
     const url = filter
@@ -165,6 +167,7 @@ export default function AdminSupportPage() {
                   <th className="px-4 py-3">User</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Updated</th>
+                  <th className="px-4 py-3 text-right">&nbsp;</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -190,6 +193,14 @@ export default function AdminSupportPage() {
                     <td className="px-4 py-3 text-xs text-slate-400">
                       {new Date(ticket.updated_at).toLocaleDateString()}
                     </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setDeleteTarget(ticket); }}
+                        className="inline-flex items-center rounded-lg border border-red-500/30 bg-red-500/10 p-1.5 text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -197,6 +208,24 @@ export default function AdminSupportPage() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete ticket"
+        message={`Delete "${deleteTarget?.subject}"? This will remove the ticket and all messages permanently.`}
+        confirmLabel="Delete"
+        destructive
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          fetch(`/api/support/tickets/${deleteTarget.id}`, { method: "DELETE" }).then((res) => {
+            if (res.ok) {
+              fetchTickets();
+              window.dispatchEvent(new Event("support-updated"));
+            }
+          });
+        }}
+      />
     </div>
   );
 }
