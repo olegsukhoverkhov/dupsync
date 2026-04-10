@@ -1,6 +1,8 @@
 "use client";
 
-import { Ban } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Ban, LogOut } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import { useDashboardT } from "./locale-provider";
 
 /**
@@ -9,6 +11,13 @@ import { useDashboardT } from "./locale-provider";
  */
 export function SuspendedModal() {
   const t = useDashboardT();
+  const router = useRouter();
+
+  async function handleLogout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/");
+  }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md">
@@ -34,6 +43,14 @@ export function SuspendedModal() {
         >
           {t("dashboard.suspended.contactSupport", "Contact Support")}
         </a>
+
+        <button
+          onClick={handleLogout}
+          className="mt-3 inline-flex items-center justify-center gap-2 w-full rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer"
+        >
+          <LogOut className="h-4 w-4" />
+          {t("dashboard.suspended.logout", "Log out")}
+        </button>
 
         <p className="mt-4 text-xs text-slate-600">
           support@dubsync.app
