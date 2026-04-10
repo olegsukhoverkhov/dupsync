@@ -52,14 +52,22 @@ export function DashboardSidebar() {
         const admin = Boolean(data?.is_admin);
         setIsAdmin(admin);
         // Fetch unread ticket count
-        const status = admin ? "waiting_admin" : "waiting_user";
-        let query = supabase
-          .from("support_tickets")
-          .select("id", { count: "exact", head: true })
-          .eq("status", status);
-        if (!admin) query = query.eq("user_id", user.id);
-        const { count } = await query;
-        if (!cancelled) setSupportBadge(count || 0);
+        // Admin: open + waiting_admin (needs attention)
+        // User: waiting_user (support replied)
+        if (admin) {
+          const { count } = await supabase
+            .from("support_tickets")
+            .select("id", { count: "exact", head: true })
+            .in("status", ["open", "waiting_admin"]);
+          if (!cancelled) setSupportBadge(count || 0);
+        } else {
+          const { count } = await supabase
+            .from("support_tickets")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .eq("status", "waiting_user");
+          if (!cancelled) setSupportBadge(count || 0);
+        }
       }
     }
     loadAdmin();
