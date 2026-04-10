@@ -36,6 +36,9 @@ export function DashboardSidebar() {
   // server-side gated.
   const [isAdmin, setIsAdmin] = useState(false);
   const [supportBadge, setSupportBadge] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Load admin status once on mount
   useEffect(() => {
     let cancelled = false;
     async function loadAdmin() {
@@ -43,39 +46,44 @@ export function DashboardSidebar() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user || cancelled) return;
+      setUserId(user.id);
       const { data } = await supabase
         .from("profiles")
         .select("is_admin")
         .eq("id", user.id)
         .single();
-      if (!cancelled) {
-        const admin = Boolean(data?.is_admin);
-        setIsAdmin(admin);
-        // Fetch unread ticket count
-        // Admin: open + waiting_admin (needs attention)
-        // User: waiting_user (support replied)
-        if (admin) {
-          const { count } = await supabase
-            .from("support_tickets")
-            .select("id", { count: "exact", head: true })
-            .in("status", ["open", "waiting_admin"]);
-          if (!cancelled) setSupportBadge(count || 0);
-        } else {
-          const { count } = await supabase
-            .from("support_tickets")
-            .select("id", { count: "exact", head: true })
-            .eq("user_id", user.id)
-            .eq("status", "waiting_user");
-          if (!cancelled) setSupportBadge(count || 0);
-        }
-      }
+      if (!cancelled) setIsAdmin(Boolean(data?.is_admin));
     }
     loadAdmin();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Poll support badge every 30s (and on mount once admin/userId known)
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    async function fetchBadge() {
+      if (isAdmin) {
+        const { count } = await supabase
+          .from("support_tickets")
+          .select("id", { count: "exact", head: true })
+          .in("status", ["open", "waiting_admin"]);
+        if (!cancelled) setSupportBadge(count || 0);
+      } else {
+        const { count } = await supabase
+          .from("support_tickets")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("status", "waiting_user");
+        if (!cancelled) setSupportBadge(count || 0);
+      }
+    }
+    fetchBadge();
+    const interval = setInterval(fetchBadge, 30_000);
+    return () => { cancelled = true; clearInterval(interval); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, isAdmin]);
 
   // Build nav items using the locale hook so labels are translated.
   // Identity is recreated on every render but the list is tiny so
