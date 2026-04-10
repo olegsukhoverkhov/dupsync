@@ -20,7 +20,7 @@ import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { Profile, TranscriptSegment, Project } from "@/lib/supabase/types";
 import { ArrowLeft, ArrowRight, Loader2, Check, AlertTriangle, Globe } from "lucide-react";
 import { ProcessingIndicator } from "@/components/ui/processing-indicator";
-import { AlertModal } from "@/components/ui/modal";
+import { AlertModal, Modal } from "@/components/ui/modal";
 import { LANGUAGE_MAP } from "@/lib/supabase/constants";
 import { useDashboardT } from "@/components/dashboard/locale-provider";
 import { UpgradeModal } from "@/components/dashboard/upgrade-modal";
@@ -79,6 +79,8 @@ export default function NewProjectPage() {
   // Pre-dub subtitles choice modal. Split from handleStartDubbing so
   // the user sees the cost breakdown before any credits are reserved.
   const [subsChoiceOpen, setSubsChoiceOpen] = useState(false);
+  const [duplicateNameOpen, setDuplicateNameOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
 
   useEffect(() => {
     async function loadProfile() {
@@ -219,15 +221,8 @@ export default function NewProjectPage() {
       setLoading(false);
       const msg = err instanceof Error ? err.message : t("dashboard.newProject.failedToCreateProjectDot", "Failed to create project.");
       if (msg.includes("already exists")) {
-        // Show the upload section again with title editable so the
-        // user can rename and retry without re-uploading.
-        setAlertModal({
-          title: t("dashboard.newProject.duplicateNameTitle", "Duplicate Name"),
-          message: t("dashboard.newProject.duplicateNameMessage", "A project with this name already exists. Please change the title and try again."),
-          type: "error",
-          actionLabel: t("dashboard.newProject.ok", "OK"),
-          actionOnClick: () => setAlertModal(null),
-        });
+        setNewTitle(title);
+        setDuplicateNameOpen(true);
       } else {
         setAlertModal({
           title: t("dashboard.newProject.errorTitle", "Error"),
@@ -785,6 +780,57 @@ export default function NewProjectPage() {
         languageCount={selectedLanguages.length}
         submitting={loading}
       />
+
+      {/* Duplicate name — rename inline and retry */}
+      <Modal open={duplicateNameOpen} onClose={() => setDuplicateNameOpen(false)}>
+        <div>
+          <h3 className="text-lg font-semibold text-white">
+            {t("dashboard.newProject.duplicateNameTitle", "Duplicate Name")}
+          </h3>
+          <p className="mt-2 text-sm text-slate-400">
+            {t("dashboard.newProject.duplicateNameMessage", "A project with this name already exists. Choose a different title.")}
+          </p>
+          <div className="mt-4">
+            <Label htmlFor="newTitle">{t("dashboard.newProject.projectTitleLabel", "Project Title")}</Label>
+            <Input
+              id="newTitle"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder={t("dashboard.newProject.projectTitlePlaceholder", "My Video")}
+              className="mt-1"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && newTitle.trim()) {
+                  setTitle(newTitle.trim());
+                  setDuplicateNameOpen(false);
+                  createProject(undefined, newTitle.trim());
+                }
+              }}
+            />
+          </div>
+          <div className="mt-5 flex gap-3">
+            <button
+              type="button"
+              onClick={() => setDuplicateNameOpen(false)}
+              className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white hover:bg-white/10 transition-colors cursor-pointer"
+            >
+              {t("dashboard.support.cancel", "Cancel")}
+            </button>
+            <button
+              type="button"
+              disabled={!newTitle.trim()}
+              onClick={() => {
+                setTitle(newTitle.trim());
+                setDuplicateNameOpen(false);
+                createProject(undefined, newTitle.trim());
+              }}
+              className="flex-1 gradient-button rounded-xl px-4 py-3 text-sm font-semibold disabled:opacity-40 cursor-pointer"
+            >
+              {t("dashboard.newProject.continue", "Continue")}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
