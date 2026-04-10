@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * Responsive SVG histogram for daily visits on /admin/stats.
- * No external charting library — uses a ResizeObserver to fit
- * bars to the container width. Hover tooltips, gradient fill,
- * Y-axis labels, and rounded bars.
+ * Responsive SVG line chart for daily visits on /admin/stats.
+ * No external charting library — uses ResizeObserver to fit
+ * the chart to container width. Line with dots, hover tooltips,
+ * Y-axis labels, and a subtle fill area.
  */
 import { useEffect, useRef, useState } from "react";
 
@@ -38,28 +38,34 @@ export function VisitsChart({ data, label }: Props) {
   }
 
   const maxVisits = Math.max(...data.map((d) => d.visits), 1);
-  const chartHeight = 180;
-  const paddingLeft = 40; // space for Y-axis labels
-  const paddingBottom = 28; // space for X-axis labels
-  const paddingTop = 8;
-  const paddingRight = 8;
+  const chartHeight = 220;
+  const paddingLeft = 44;
+  const paddingBottom = 32;
+  const paddingTop = 16;
+  const paddingRight = 16;
   const plotWidth = containerWidth - paddingLeft - paddingRight;
   const plotHeight = chartHeight - paddingTop - paddingBottom;
 
-  // Bar sizing — adapt to data length
-  const totalGapRatio = 0.3; // 30% of plot is gaps
-  const barWidth = Math.max(
-    2,
-    (plotWidth * (1 - totalGapRatio)) / data.length
-  );
-  const gap = data.length > 1
-    ? (plotWidth - barWidth * data.length) / (data.length - 1)
-    : 0;
-
-  // Y-axis ticks (3–5 nice round numbers)
+  // Y-axis ticks
   const yTicks = niceYTicks(maxVisits);
+  const yMax = yTicks[yTicks.length - 1] || maxVisits;
 
-  // X-axis labels — show ~7 labels max
+  // Point positions
+  const points = data.map((d, i) => {
+    const x =
+      paddingLeft +
+      (data.length === 1 ? plotWidth / 2 : (i / (data.length - 1)) * plotWidth);
+    const y = paddingTop + plotHeight - (d.visits / yMax) * plotHeight;
+    return { x, y };
+  });
+
+  // SVG path for the line
+  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+
+  // Filled area under the line
+  const areaPath = `${linePath} L${points[points.length - 1].x},${paddingTop + plotHeight} L${points[0].x},${paddingTop + plotHeight} Z`;
+
+  // X-axis labels — show ~7 max
   const labelEvery = Math.max(1, Math.ceil(data.length / 7));
 
   return (
@@ -89,20 +95,19 @@ export function VisitsChart({ data, label }: Props) {
           viewBox={`0 0 ${containerWidth} ${chartHeight}`}
         >
           <defs>
-            <linearGradient id="histGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#ec4899" stopOpacity="0.9" />
-              <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.6" />
+            <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#ec4899" stopOpacity="0.15" />
+              <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.02" />
             </linearGradient>
-            <linearGradient id="histGradHover" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#f472b6" stopOpacity="1" />
-              <stop offset="100%" stopColor="#a78bfa" stopOpacity="0.8" />
+            <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#ec4899" />
+              <stop offset="100%" stopColor="#a78bfa" />
             </linearGradient>
           </defs>
 
           {/* Y-axis grid lines + labels */}
           {yTicks.map((tick) => {
-            const y =
-              paddingTop + plotHeight - (tick / maxVisits) * plotHeight;
+            const y = paddingTop + plotHeight - (tick / yMax) * plotHeight;
             return (
               <g key={tick}>
                 <line
@@ -114,13 +119,15 @@ export function VisitsChart({ data, label }: Props) {
                   strokeDasharray="3 3"
                 />
                 <text
-                  x={paddingLeft - 6}
-                  y={y + 3}
+                  x={paddingLeft - 8}
+                  y={y + 3.5}
                   textAnchor="end"
                   className="fill-slate-500"
                   fontSize={10}
                 >
-                  {tick >= 1000 ? `${(tick / 1000).toFixed(tick >= 10000 ? 0 : 1)}k` : tick}
+                  {tick >= 1000
+                    ? `${(tick / 1000).toFixed(tick >= 10000 ? 0 : 1)}k`
+                    : tick}
                 </text>
               </g>
             );
@@ -135,26 +142,45 @@ export function VisitsChart({ data, label }: Props) {
             stroke="rgba(255,255,255,0.1)"
           />
 
-          {/* Bars */}
-          {data.map((d, i) => {
-            const h = maxVisits > 0 ? (d.visits / maxVisits) * plotHeight : 0;
-            const x = paddingLeft + i * (barWidth + gap);
-            const y = paddingTop + plotHeight - h;
+          {/* Area fill */}
+          <path d={areaPath} fill="url(#areaFill)" />
+
+          {/* Line */}
+          <path
+            d={linePath}
+            fill="none"
+            stroke="url(#lineGrad)"
+            strokeWidth={2}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+
+          {/* Dots */}
+          {points.map((p, i) => {
             const isHovered = hoveredIdx === i;
             return (
-              <rect
-                key={d.day}
-                x={x}
-                y={y}
-                width={barWidth}
-                height={Math.max(h, 1)}
-                rx={Math.min(3, barWidth / 2)}
-                fill={isHovered ? "url(#histGradHover)" : "url(#histGrad)"}
-                className="cursor-pointer transition-opacity"
-                opacity={hoveredIdx !== null && !isHovered ? 0.35 : 1}
-                onMouseEnter={() => setHoveredIdx(i)}
-                onMouseLeave={() => setHoveredIdx(null)}
-              />
+              <g key={data[i].day}>
+                {/* Invisible larger hit area */}
+                <circle
+                  cx={p.x}
+                  cy={p.y}
+                  r={12}
+                  fill="transparent"
+                  className="cursor-pointer"
+                  onMouseEnter={() => setHoveredIdx(i)}
+                  onMouseLeave={() => setHoveredIdx(null)}
+                />
+                {/* Visible dot */}
+                <circle
+                  cx={p.x}
+                  cy={p.y}
+                  r={isHovered ? 5 : 3.5}
+                  fill={isHovered ? "#f472b6" : "#1e293b"}
+                  stroke={isHovered ? "#f472b6" : "#94a3b8"}
+                  strokeWidth={isHovered ? 2 : 1.5}
+                  className="pointer-events-none transition-all"
+                />
+              </g>
             );
           })}
 
@@ -165,12 +191,11 @@ export function VisitsChart({ data, label }: Props) {
               i === data.length - 1 ||
               (data.length > 2 && i % labelEvery === 0);
             if (!show) return null;
-            const x = paddingLeft + i * (barWidth + gap) + barWidth / 2;
             return (
               <text
                 key={`xl-${d.day}`}
-                x={x}
-                y={paddingTop + plotHeight + 16}
+                x={points[i].x}
+                y={paddingTop + plotHeight + 20}
                 textAnchor="middle"
                 className="fill-slate-500"
                 fontSize={10}
@@ -199,7 +224,6 @@ function niceYTicks(max: number): number[] {
   if (max <= 0) return [0];
   if (max <= 5) return Array.from({ length: max + 1 }, (_, i) => i);
 
-  // Find a nice step: 1, 2, 5, 10, 20, 50, ...
   const roughStep = max / 4;
   const mag = Math.pow(10, Math.floor(Math.log10(roughStep)));
   const residual = roughStep / mag;
@@ -210,10 +234,9 @@ function niceYTicks(max: number): number[] {
   else niceStep = 10 * mag;
 
   const ticks: number[] = [];
-  for (let v = 0; v <= max; v += niceStep) {
+  for (let v = 0; v <= max + niceStep * 0.1; v += niceStep) {
     ticks.push(v);
   }
-  // Always include a tick at or above max
   if (ticks[ticks.length - 1] < max) {
     ticks.push(ticks[ticks.length - 1] + niceStep);
   }
