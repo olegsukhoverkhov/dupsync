@@ -82,6 +82,12 @@ export function UsersTable({ initial }: { initial: AdminUsersPage }) {
                 <tr key={u.id} className="hover:bg-white/[0.02]">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
+                      <div
+                        className={`h-2 w-2 shrink-0 rounded-full ${
+                          u.is_online ? "bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.6)]" : "bg-slate-600"
+                        }`}
+                        title={u.is_online ? "Online" : "Offline"}
+                      />
                       <div className="min-w-0">
                         <p className="truncate font-medium text-white">
                           {u.full_name || u.email}

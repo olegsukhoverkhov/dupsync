@@ -1,6 +1,7 @@
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardLocaleProvider } from "@/components/dashboard/locale-provider";
 import { SuspendedCheck } from "@/components/dashboard/suspended-check";
+import { Heartbeat } from "@/components/dashboard/heartbeat";
 import { resolveDashboardLocale } from "@/lib/i18n/dashboard-locale";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +32,7 @@ export default async function DashboardLayout({
           <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">{children}</div>
         </main>
         <SuspendedCheck />
+        <Heartbeat />
       </div>
     </DashboardLocaleProvider>
   );

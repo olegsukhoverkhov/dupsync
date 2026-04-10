@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getVisitStats, getVisitDailyChart } from "@/lib/analytics";
+import { getVisitStats, getVisitDailyChart, getOnlineCounts } from "@/lib/analytics";
 import { VisitsChart } from "@/components/admin/visits-chart";
 import { resolveRange, type RangePreset } from "@/lib/admin";
 import { RangeFilter } from "@/components/admin/range-filter";
@@ -10,6 +10,8 @@ import {
   Repeat,
   TrendingUp,
   Clock,
+  Monitor,
+  Globe,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -50,9 +52,10 @@ export default async function AdminAnalyticsPage({
 
   const range = resolveRange(preset, customFrom || null, customTo || null);
 
-  const [stats, dailyData] = await Promise.all([
+  const [stats, dailyData, online] = await Promise.all([
     getVisitStats({ from: range.from, to: range.to }),
     getVisitDailyChart({ from: range.from, to: range.to }),
+    getOnlineCounts(),
   ]);
 
   return (
@@ -81,6 +84,49 @@ export default async function AdminAnalyticsPage({
         currentFrom={customFrom}
         currentTo={customTo}
       />
+
+      {/* ── Online right now ────────────────────────────── */}
+      <div className="mb-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+          Online right now
+        </h2>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 mb-8">
+        <div className="rounded-2xl border border-emerald-500/20 bg-slate-800/50 p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
+              <Monitor className="h-5 w-5 text-emerald-400" />
+            </div>
+            <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+              In dashboard
+            </p>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <div className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+            <p className="text-3xl font-bold tabular-nums text-emerald-400">
+              {online.dashboardUsers}
+            </p>
+          </div>
+          <p className="mt-1 text-xs text-slate-500">Active in the last 2 minutes</p>
+        </div>
+        <div className="rounded-2xl border border-blue-500/20 bg-slate-800/50 p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10">
+              <Globe className="h-5 w-5 text-blue-400" />
+            </div>
+            <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+              On site
+            </p>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <div className="h-2.5 w-2.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+            <p className="text-3xl font-bold tabular-nums text-blue-400">
+              {online.siteVisitors}
+            </p>
+          </div>
+          <p className="mt-1 text-xs text-slate-500">Visitors on marketing pages (excl. dashboard)</p>
+        </div>
+      </div>
 
       <div className="mb-2 flex items-baseline justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">

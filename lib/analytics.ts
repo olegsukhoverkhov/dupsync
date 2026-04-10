@@ -135,3 +135,27 @@ export async function getVisitStats(range?: {
     return { unique: 0, returning: 0, totalVisits: 0, last24h: 0 };
   }
 }
+
+/**
+ * Live online counters for the admin analytics page.
+ * - dashboardUsers: users with a heartbeat in the last 2 minutes
+ * - siteVisitors: distinct IPs seen on marketing pages in the last 2 minutes
+ */
+export async function getOnlineCounts(): Promise<{
+  dashboardUsers: number;
+  siteVisitors: number;
+}> {
+  try {
+    const supabase = await createServiceClient();
+    const [dashRes, siteRes] = await Promise.all([
+      supabase.rpc("online_dashboard_users"),
+      supabase.rpc("online_site_visitors"),
+    ]);
+    return {
+      dashboardUsers: Number(dashRes.data ?? 0),
+      siteVisitors: Number(siteRes.data ?? 0),
+    };
+  } catch {
+    return { dashboardUsers: 0, siteVisitors: 0 };
+  }
+}
