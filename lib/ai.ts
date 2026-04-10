@@ -594,30 +594,61 @@ ${text}`,
     .filter((s): s is TranscriptSegment => s !== null);
 }
 
-// Get a pre-made ElevenLabs multilingual voice
-export async function getMultilingualVoice(): Promise<string> {
-  // Use "Laura" — ElevenLabs pre-made multilingual female voice
-  // Fallback list of known pre-made voice IDs that support multilingual
-  const PREMADE_VOICES = [
-    "FGY2WhTYpPnrIDTdsKH5", // Laura
-    "EXAVITQu4vr4xnSDxMaL", // Sarah
-    "XrExE9yKIg1WjnnlVkGX", // Matilda
-  ];
+/**
+ * Curated library of ElevenLabs pre-made voices. These are free to
+ * use (no voice_add_edit quota consumed) and all support the
+ * `eleven_multilingual_v2` model. Fetched once via GET /v1/voices
+ * and hand-picked for variety: 10 male + 8 female + 1 neutral,
+ * spanning young / middle-aged / old and US / UK / AU accents.
+ *
+ * Used by:
+ *  - Free plan dubs (always — cloning is reserved for paid)
+ *  - Paid plan fallback when ElevenLabs clone quota is exhausted
+ */
+const PREMADE_VOICES = [
+  // ── Male voices ──────────────────────────────────────
+  { id: "CwhRBWXzGAHq8TQ4Fs17", gender: "male",    label: "Roger – Laid-Back, Casual" },
+  { id: "IKne3meq5aSn9XLyUdCD", gender: "male",    label: "Charlie – Deep, Confident" },
+  { id: "JBFqnCBsd6RMkjVDRZzb", gender: "male",    label: "George – Warm Storyteller" },
+  { id: "TX3LPaxmHKxFdv7VOQHJ", gender: "male",    label: "Liam – Energetic Creator" },
+  { id: "bIHbv24MWmeRgasZH58o", gender: "male",    label: "Will – Relaxed Optimist" },
+  { id: "cjVigY5qzO86Huf0OWal", gender: "male",    label: "Eric – Smooth, Trustworthy" },
+  { id: "iP95p4xoKVk53GoZ742B", gender: "male",    label: "Chris – Charming" },
+  { id: "nPczCjzI2devNBz1zQrb", gender: "male",    label: "Brian – Deep, Resonant" },
+  { id: "onwK4e9ZLuTAKqWW03F9", gender: "male",    label: "Daniel – Steady Broadcaster" },
+  { id: "pqHfZKP75CvOlQylNhV4", gender: "male",    label: "Bill – Wise, Mature" },
+  // ── Female voices ────────────────────────────────────
+  { id: "EXAVITQu4vr4xnSDxMaL", gender: "female",  label: "Sarah – Mature, Reassuring" },
+  { id: "FGY2WhTYpPnrIDTdsKH5", gender: "female",  label: "Laura – Enthusiast, Quirky" },
+  { id: "XrExE9yKIg1WjnnlVkGX", gender: "female",  label: "Matilda – Professional" },
+  { id: "Xb7hH8MSUJpSbSDYk0k2", gender: "female",  label: "Alice – Clear Educator" },
+  { id: "cgSgspJ2msm6clMCkdW9", gender: "female",  label: "Jessica – Playful, Warm" },
+  { id: "hpp4J3VqNfWAUOO0d1Us", gender: "female",  label: "Bella – Professional, Bright" },
+  { id: "pFZP5JQG7iQjIQuC4Bku", gender: "female",  label: "Lily – Velvety Actress" },
+  // ── Neutral voice ────────────────────────────────────
+  { id: "SAz9YHcvj6GT2YYXdXww", gender: "neutral", label: "River – Relaxed, Informative" },
+];
 
-  // Try to verify the first voice exists
-  for (const id of PREMADE_VOICES) {
-    try {
-      const res = await fetch(`https://api.elevenlabs.io/v1/voices/${id}`, {
-        headers: { "xi-api-key": process.env.ELEVENLABS_API_KEY! },
-      });
-      if (res.ok) return id;
-    } catch {
-      continue;
-    }
+/**
+ * Get a pre-made ElevenLabs multilingual voice. Selection is
+ * deterministic based on an optional `seed` string (typically the
+ * project ID) so the same video always gets the same voice across
+ * re-dubs. Without a seed, picks randomly.
+ *
+ * No quota consumed — pre-made voices are free to use in TTS.
+ */
+export function getMultilingualVoice(seed?: string): string {
+  const pool = PREMADE_VOICES;
+  if (!seed) {
+    return pool[Math.floor(Math.random() * pool.length)].id;
   }
-
-  // Fallback to first
-  return PREMADE_VOICES[0];
+  // Simple deterministic hash so one project always maps to the
+  // same voice (consistent UX across retries / re-dubs).
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0;
+  }
+  return pool[Math.abs(hash) % pool.length].id;
 }
 
 // ElevenLabs voice cloning with high-quality settings (with retry)

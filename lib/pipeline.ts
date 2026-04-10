@@ -241,7 +241,7 @@ async function runDubbingAudioOnce(
       // Skip the clone path entirely for free users — don't even
       // download the extracted audio sample. Save the ElevenLabs
       // quota for paying customers.
-      voiceId = await ai.getMultilingualVoice();
+      voiceId = ai.getMultilingualVoice(project.id as string);
       log(dubId, `Free plan — using pre-made voice: ${voiceId}`);
     } else {
       // Paid plan → try to clone. Same multi-candidate search as
@@ -282,7 +282,7 @@ async function runDubbingAudioOnce(
               }`
             );
           }
-          voiceId = await ai.getMultilingualVoice();
+          voiceId = ai.getMultilingualVoice(project.id as string);
           log(dubId, `Using pre-made voice: ${voiceId}`);
         }
       } else {
@@ -314,7 +314,7 @@ async function runDubbingAudioOnce(
               }`
             );
           }
-          voiceId = await ai.getMultilingualVoice();
+          voiceId = ai.getMultilingualVoice(project.id as string);
         }
       }
     }
@@ -348,7 +348,7 @@ async function runDubbingAudioOnce(
         if (!["FGY2WhTYpPnrIDTdsKH5", "EXAVITQu4vr4xnSDxMaL", "XrExE9yKIg1WjnnlVkGX"].includes(voiceId)) {
           try { await ai.deleteClonedVoice(voiceId); } catch { /* ignore */ }
         }
-        voiceId = await ai.getMultilingualVoice();
+        voiceId = ai.getMultilingualVoice(project.id as string);
         // Clone existed but was unusable for this language — the
         // final audio came from the pre-made voice so downgrade
         // voice_source accordingly. UI will show the "similar
