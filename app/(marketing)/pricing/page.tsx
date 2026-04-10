@@ -1,29 +1,43 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { PricingNew } from "@/components/landing/pricing-new";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
+import { getPlatformHreflang } from "@/lib/seo/platform-hreflang";
 
-export const metadata: Metadata = {
-  title: "DubSync Pricing — AI Video Dubbing Plans from Free to Enterprise",
-  description:
-    "Choose the DubSync plan that fits your needs. Free, Starter, Pro, and Enterprise plans for AI video dubbing, voice cloning, and lip sync.",
-  alternates: { canonical: "https://dubsync.app/pricing" },
-  openGraph: {
-    type: "website",
-    title: "DubSync Pricing — AI Video Dubbing Plans from Free to Enterprise",
+/**
+ * Dynamic metadata so `getPlatformHreflang` resolves at request
+ * time. The static `export const metadata` pattern was silently
+ * dropping the `alternates.languages` object in Turbopack production
+ * builds (the function call was evaluated but the result wasn't
+ * serialised into the RSC payload). Using `generateMetadata`
+ * guarantees the hreflang tags make it into the HTML `<head>`.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "DubSync Pricing — AI Dubbing Plans from $0 to Pro",
     description:
-      "Choose the DubSync plan that fits your needs. Free, Starter, Pro, and Enterprise plans with lip sync included.",
-    url: "https://dubsync.app/pricing",
-    images: ["/og-image.png"],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "DubSync Pricing — AI Video Dubbing Plans",
-    description:
-      "AI dubbing plans from free to enterprise. Lip sync included in every credit.",
-  },
-};
+      "Choose the DubSync plan that fits your needs. Free, Starter, Pro, and Enterprise plans for AI video dubbing, voice cloning, and lip sync.",
+    alternates: {
+      canonical: "https://dubsync.app/pricing",
+      languages: getPlatformHreflang("/pricing"),
+    },
+    openGraph: {
+      type: "website",
+      title: "DubSync Pricing — AI Dubbing Plans from $0 to Pro",
+      description:
+        "Choose the DubSync plan that fits your needs. Free, Starter, Pro, and Enterprise plans with lip sync included.",
+      url: "https://dubsync.app/pricing",
+      images: ["/og-image.png"],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "DubSync Pricing — AI Dubbing Plans",
+      description:
+        "AI dubbing plans from free to enterprise. Lip sync included in every credit.",
+    },
+  };
+}
 
 const PRICING_FAQS = [
   {
