@@ -7,7 +7,7 @@ import { extractVideoUrlFromWebhook } from "@/lib/ai";
 import { createServiceClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 300; // upload of synced video can take a moment
+export const maxDuration = 300; // retries with delays + upload can take several minutes
 
 /**
  * Webhook receiver for fal.ai lip sync jobs.
@@ -66,8 +66,8 @@ export async function POST(req: NextRequest) {
     console.warn(`[FAL_WEBHOOK] Dub ${dubId} not found, ignoring webhook`);
     return NextResponse.json({ ok: true });
   }
-  if (dub.status === "done") {
-    console.log(`[FAL_WEBHOOK] Dub ${dubId} already done, ignoring re-delivery`);
+  if (dub.status === "done" || dub.status === "error") {
+    console.log(`[FAL_WEBHOOK] Dub ${dubId} already ${dub.status}, ignoring re-delivery`);
     return NextResponse.json({ ok: true });
   }
   // Optional sanity check: request_id should match what we stored

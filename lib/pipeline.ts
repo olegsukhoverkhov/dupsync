@@ -574,15 +574,11 @@ export async function runLipSync(dubId: string) {
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : "Unknown error";
     console.error(`[DUB:${dubId.slice(0, 8)}] Stage 2 SUBMIT FAILED:`, error);
-    log(dubId, `Stage 2 submit failed: ${errMsg} — keeping audio-only`);
-    // Submission itself failed (network, fal.ai down). Keep the audio
-    // result usable; the user can retry from the UI.
-    await supabase.from("dubs").update({
-      status: "done",
-      progress: 100,
-      error_message: `Lip sync submit failed: ${errMsg.slice(0, 500)}`,
-    }).eq("id", dubId);
-    await checkProjectComplete(supabase, dub.project_id, dubId);
+    log(dubId, `Stage 2 submit failed: ${errMsg} — triggering retry flow`);
+    // Treat initial submit failure like a webhook failure so the
+    // retry logic kicks in with backoff and eventual refund.
+    await supabase.from("dubs").update({ fal_attempt: 1 }).eq("id", dubId);
+    await handleLipSyncFailureFromWebhook(dubId, errMsg);
   }
 }
 
@@ -691,6 +687,14 @@ export async function completeLipSyncFromWebhook(
  * the fallback model once; if that's already been tried, marks the dub
  * as done with an error message and keeps the audio-only result.
  */
+/**
+ * Max lip sync attempts before giving up. Each attempt retries the
+ * same model first, then falls back to the other model on the last try.
+ * Retries: attempt 1 (original), 2 (retry 30s), 3 (retry 1m), 4 (fallback model).
+ */
+const MAX_LIP_SYNC_ATTEMPTS = 4;
+const RETRY_DELAYS_MS = [0, 30_000, 60_000, 180_000]; // per attempt
+
 export async function handleLipSyncFailureFromWebhook(
   dubId: string,
   failureReason: string
@@ -707,26 +711,51 @@ export async function handleLipSyncFailureFromWebhook(
 
   const currentModel = (dub as Record<string, unknown>).fal_model as string | null;
   const attempt = ((dub as Record<string, unknown>).fal_attempt as number | null) || 1;
+  const nextAttempt = attempt + 1;
 
-  // Already tried both models? Give up gracefully.
-  if (attempt >= 2) {
-    log(dubId, `Webhook: lip sync failed on both models — keeping audio-only. Last error: ${failureReason}`);
+  // All retries exhausted — refund credits and show friendly error
+  if (nextAttempt > MAX_LIP_SYNC_ATTEMPTS) {
+    log(dubId, `Lip sync failed after ${attempt} attempts — refunding credits. Last error: ${failureReason}`);
+
+    // Refund credits for this dub
+    const userId = project.user_id as string | undefined;
+    if (userId) {
+      await refundDubCredits(supabase, userId, dub.project_id, dubId);
+    }
+
     await supabase
       .from("dubs")
       .update({
-        status: "done",
+        status: "error",
         progress: 100,
-        error_message: `Lip sync failed: ${failureReason.slice(0, 500)}`,
+        error_message: "Due to high server load, we couldn't generate your video. No credits were charged. Please try again or contact support.",
       })
       .eq("id", dubId);
     await checkProjectComplete(supabase, dub.project_id, dubId);
     return;
   }
 
-  // Try the OTHER model once
-  const fallbackModel: "fal-ai/sync-lipsync" | "fal-ai/latentsync" =
-    currentModel === "fal-ai/sync-lipsync" ? "fal-ai/latentsync" : "fal-ai/sync-lipsync";
-  log(dubId, `Webhook: ${currentModel} failed (${failureReason}), retrying with ${fallbackModel}`);
+  // Determine which model to use for the retry
+  // Last attempt: try the OTHER model as fallback
+  const useModel: "fal-ai/sync-lipsync" | "fal-ai/latentsync" =
+    nextAttempt === MAX_LIP_SYNC_ATTEMPTS
+      ? (currentModel === "fal-ai/sync-lipsync" ? "fal-ai/latentsync" : "fal-ai/sync-lipsync")
+      : (currentModel as "fal-ai/sync-lipsync" | "fal-ai/latentsync") || "fal-ai/latentsync";
+
+  const delayMs = RETRY_DELAYS_MS[nextAttempt - 1] || 0;
+  log(dubId, `Attempt ${attempt} failed (${failureReason}). Retry ${nextAttempt}/${MAX_LIP_SYNC_ATTEMPTS} with ${useModel} in ${delayMs / 1000}s`);
+
+  // Update status to show user we're still working
+  await supabase.from("dubs").update({
+    status: "lip_syncing",
+    progress: 83,
+    error_message: null,
+  }).eq("id", dubId);
+
+  // Delay before retry (if needed)
+  if (delayMs > 0) {
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
 
   try {
     const audioPath = dub.dubbed_video_url as string;
@@ -741,14 +770,14 @@ export async function handleLipSyncFailureFromWebhook(
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dubsync.app";
-    const webhookUrl = `${baseUrl}/api/webhooks/fal-lipsync?dubId=${dubId}&attempt=2`;
+    const webhookUrl = `${baseUrl}/api/webhooks/fal-lipsync?dubId=${dubId}&attempt=${nextAttempt}`;
     const { requestId, model } = await ai.submitLipSyncJob(
       videoSigned.signedUrl,
       audioSigned.signedUrl,
       webhookUrl,
       {
-        model: fallbackModel,
-        modelVersion: fallbackModel === "fal-ai/sync-lipsync" ? "lipsync-1.8.0" : undefined,
+        model: useModel,
+        modelVersion: useModel === "fal-ai/sync-lipsync" ? "lipsync-1.8.0" : undefined,
       }
     );
 
@@ -757,24 +786,58 @@ export async function handleLipSyncFailureFromWebhook(
       .update({
         fal_request_id: requestId,
         fal_model: model,
-        fal_attempt: 2,
+        fal_attempt: nextAttempt,
         status: "lip_syncing",
         progress: 85,
       })
       .eq("id", dubId);
-    log(dubId, `Fallback ${fallbackModel} submitted — request_id=${requestId}`);
+    log(dubId, `Retry ${nextAttempt} submitted — model=${model}, request_id=${requestId}`);
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : "Unknown error";
-    log(dubId, `Fallback submit failed: ${errMsg} — keeping audio-only`);
-    await supabase
-      .from("dubs")
-      .update({
-        status: "done",
-        progress: 100,
-        error_message: `Lip sync failed (no fallback): ${errMsg.slice(0, 500)}`,
-      })
-      .eq("id", dubId);
-    await checkProjectComplete(supabase, dub.project_id, dubId);
+    log(dubId, `Retry ${nextAttempt} submit failed: ${errMsg}`);
+    // Recursively try next attempt
+    await supabase.from("dubs").update({ fal_attempt: nextAttempt }).eq("id", dubId);
+    await handleLipSyncFailureFromWebhook(dubId, errMsg);
+  }
+}
+
+/**
+ * Refund credits for a failed dub. Returns 1 credit (+ 1 for subs
+ * if applicable) to the user's credits_remaining.
+ */
+async function refundDubCredits(
+  supabase: Awaited<ReturnType<typeof createServiceClient>>,
+  userId: string,
+  projectId: string,
+  dubId: string
+) {
+  try {
+    // Find how many credits this dub cost
+    const { data: usage } = await supabase
+      .from("credit_usage")
+      .select("credits_used")
+      .eq("dub_id", dubId)
+      .single();
+    const refundAmount = usage ? Number(usage.credits_used) : 1;
+
+    // Refund to credits_remaining
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("credits_remaining")
+      .eq("id", userId)
+      .single();
+    if (profile) {
+      await supabase
+        .from("profiles")
+        .update({ credits_remaining: Number(profile.credits_remaining) + refundAmount })
+        .eq("id", userId);
+    }
+
+    // Delete the credit_usage record
+    await supabase.from("credit_usage").delete().eq("dub_id", dubId);
+    log(dubId, `Refunded ${refundAmount} credit(s) to user ${userId.slice(0, 8)}`);
+  } catch (err) {
+    console.error(`[DUB:${dubId.slice(0, 8)}] Credit refund failed:`, err);
   }
 }
 

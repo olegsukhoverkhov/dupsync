@@ -811,6 +811,12 @@ export default function ProjectDetailPage({
                 <p className="text-sm text-red-400">
                   {activeDub.error_message || t("dashboard.projectDetail.defaultDubError", "An error occurred during dubbing")}
                 </p>
+                <a
+                  href="mailto:support@dubsync.app"
+                  className="mt-3 inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium text-white hover:bg-white/10 transition-colors"
+                >
+                  {t("dashboard.projectDetail.contactSupport", "Contact Support")}
+                </a>
               </div>
             )}
 
