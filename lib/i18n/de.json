@@ -311,7 +311,23 @@
       "credits": "Credits",
       "api": "API",
       "signOut": "Abmelden",
-      "newProject": "Neues Projekt"
+      "newProject": "Neues Projekt",
+      "analytics": "Website-Analytik",
+      "admin": "Benutzer",
+      "usage": "Nutzung"
+    },
+    "onboarding": {
+      "wizardTitle": "Erste Schritte",
+      "step1Title": "Laden Sie Ihr Video hoch",
+      "step1Desc": "Ziehen Sie ein beliebiges Video hinein — wir erkennen automatisch die Sprache Ihres Sprechers. Einfach hochladen, wir erledigen den Rest.",
+      "step2Title": "Zielsprachen auswählen",
+      "step2Desc": "Wählen Sie aus über 30 Sprachen. Ihr Video wird mit KI-Stimmklonen und perfekt synchronisierten Lippenbewegungen gedubbt.",
+      "step3Title": "Erhalten Sie Ihr gedubbtes Video",
+      "step3Desc": "Laden Sie das Ergebnis herunter oder sehen Sie es sich in Minuten an. Ihr erstes Video ist komplett kostenlos — keine Kreditkarte erforderlich.",
+      "skip": "Überspringen",
+      "next": "Weiter",
+      "startDubbing": "Dubbing starten",
+      "viewDemo": "Demo ansehen"
     },
     "home": {
       "plan": "Tarif",
@@ -504,6 +520,9 @@
       "loading": "Projekt wird geladen...",
       "projectNotFound": "Projekt nicht gefunden",
       "backToDashboard": "Zurück zum Dashboard",
+      "demoTitle": "Dies ist ein Demo-Projekt.",
+      "demoDesc": "Sehen Sie, wie DubSync Videos transformiert. Bereit, es mit Ihren eigenen zu versuchen?",
+      "createOwn": "Eigenes Dubbing erstellen",
       "speakerLanguage": "Sprache des Sprechers (Original): {language}",
       "delete": "Löschen",
       "projectFailed": "Projekt fehlgeschlagen",

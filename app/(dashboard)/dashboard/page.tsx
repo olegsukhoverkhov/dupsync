@@ -260,7 +260,10 @@ export default function DashboardPage() {
 
       {/* Onboarding wizard for new users */}
       {showOnboarding && (
-        <OnboardingWizard onComplete={() => setShowOnboarding(false)} />
+        <OnboardingWizard
+          onComplete={() => setShowOnboarding(false)}
+          demoProjectId={projects.find((p) => p.is_demo)?.id}
+        />
       )}
 
       {/* Tabs + actions header */}

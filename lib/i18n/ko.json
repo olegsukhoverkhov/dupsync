@@ -312,7 +312,22 @@
       "api": "API",
       "signOut": "로그아웃",
       "newProject": "새 프로젝트",
-      "admin": "관리자"
+      "analytics": "사이트 분석",
+      "admin": "사용자",
+      "usage": "사용량"
+    },
+    "onboarding": {
+      "wizardTitle": "시작하기",
+      "step1Title": "동영상 업로드",
+      "step1Desc": "아무 동영상이나 드롭하세요 — 화자의 언어를 자동으로 감지합니다. 업로드만 하면 나머지는 저희가 처리합니다.",
+      "step2Title": "대상 언어 선택",
+      "step2Desc": "30개 이상의 언어 중에서 선택하세요. AI 음성 복제와 완벽하게 동기화된 입 움직임으로 동영상이 더빙됩니다.",
+      "step3Title": "더빙된 동영상 받기",
+      "step3Desc": "몇 분 안에 결과를 다운로드하거나 미리 보세요. 첫 번째 동영상은 완전 무료 — 신용카드 필요 없음.",
+      "skip": "건너뛰기",
+      "next": "다음",
+      "startDubbing": "더빙 시작",
+      "viewDemo": "데모 보기"
     },
     "home": {
       "plan": "플랜",
@@ -507,6 +522,9 @@
       "loading": "프로젝트 로딩 중...",
       "projectNotFound": "프로젝트를 찾을 수 없습니다",
       "backToDashboard": "대시보드로 돌아가기",
+      "demoTitle": "이것은 데모 프로젝트입니다.",
+      "demoDesc": "DubSync가 동영상을 어떻게 변환하는지 확인하세요. 직접 시도해 볼 준비가 되셨나요?",
+      "createOwn": "나만의 더빙 만들기",
       "speakerLanguage": "화자 언어 (원본): {language}",
       "delete": "삭제",
       "projectFailed": "프로젝트 실패",

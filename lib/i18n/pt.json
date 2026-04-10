@@ -311,7 +311,23 @@
       "credits": "Créditos",
       "api": "API",
       "signOut": "Sair",
-      "newProject": "Novo projeto"
+      "newProject": "Novo projeto",
+      "analytics": "Análise do site",
+      "admin": "Usuários",
+      "usage": "Uso"
+    },
+    "onboarding": {
+      "wizardTitle": "Primeiros passos",
+      "step1Title": "Envie seu vídeo",
+      "step1Desc": "Arraste qualquer vídeo — detectamos automaticamente o idioma do seu locutor. Basta enviar e nós cuidamos do resto.",
+      "step2Title": "Escolha os idiomas de destino",
+      "step2Desc": "Escolha entre mais de 30 idiomas. Seu vídeo será dublado com clonagem de voz por IA e movimentos labiais perfeitamente sincronizados.",
+      "step3Title": "Receba seu vídeo dublado",
+      "step3Desc": "Baixe ou visualize o resultado em minutos. Seu primeiro vídeo é totalmente gratuito — sem necessidade de cartão de crédito.",
+      "skip": "Pular",
+      "next": "Próximo",
+      "startDubbing": "Iniciar dublagem",
+      "viewDemo": "Ver demonstração"
     },
     "home": {
       "plan": "Plano",
@@ -504,6 +520,9 @@
       "loading": "Carregando projeto...",
       "projectNotFound": "Projeto não encontrado",
       "backToDashboard": "Voltar ao painel",
+      "demoTitle": "Este é um projeto de demonstração.",
+      "demoDesc": "Veja como o DubSync transforma vídeos. Pronto para experimentar com os seus?",
+      "createOwn": "Crie sua própria dublagem",
       "speakerLanguage": "Idioma do falante (original): {language}",
       "delete": "Excluir",
       "projectFailed": "Projeto falhou",

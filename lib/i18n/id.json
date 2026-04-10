@@ -312,7 +312,22 @@
       "api": "API",
       "signOut": "Keluar",
       "newProject": "Proyek Baru",
-      "admin": "Admin"
+      "analytics": "Analitik Situs",
+      "admin": "Pengguna",
+      "usage": "Penggunaan"
+    },
+    "onboarding": {
+      "wizardTitle": "Memulai",
+      "step1Title": "Unggah video Anda",
+      "step1Desc": "Letakkan video apa pun — kami mendeteksi bahasa pembicara secara otomatis. Cukup unggah dan kami yang mengurus sisanya.",
+      "step2Title": "Pilih bahasa target",
+      "step2Desc": "Pilih dari 30+ bahasa. Video Anda akan didubbing dengan kloning suara AI dan gerakan bibir yang disinkronkan dengan sempurna.",
+      "step3Title": "Dapatkan video yang sudah didubbing",
+      "step3Desc": "Unduh atau pratinjau hasilnya dalam hitungan menit. Video pertama Anda sepenuhnya gratis — tidak perlu kartu kredit.",
+      "skip": "Lewati",
+      "next": "Berikutnya",
+      "startDubbing": "Mulai dubbing",
+      "viewDemo": "Lihat demo"
     },
     "home": {
       "plan": "Paket",
@@ -507,6 +522,9 @@
       "loading": "Memuat proyek...",
       "projectNotFound": "Proyek tidak ditemukan",
       "backToDashboard": "Kembali ke Dasbor",
+      "demoTitle": "Ini adalah proyek demo.",
+      "demoDesc": "Lihat bagaimana DubSync mengubah video. Siap mencoba dengan video Anda sendiri?",
+      "createOwn": "Buat dubbing Anda sendiri",
       "speakerLanguage": "Bahasa pembicara (asli): {language}",
       "delete": "Hapus",
       "projectFailed": "Proyek gagal",

@@ -38,7 +38,13 @@ const STEPS = [
   },
 ];
 
-export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
+export function OnboardingWizard({
+  onComplete,
+  demoProjectId,
+}: {
+  onComplete: () => void;
+  demoProjectId?: string | null;
+}) {
   const [step, setStep] = useState(0);
   const router = useRouter();
   const t = useDashboardT();
@@ -72,6 +78,11 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
           <X className="h-5 w-5" />
         </button>
 
+        {/* Wizard title */}
+        <p className="text-center text-xs font-semibold uppercase tracking-widest text-pink-400 mb-4">
+          {t("dashboard.onboarding.wizardTitle", "Getting Started")}
+        </p>
+
         {/* Icon */}
         <div
           className={`mx-auto mb-6 flex h-[72px] w-[72px] items-center justify-center rounded-full border ${current.bg}`}
@@ -103,20 +114,40 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
 
         {/* Actions */}
         <div className="flex gap-3">
-          <button
-            onClick={dismiss}
-            className="flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-slate-400 hover:bg-white/[0.06] hover:text-white transition-colors cursor-pointer"
-          >
-            {t("dashboard.onboarding.skip", "Skip")}
-          </button>
-          <button
-            onClick={next}
-            className="flex-1 gradient-button rounded-xl px-4 py-3 text-sm font-semibold cursor-pointer"
-          >
-            {step === 2
-              ? t("dashboard.onboarding.startDubbing", "Start dubbing")
-              : t("dashboard.onboarding.next", "Next")}
-          </button>
+          {step === 2 && demoProjectId ? (
+            <>
+              <button
+                onClick={() => {
+                  dismiss();
+                  router.push(`/projects/${demoProjectId}`);
+                }}
+                className="flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-slate-400 hover:bg-white/[0.06] hover:text-white transition-colors cursor-pointer"
+              >
+                {t("dashboard.onboarding.viewDemo", "View demo")}
+              </button>
+              <button
+                onClick={next}
+                className="flex-1 gradient-button rounded-xl px-4 py-3 text-sm font-semibold cursor-pointer"
+              >
+                {t("dashboard.onboarding.startDubbing", "Start dubbing")}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={dismiss}
+                className="flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-slate-400 hover:bg-white/[0.06] hover:text-white transition-colors cursor-pointer"
+              >
+                {t("dashboard.onboarding.skip", "Skip")}
+              </button>
+              <button
+                onClick={next}
+                className="flex-1 gradient-button rounded-xl px-4 py-3 text-sm font-semibold cursor-pointer"
+              >
+                {t("dashboard.onboarding.next", "Next")}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

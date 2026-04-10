@@ -311,7 +311,23 @@
       "credits": "クレジット",
       "api": "API",
       "signOut": "ログアウト",
-      "newProject": "新規プロジェクト"
+      "newProject": "新規プロジェクト",
+      "analytics": "サイト分析",
+      "admin": "ユーザー",
+      "usage": "使用状況"
+    },
+    "onboarding": {
+      "wizardTitle": "はじめに",
+      "step1Title": "動画をアップロード",
+      "step1Desc": "任意の動画をドロップ — 話者の言語を自動検出します。アップロードするだけで、あとはお任せください。",
+      "step2Title": "ターゲット言語を選択",
+      "step2Desc": "30以上の言語から選択。AIボイスクローニングと完璧に同期したリップムーブメントで動画を吹き替えます。",
+      "step3Title": "吹き替え動画を取得",
+      "step3Desc": "数分で結果をダウンロードまたはプレビュー。最初の動画は完全無料 — クレジットカード不要。",
+      "skip": "スキップ",
+      "next": "次へ",
+      "startDubbing": "吹き替え開始",
+      "viewDemo": "デモを見る"
     },
     "home": {
       "plan": "プラン",
@@ -504,6 +520,9 @@
       "loading": "プロジェクトを読み込み中...",
       "projectNotFound": "プロジェクトが見つかりません",
       "backToDashboard": "ダッシュボードに戻る",
+      "demoTitle": "これはデモプロジェクトです。",
+      "demoDesc": "DubSyncがどのように動画を変換するかご覧ください。ご自身の動画で試す準備はできましたか？",
+      "createOwn": "自分の吹き替えを作成",
       "speakerLanguage": "話者の言語（元）：{language}",
       "delete": "削除",
       "projectFailed": "プロジェクトが失敗しました",

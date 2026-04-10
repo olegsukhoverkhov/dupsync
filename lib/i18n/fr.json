@@ -311,7 +311,23 @@
       "credits": "Crédits",
       "api": "API",
       "signOut": "Se déconnecter",
-      "newProject": "Nouveau projet"
+      "newProject": "Nouveau projet",
+      "analytics": "Analytique du site",
+      "admin": "Utilisateurs",
+      "usage": "Utilisation"
+    },
+    "onboarding": {
+      "wizardTitle": "Démarrage",
+      "step1Title": "Téléchargez votre vidéo",
+      "step1Desc": "Déposez n'importe quelle vidéo — nous détectons automatiquement la langue de votre locuteur. Téléchargez et nous nous occupons du reste.",
+      "step2Title": "Choisissez les langues cibles",
+      "step2Desc": "Choisissez parmi plus de 30 langues. Votre vidéo sera doublée avec le clonage vocal par IA et des mouvements de lèvres parfaitement synchronisés.",
+      "step3Title": "Obtenez votre vidéo doublée",
+      "step3Desc": "Téléchargez ou prévisualisez le résultat en quelques minutes. Votre première vidéo est entièrement gratuite — aucune carte de crédit requise.",
+      "skip": "Passer",
+      "next": "Suivant",
+      "startDubbing": "Commencer le doublage",
+      "viewDemo": "Voir la démo"
     },
     "home": {
       "plan": "Forfait",
@@ -504,6 +520,9 @@
       "loading": "Chargement du projet...",
       "projectNotFound": "Projet introuvable",
       "backToDashboard": "Retour au tableau de bord",
+      "demoTitle": "Ceci est un projet de démonstration.",
+      "demoDesc": "Découvrez comment DubSync transforme les vidéos. Prêt à essayer avec les vôtres ?",
+      "createOwn": "Créez votre propre doublage",
       "speakerLanguage": "Langue du locuteur (originale) : {language}",
       "delete": "Supprimer",
       "projectFailed": "Projet échoué",

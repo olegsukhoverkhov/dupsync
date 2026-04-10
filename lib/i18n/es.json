@@ -311,7 +311,23 @@
       "credits": "Créditos",
       "api": "API",
       "signOut": "Cerrar sesión",
-      "newProject": "Nuevo proyecto"
+      "newProject": "Nuevo proyecto",
+      "analytics": "Analíticas del sitio",
+      "admin": "Usuarios",
+      "usage": "Uso"
+    },
+    "onboarding": {
+      "wizardTitle": "Primeros pasos",
+      "step1Title": "Sube tu vídeo",
+      "step1Desc": "Arrastra cualquier vídeo — detectamos automáticamente el idioma de tu hablante. Solo sube y nosotros nos encargamos del resto.",
+      "step2Title": "Elige los idiomas de destino",
+      "step2Desc": "Elige entre más de 30 idiomas. Tu vídeo se doblará con clonación de voz por IA y movimientos labiales perfectamente sincronizados.",
+      "step3Title": "Obtén tu vídeo doblado",
+      "step3Desc": "Descarga o previsualiza el resultado en minutos. Tu primer vídeo es completamente gratis — no se requiere tarjeta de crédito.",
+      "skip": "Omitir",
+      "next": "Siguiente",
+      "startDubbing": "Empezar a doblar",
+      "viewDemo": "Ver demostración"
     },
     "home": {
       "plan": "Plan",
@@ -504,6 +520,9 @@
       "loading": "Cargando proyecto...",
       "projectNotFound": "Proyecto no encontrado",
       "backToDashboard": "Volver al panel",
+      "demoTitle": "Este es un proyecto de demostración.",
+      "demoDesc": "Mira cómo DubSync transforma los vídeos. ¿Listo para probar con los tuyos?",
+      "createOwn": "Crea tu propio doblaje",
       "speakerLanguage": "Idioma del hablante (original): {language}",
       "delete": "Eliminar",
       "projectFailed": "El proyecto falló",

@@ -312,7 +312,22 @@
       "api": "API",
       "signOut": "Çıkış Yap",
       "newProject": "Yeni Proje",
-      "admin": "Yönetici"
+      "analytics": "Site Analitiği",
+      "admin": "Kullanıcılar",
+      "usage": "Kullanım"
+    },
+    "onboarding": {
+      "wizardTitle": "Başlangıç",
+      "step1Title": "Videonuzu yükleyin",
+      "step1Desc": "Herhangi bir videoyu bırakın — konuşmacınızın dilini otomatik olarak algılarız. Sadece yükleyin, gerisini biz hallederiz.",
+      "step2Title": "Hedef dilleri seçin",
+      "step2Desc": "30'dan fazla dil arasından seçin. Videonuz yapay zeka ses klonlama ve mükemmel senkronize dudak hareketleriyle seslendirilecek.",
+      "step3Title": "Seslendirilmiş videonuzu alın",
+      "step3Desc": "Sonucu dakikalar içinde indirin veya önizleyin. İlk videonuz tamamen ücretsiz — kredi kartı gerekmez.",
+      "skip": "Atla",
+      "next": "İleri",
+      "startDubbing": "Seslendirmeye başla",
+      "viewDemo": "Demoyu görüntüle"
     },
     "home": {
       "plan": "Plan",
@@ -507,6 +522,9 @@
       "loading": "Proje yükleniyor...",
       "projectNotFound": "Proje bulunamadı",
       "backToDashboard": "Panele Dön",
+      "demoTitle": "Bu bir demo projesidir.",
+      "demoDesc": "DubSync'in videoları nasıl dönüştürdüğünü görün. Kendi videolarınızla denemeye hazır mısınız?",
+      "createOwn": "Kendi seslendirmenizi oluşturun",
       "speakerLanguage": "Konuşmacı dili (orijinal): {language}",
       "delete": "Sil",
       "projectFailed": "Proje başarısız",
