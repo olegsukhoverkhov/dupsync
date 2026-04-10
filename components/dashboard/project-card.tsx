@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Video, Clock, Check } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Video, Clock, Check, Coins, AlertCircle, Upload } from "lucide-react";
 import type { ProjectWithDubs, ProjectStatus } from "@/lib/supabase/types";
 import type { MouseEvent } from "react";
+import { useDashboardT } from "./locale-provider";
 
 const STATUS_COLORS: Record<ProjectStatus, string> = {
   uploading: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
@@ -36,6 +38,8 @@ export function ProjectCard({
   selected = false,
   onToggleSelect,
 }: ProjectCardProps) {
+  const router = useRouter();
+  const t = useDashboardT();
   const doneDubs = project.dubs.filter((d) => d.status === "done").length;
   const totalDubs = project.dubs.length;
 
@@ -61,9 +65,16 @@ export function ProjectCard({
       )}
 
       <div className={`flex items-start justify-between mb-3 ${selectMode ? "pl-7" : ""}`}>
-        <h3 className="text-sm font-semibold text-white truncate pr-2">
-          {project.title}
-        </h3>
+        <div className="flex items-center gap-2 min-w-0">
+          <h3 className="text-sm font-semibold text-white truncate">
+            {project.title}
+          </h3>
+          {project.is_demo && (
+            <span className="shrink-0 inline-flex items-center rounded-md border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-400">
+              Demo
+            </span>
+          )}
+        </div>
         <span
           className={`shrink-0 inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[project.status]}`}
         >
@@ -79,13 +90,17 @@ export function ProjectCard({
         {totalDubs > 0 && (
           <span className="flex items-center gap-1">
             <Video className="h-3 w-3" />
-            {doneDubs}/{totalDubs} languages
+            {doneDubs}/{totalDubs} {t("dashboard.projectCard.languages", "languages")}
           </span>
         )}
+        {/* For completed projects we surface the total credits this project
+            burned instead of the timestamp — users care far more about cost
+            than when they hit "Done". Timestamp is still available via the
+            project detail page. */}
         {project.status === "done" && (
-          <span className="text-slate-600">
-            {new Date(project.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}{" "}
-            {new Date(project.updated_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+          <span className="flex items-center gap-1 text-pink-400">
+            <Coins className="h-3 w-3" />
+            {Math.round(Number(project.credits_used) || 0)} {t("dashboard.projectCard.credits", "credits")}
           </span>
         )}
       </div>
@@ -103,6 +118,40 @@ export function ProjectCard({
               )}
             </span>
           ))}
+        </div>
+      )}
+
+      {/* Friendly error message for failed projects. We only render this
+          when the backend wrote a user-facing message; otherwise the
+          status pill ("error") alone is the UI signal.
+          The "Upload new video" button below is a recovery CTA — any
+          classified error (no audio, unsupported format, too long…) can
+          be fixed by uploading a different file, so we always offer it
+          when the project is in an `error` state. */}
+      {project.status === "error" && project.error_message && (
+        <div className="mt-3 rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="h-3.5 w-3.5 text-red-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-red-300 leading-relaxed">
+              {project.error_message}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              // The whole card is wrapped in a <Link> to /projects/:id,
+              // so we must swallow the click BEFORE it bubbles up or the
+              // user ends up on the failed project's detail page instead
+              // of the upload flow.
+              e.preventDefault();
+              e.stopPropagation();
+              router.push("/projects/new");
+            }}
+            className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[11px] font-semibold text-red-200 hover:bg-red-500/20 hover:text-white transition-colors"
+          >
+            <Upload className="h-3 w-3" />
+            {t("dashboard.projectCard.uploadNewVideo", "Upload new video")}
+          </button>
         </div>
       )}
     </div>

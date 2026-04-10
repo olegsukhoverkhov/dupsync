@@ -17,6 +17,11 @@ import { SmoothDubProgress, SmoothDubBadge } from "@/components/project/smooth-d
 import { TranscriptEditor } from "@/components/project/transcript-editor";
 import { createClient } from "@/lib/supabase/client";
 import { LANGUAGE_MAP } from "@/lib/supabase/constants";
+/** Demo projects store public URLs from the landing-assets bucket */
+function isDemoVideoUrl(url: string | null): boolean {
+  if (!url) return false;
+  return url.includes("/storage/v1/object/public/landing-assets/");
+}
 import type {
   Project,
   Dub,
@@ -119,6 +124,11 @@ function DubInlinePlayer({ dub }: { dub: Dub }) {
   const videoPath = dub.dubbed_video_with_subs_url || dub.dubbed_video_url;
   useEffect(() => {
     if (!videoPath) return;
+    // Demo projects use public URLs — no signed URL needed
+    if (isDemoVideoUrl(videoPath)) {
+      setUrl(videoPath);
+      return;
+    }
     const supabase = createClient();
     supabase.storage.from("videos").createSignedUrl(videoPath, 3600).then(({ data }) => {
       if (data?.signedUrl) setUrl(data.signedUrl);
@@ -127,7 +137,7 @@ function DubInlinePlayer({ dub }: { dub: Dub }) {
 
   if (!url) return <div className="h-12 bg-white/5 rounded-lg animate-pulse" />;
 
-  const isVideo = videoPath?.includes("dubbed-video");
+  const isVideo = videoPath?.includes("dubbed-video") || videoPath?.includes("dubbed-") || videoPath?.endsWith(".mp4");
   return (
     <div className="rounded-xl overflow-hidden border border-white/10 bg-black mb-4">
       {isVideo ? (
@@ -146,6 +156,10 @@ function OriginalVideoPlayer({ videoPath }: { videoPath: string | null }) {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
     if (!videoPath) return;
+    if (isDemoVideoUrl(videoPath)) {
+      setUrl(videoPath);
+      return;
+    }
     const supabase = createClient();
     supabase.storage.from("videos").createSignedUrl(videoPath, 3600).then(({ data }) => {
       if (data?.signedUrl) setUrl(data.signedUrl);
@@ -527,9 +541,29 @@ export default function ProjectDetailPage({
         </Button>
       </div>
 
+      {/* Demo project banner */}
+      {project.is_demo && (
+        <div className="mb-6 flex items-center justify-between rounded-2xl border border-blue-500/20 bg-gradient-to-r from-blue-500/10 to-violet-500/10 px-5 py-4">
+          <p className="text-sm text-slate-400">
+            <strong className="text-white">{t("dashboard.projectDetail.demoTitle", "This is a demo project.")}</strong>{" "}
+            {t("dashboard.projectDetail.demoDesc", "See how DubSync transforms videos. Ready to try with your own?")}
+          </p>
+          <Button size="sm" onClick={() => router.push("/projects/new")} className="shrink-0 ml-4">
+            {t("dashboard.projectDetail.createOwn", "Create your own dub")}
+          </Button>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold">{project.title}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold">{project.title}</h1>
+            {project.is_demo && (
+              <span className="inline-flex items-center rounded-md border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-xs font-semibold text-blue-400">
+                Demo
+              </span>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">
             {t("dashboard.projectDetail.speakerLanguage", "Speaker's language (original): {language}", {
               language: LANGUAGE_MAP[project.original_language] || project.original_language,

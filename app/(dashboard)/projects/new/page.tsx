@@ -312,6 +312,12 @@ export default function NewProjectPage() {
   // which is invoked from the modal.
   function handleStartDubbing() {
     if (!project || selectedLanguages.length === 0) return;
+    // Free plan only has 1 credit — subs cost +1 per language,
+    // so skip the subs choice modal and go straight to dubbing.
+    if (profile?.plan === "free") {
+      startDubbing(false);
+      return;
+    }
     setSubsChoiceOpen(true);
   }
 

@@ -6,6 +6,7 @@ import { ProjectCard } from "@/components/dashboard/project-card";
 import { ConfirmModal } from "@/components/ui/modal";
 import { UpgradeModal } from "@/components/dashboard/upgrade-modal";
 import { TopupModal } from "@/components/dashboard/topup-modal";
+import { OnboardingWizard } from "@/components/dashboard/onboarding-wizard";
 import { useDashboardT } from "@/components/dashboard/locale-provider";
 import { createClient } from "@/lib/supabase/client";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
@@ -32,6 +33,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [topupOpen, setTopupOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const t = useDashboardT();
 
   // Tab + selection state
@@ -62,6 +64,13 @@ export default function DashboardPage() {
     const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
   }, [fetchData]);
+
+  // Show onboarding wizard for new users
+  useEffect(() => {
+    if (!loading && profile && !profile.onboarding_completed && projects.length <= 1) {
+      setShowOnboarding(true);
+    }
+  }, [loading, profile, projects.length]);
 
   // When switching tabs, clear any in-progress selection
   useEffect(() => {
@@ -248,6 +257,11 @@ export default function DashboardPage() {
       {/* Topup modal — opened from the "Buy credits" CTA inside the
           Credits Left stat card. */}
       <TopupModal open={topupOpen} onClose={() => setTopupOpen(false)} />
+
+      {/* Onboarding wizard for new users */}
+      {showOnboarding && (
+        <OnboardingWizard onComplete={() => setShowOnboarding(false)} />
+      )}
 
       {/* Tabs + actions header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

@@ -69,6 +69,9 @@ export interface Profile {
    * in the DB — there's intentionally no self-serve way to grant this.
    */
   is_admin: boolean;
+  /** Set to true after the user dismisses or completes the onboarding
+   *  wizard. Controls whether the wizard modal shows on the dashboard. */
+  onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -94,6 +97,10 @@ export interface Project {
    * page when `status === "error"`.
    */
   error_message: string | null;
+  /** True for the auto-created demo project. Demo projects are
+   *  excluded from concurrent-project limits and use public video
+   *  URLs from the landing-assets bucket. */
+  is_demo: boolean;
 }
 
 export interface Dub {
