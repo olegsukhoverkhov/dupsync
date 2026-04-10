@@ -115,17 +115,19 @@ function DubInfoCard({ dub, plan }: { dub: Dub; plan: PlanType }) {
 // Inline video/audio player for completed dubs
 function DubInlinePlayer({ dub }: { dub: Dub }) {
   const [url, setUrl] = useState<string | null>(null);
+  // Prefer the version with burned-in subtitles when available
+  const videoPath = dub.dubbed_video_with_subs_url || dub.dubbed_video_url;
   useEffect(() => {
-    if (!dub.dubbed_video_url) return;
+    if (!videoPath) return;
     const supabase = createClient();
-    supabase.storage.from("videos").createSignedUrl(dub.dubbed_video_url, 3600).then(({ data }) => {
+    supabase.storage.from("videos").createSignedUrl(videoPath, 3600).then(({ data }) => {
       if (data?.signedUrl) setUrl(data.signedUrl);
     });
-  }, [dub.dubbed_video_url]);
+  }, [videoPath]);
 
   if (!url) return <div className="h-12 bg-white/5 rounded-lg animate-pulse" />;
 
-  const isVideo = dub.dubbed_video_url?.includes("dubbed-video");
+  const isVideo = videoPath?.includes("dubbed-video");
   return (
     <div className="rounded-xl overflow-hidden border border-white/10 bg-black mb-4">
       {isVideo ? (
