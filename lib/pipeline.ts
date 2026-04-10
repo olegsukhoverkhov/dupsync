@@ -532,6 +532,12 @@ async function runDubbingAudioOnce(
 
     log(dubId, `Stage 1 COMPLETE — audio ready (voice=${voiceSource})`);
 
+    // Immediately trigger Stage 2 (lip sync) server-side so it doesn't
+    // depend on the client being on the project page.
+    runLipSync(dubId).catch((err) => {
+      log(dubId, `Stage 2 auto-trigger failed: ${err instanceof Error ? err.message : "unknown"} — cron will retry`);
+    });
+
   // Clean up cloned voice
   if (voiceId && !["FGY2WhTYpPnrIDTdsKH5", "EXAVITQu4vr4xnSDxMaL", "XrExE9yKIg1WjnnlVkGX"].includes(voiceId)) {
     await ai.deleteClonedVoice(voiceId);
@@ -557,6 +563,13 @@ export async function runLipSync(dubId: string) {
     .single();
 
   if (!dub || !dub.dubbed_video_url) return;
+
+  // Skip if already past audio_ready (e.g. client also triggered)
+  const dubStatus = (dub as Record<string, unknown>).status as string;
+  if (dubStatus !== "audio_ready") {
+    log(dubId, `Stage 2 skipped — status is ${dubStatus}, not audio_ready`);
+    return;
+  }
 
   const project = (dub as Record<string, unknown>).projects as Record<string, unknown>;
   if (!project) return;
