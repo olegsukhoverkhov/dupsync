@@ -58,7 +58,7 @@ export default function NewProjectPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [transcript, setTranscript] = useState<TranscriptSegment[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
-  const [sourceLanguage, setSourceLanguage] = useState("en");
+  const [sourceLanguage, setSourceLanguage] = useState("");
   const [uploadedPath, setUploadedPath] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
@@ -510,6 +510,7 @@ export default function NewProjectPage() {
                         onChange={(e) => setSourceLanguage(e.target.value)}
                         className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-pink-500/50 focus:outline-none focus:ring-1 focus:ring-pink-500/50"
                       >
+                        <option value="" disabled>{t("dashboard.newProject.selectLanguage", "Select language...")}</option>
                         <option value="auto">{t("dashboard.newProject.autoDetect", "Auto-detect (recommended)")}</option>
                         <option value="en">English</option>
                         <option value="es">Spanish</option>
@@ -530,7 +531,8 @@ export default function NewProjectPage() {
 
                     <button
                       onClick={() => createProject()}
-                      className="w-full gradient-button inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold"
+                      disabled={!sourceLanguage}
+                      className="w-full gradient-button inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {t("dashboard.newProject.createProject", "Create Project")}
                     </button>
