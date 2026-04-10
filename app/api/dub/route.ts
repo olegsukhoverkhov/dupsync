@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { after } from "next/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { runDubbing, cleanupVoiceClone } from "@/lib/pipeline";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { Profile } from "@/lib/supabase/types";
@@ -214,48 +215,50 @@ export async function POST(request: Request) {
     }
   }
 
-  // Run dubbing in parallel batches of 3.
-  // Voice cloning is shared across dubs via voiceCloneCache in pipeline.ts.
-  const TTS_CONCURRENCY = 3;
+  // Return response immediately — dubbing runs in background.
+  // Client redirects to project page which polls for progress.
   const dubList = dubs || [];
-  for (let i = 0; i < dubList.length; i += TTS_CONCURRENCY) {
-    const batch = dubList.slice(i, i + TTS_CONCURRENCY);
-    const results = await Promise.allSettled(
-      batch.map((dub) => runDubbing(dub.id))
-    );
-    // Log and persist errors for failed dubs
-    for (let j = 0; j < results.length; j++) {
-      const result = results[j];
-      if (result.status === "rejected") {
-        const err = result.reason;
-        const dub = batch[j];
-        const errInfo = {
-          dubId: dub.id,
-          target: dub.target_language,
-          name: err instanceof Error ? err.name : typeof err,
-          message: err instanceof Error ? err.message : String(err),
-          stack: err instanceof Error ? err.stack?.slice(0, 1500) : undefined,
-        };
-        console.error(`[DUB] Stage 1 failed:`, JSON.stringify(errInfo, null, 2));
-        try {
-          await supabase
-            .from("dubs")
-            .update({
-              status: "error",
-              error_message: `${errInfo.name}: ${errInfo.message}`.slice(0, 500),
-            })
-            .eq("id", dub.id);
-        } catch {
-          // ignore
+
+  after(async () => {
+    const bgSupabase = await createServiceClient();
+    const TTS_CONCURRENCY = 3;
+    for (let i = 0; i < dubList.length; i += TTS_CONCURRENCY) {
+      const batch = dubList.slice(i, i + TTS_CONCURRENCY);
+      const results = await Promise.allSettled(
+        batch.map((dub) => runDubbing(dub.id))
+      );
+      for (let j = 0; j < results.length; j++) {
+        const result = results[j];
+        if (result.status === "rejected") {
+          const err = result.reason;
+          const dub = batch[j];
+          const errInfo = {
+            dubId: dub.id,
+            target: dub.target_language,
+            name: err instanceof Error ? err.name : typeof err,
+            message: err instanceof Error ? err.message : String(err),
+            stack: err instanceof Error ? err.stack?.slice(0, 1500) : undefined,
+          };
+          console.error(`[DUB] Stage 1 failed:`, JSON.stringify(errInfo, null, 2));
+          try {
+            await bgSupabase
+              .from("dubs")
+              .update({
+                status: "error",
+                error_message: `${errInfo.name}: ${errInfo.message}`.slice(0, 500),
+              })
+              .eq("id", dub.id);
+          } catch {
+            // ignore
+          }
         }
       }
     }
-  }
 
-  // Clean up shared voice clone after all dubs are done
-  await cleanupVoiceClone(projectId).catch((err) =>
-    console.warn(`[DUB] Voice clone cleanup failed:`, err)
-  );
+    await cleanupVoiceClone(projectId).catch((err) =>
+      console.warn(`[DUB] Voice clone cleanup failed:`, err)
+    );
+  });
 
   return NextResponse.json(dubs, { status: 201 });
 }

@@ -342,10 +342,8 @@ export default function NewProjectPage() {
         }),
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json();
-        // Preserve the structured error so the catch block below can
-        // distinguish insufficient_credits from generic failures.
         const e = new Error(
           data.error || t("dashboard.newProject.failedToStartDubbing", "Failed to start dubbing")
         ) as Error & { code?: string };
@@ -353,6 +351,8 @@ export default function NewProjectPage() {
         throw e;
       }
 
+      // Redirect immediately — don't wait for dubbing to finish.
+      // Project detail page will show progress via polling.
       router.push(`/projects/${project.id}`);
     } catch (err) {
       setLoading(false);
