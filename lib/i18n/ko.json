@@ -314,7 +314,9 @@
       "newProject": "새 프로젝트",
       "analytics": "사이트 분석",
       "admin": "사용자",
-      "usage": "사용량"
+      "usage": "사용량",
+      "support": "지원",
+      "supportAdmin": "지원"
     },
     "onboarding": {
       "wizardTitle": "시작하기",
@@ -337,6 +339,24 @@
       "title": "계정 정지",
       "message": "계정이 정지되었습니다. 이것이 실수라고 생각되시면 지원팀에 문의하여 도움을 받으세요.",
       "contactSupport": "지원팀 문의"
+    },
+    "support": {
+      "title": "지원",
+      "yourTickets": "내 티켓",
+      "newRequest": "새 지원 요청",
+      "newRequestDesc": "문제를 설명해 주시면 최대한 빨리 답변드리겠습니다.",
+      "subject": "제목",
+      "subjectPlaceholder": "문제에 대한 간략한 요약",
+      "description": "설명",
+      "descriptionPlaceholder": "문제를 자세히 설명해 주세요...",
+      "send": "보내기",
+      "cancel": "취소",
+      "noTickets": "아직 지원 티켓이 없습니다",
+      "noTicketsDesc": "도움이 필요하시면 요청을 생성하세요",
+      "ticketCreated": "티켓이 성공적으로 제출되었습니다!",
+      "reply": "답변",
+      "replyPlaceholder": "답변을 입력하세요...",
+      "backToTickets": "티켓 목록으로 돌아가기"
     },
     "home": {
       "plan": "플랜",

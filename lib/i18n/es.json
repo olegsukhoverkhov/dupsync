@@ -314,7 +314,9 @@
       "newProject": "Nuevo proyecto",
       "analytics": "Analíticas del sitio",
       "admin": "Usuarios",
-      "usage": "Uso"
+      "usage": "Uso",
+      "support": "Soporte",
+      "supportAdmin": "Soporte"
     },
     "onboarding": {
       "wizardTitle": "Primeros pasos",
@@ -337,6 +339,24 @@
       "title": "Cuenta suspendida",
       "message": "Tu cuenta ha sido suspendida. Si crees que esto es un error, por favor contacta a nuestro equipo de soporte para obtener ayuda.",
       "contactSupport": "Contactar soporte"
+    },
+    "support": {
+      "title": "Soporte",
+      "yourTickets": "Tus tickets",
+      "newRequest": "Nueva solicitud de soporte",
+      "newRequestDesc": "Describe tu problema y te responderemos lo antes posible.",
+      "subject": "Asunto",
+      "subjectPlaceholder": "Resumen breve de tu problema",
+      "description": "Descripción",
+      "descriptionPlaceholder": "Describe tu problema en detalle...",
+      "send": "Enviar",
+      "cancel": "Cancelar",
+      "noTickets": "Aún no hay tickets de soporte",
+      "noTicketsDesc": "Crea una solicitud si necesitas ayuda",
+      "ticketCreated": "¡Ticket enviado con éxito!",
+      "reply": "Responder",
+      "replyPlaceholder": "Escribe tu respuesta...",
+      "backToTickets": "Volver a los tickets"
     },
     "home": {
       "plan": "Plan",

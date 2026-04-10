@@ -3,6 +3,7 @@
 import { useEffect, useState, use, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ConfirmModal } from "@/components/ui/modal";
+import { SupportTicketModal } from "@/components/dashboard/support-ticket-modal";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -330,6 +331,7 @@ export default function ProjectDetailPage({
   }, [dubs, lipSyncTriggered]);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
   const [retryLoading, setRetryLoading] = useState(false);
   const [dubError, setDubError] = useState<string | null>(null);
   const [showLanguageSelect, setShowLanguageSelect] = useState(false);
@@ -811,12 +813,12 @@ export default function ProjectDetailPage({
                 <p className="text-sm text-red-400">
                   {activeDub.error_message || t("dashboard.projectDetail.defaultDubError", "An error occurred during dubbing")}
                 </p>
-                <a
-                  href="mailto:support@dubsync.app"
-                  className="mt-3 inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium text-white hover:bg-white/10 transition-colors"
+                <button
+                  onClick={() => setShowSupportModal(true)}
+                  className="mt-3 inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium text-white hover:bg-white/10 transition-colors cursor-pointer"
                 >
                   {t("dashboard.projectDetail.contactSupport", "Contact Support")}
-                </a>
+                </button>
               </div>
             )}
 
@@ -1123,6 +1125,11 @@ export default function ProjectDetailPage({
         durationMin={Math.ceil((project?.duration_seconds || 0) / 60)}
         languageCount={newLanguages.length}
         submitting={startingDub}
+      />
+
+      <SupportTicketModal
+        open={showSupportModal}
+        onClose={() => setShowSupportModal(false)}
       />
     </div>
   );

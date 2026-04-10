@@ -314,7 +314,9 @@
       "newProject": "Proyek Baru",
       "analytics": "Analitik Situs",
       "admin": "Pengguna",
-      "usage": "Penggunaan"
+      "usage": "Penggunaan",
+      "support": "Dukungan",
+      "supportAdmin": "Dukungan"
     },
     "onboarding": {
       "wizardTitle": "Memulai",
@@ -337,6 +339,24 @@
       "title": "Akun Ditangguhkan",
       "message": "Akun Anda telah ditangguhkan. Jika Anda merasa ini adalah kesalahan, silakan hubungi tim dukungan kami untuk bantuan.",
       "contactSupport": "Hubungi Dukungan"
+    },
+    "support": {
+      "title": "Dukungan",
+      "yourTickets": "Tiket Anda",
+      "newRequest": "Permintaan Dukungan Baru",
+      "newRequestDesc": "Jelaskan masalah Anda dan kami akan merespons sesegera mungkin.",
+      "subject": "Subjek",
+      "subjectPlaceholder": "Ringkasan singkat masalah Anda",
+      "description": "Deskripsi",
+      "descriptionPlaceholder": "Jelaskan masalah Anda secara detail...",
+      "send": "Kirim",
+      "cancel": "Batal",
+      "noTickets": "Belum ada tiket dukungan",
+      "noTicketsDesc": "Buat permintaan jika Anda membutuhkan bantuan",
+      "ticketCreated": "Tiket berhasil dikirim!",
+      "reply": "Balas",
+      "replyPlaceholder": "Ketik balasan Anda...",
+      "backToTickets": "Kembali ke tiket"
     },
     "home": {
       "plan": "Paket",

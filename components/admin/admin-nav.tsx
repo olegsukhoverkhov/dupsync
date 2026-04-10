@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Gauge, Users } from "lucide-react";
+import { BarChart3, Gauge, Users, LifeBuoy } from "lucide-react";
 
 const TABS = [
   { href: "/admin/analytics", label: "Site Analytics", icon: BarChart3 },
   { href: "/admin/stats", label: "Users", icon: Users },
   { href: "/admin/usage", label: "Usage", icon: Gauge },
+  { href: "/admin/support", label: "Support", icon: LifeBuoy },
 ] as const;
 
 export function AdminNav() {

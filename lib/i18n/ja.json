@@ -314,7 +314,9 @@
       "newProject": "新規プロジェクト",
       "analytics": "サイト分析",
       "admin": "ユーザー",
-      "usage": "使用状況"
+      "usage": "使用状況",
+      "support": "サポート",
+      "supportAdmin": "サポート"
     },
     "onboarding": {
       "wizardTitle": "はじめに",
@@ -337,6 +339,24 @@
       "title": "アカウント停止",
       "message": "お客様のアカウントは停止されました。これが誤りであると思われる場合は、サポートチームまでお問い合わせください。",
       "contactSupport": "サポートに連絡"
+    },
+    "support": {
+      "title": "サポート",
+      "yourTickets": "あなたのチケット",
+      "newRequest": "新しいサポートリクエスト",
+      "newRequestDesc": "問題を説明してください。できるだけ早くご連絡いたします。",
+      "subject": "件名",
+      "subjectPlaceholder": "問題の簡単な要約",
+      "description": "説明",
+      "descriptionPlaceholder": "問題を詳しく説明してください...",
+      "send": "送信",
+      "cancel": "キャンセル",
+      "noTickets": "サポートチケットはまだありません",
+      "noTicketsDesc": "ヘルプが必要な場合はリクエストを作成してください",
+      "ticketCreated": "チケットが正常に送信されました！",
+      "reply": "返信",
+      "replyPlaceholder": "返信を入力...",
+      "backToTickets": "チケット一覧に戻る"
     },
     "home": {
       "plan": "プラン",

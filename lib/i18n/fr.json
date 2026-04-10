@@ -314,7 +314,9 @@
       "newProject": "Nouveau projet",
       "analytics": "Analytique du site",
       "admin": "Utilisateurs",
-      "usage": "Utilisation"
+      "usage": "Utilisation",
+      "support": "Assistance",
+      "supportAdmin": "Assistance"
     },
     "onboarding": {
       "wizardTitle": "Démarrage",
@@ -337,6 +339,24 @@
       "title": "Compte suspendu",
       "message": "Votre compte a été suspendu. Si vous pensez qu'il s'agit d'une erreur, veuillez contacter notre équipe d'assistance.",
       "contactSupport": "Contacter le support"
+    },
+    "support": {
+      "title": "Assistance",
+      "yourTickets": "Vos tickets",
+      "newRequest": "Nouvelle demande d'assistance",
+      "newRequestDesc": "Décrivez votre problème et nous vous répondrons dès que possible.",
+      "subject": "Objet",
+      "subjectPlaceholder": "Résumé bref de votre problème",
+      "description": "Description",
+      "descriptionPlaceholder": "Décrivez votre problème en détail...",
+      "send": "Envoyer",
+      "cancel": "Annuler",
+      "noTickets": "Aucun ticket d'assistance pour le moment",
+      "noTicketsDesc": "Créez une demande si vous avez besoin d'aide",
+      "ticketCreated": "Ticket soumis avec succès !",
+      "reply": "Répondre",
+      "replyPlaceholder": "Tapez votre réponse...",
+      "backToTickets": "Retour aux tickets"
     },
     "home": {
       "plan": "Forfait",

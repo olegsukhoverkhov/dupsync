@@ -314,7 +314,9 @@
       "newProject": "Yeni Proje",
       "analytics": "Site Analitiği",
       "admin": "Kullanıcılar",
-      "usage": "Kullanım"
+      "usage": "Kullanım",
+      "support": "Destek",
+      "supportAdmin": "Destek"
     },
     "onboarding": {
       "wizardTitle": "Başlangıç",
@@ -337,6 +339,24 @@
       "title": "Hesap Askıya Alındı",
       "message": "Hesabınız askıya alınmıştır. Bunun bir hata olduğunu düşünüyorsanız, yardım için lütfen destek ekibimizle iletişime geçin.",
       "contactSupport": "Destek ile İletişime Geç"
+    },
+    "support": {
+      "title": "Destek",
+      "yourTickets": "Talepleriniz",
+      "newRequest": "Yeni Destek Talebi",
+      "newRequestDesc": "Sorununuzu açıklayın, en kısa sürede size geri dönüş yapacağız.",
+      "subject": "Konu",
+      "subjectPlaceholder": "Sorununuzun kısa özeti",
+      "description": "Açıklama",
+      "descriptionPlaceholder": "Sorununuzu ayrıntılı olarak açıklayın...",
+      "send": "Gönder",
+      "cancel": "İptal",
+      "noTickets": "Henüz destek talebi yok",
+      "noTicketsDesc": "Yardıma ihtiyacınız varsa bir talep oluşturun",
+      "ticketCreated": "Talep başarıyla gönderildi!",
+      "reply": "Yanıtla",
+      "replyPlaceholder": "Yanıtınızı yazın...",
+      "backToTickets": "Taleplere geri dön"
     },
     "home": {
       "plan": "Plan",

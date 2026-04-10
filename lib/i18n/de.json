@@ -314,7 +314,9 @@
       "newProject": "Neues Projekt",
       "analytics": "Website-Analytik",
       "admin": "Benutzer",
-      "usage": "Nutzung"
+      "usage": "Nutzung",
+      "support": "Support",
+      "supportAdmin": "Support"
     },
     "onboarding": {
       "wizardTitle": "Erste Schritte",
@@ -337,6 +339,24 @@
       "title": "Konto gesperrt",
       "message": "Ihr Konto wurde gesperrt. Wenn Sie glauben, dass dies ein Fehler ist, wenden Sie sich bitte an unser Support-Team.",
       "contactSupport": "Support kontaktieren"
+    },
+    "support": {
+      "title": "Support",
+      "yourTickets": "Ihre Tickets",
+      "newRequest": "Neue Supportanfrage",
+      "newRequestDesc": "Beschreiben Sie Ihr Problem und wir melden uns so schnell wie möglich bei Ihnen.",
+      "subject": "Betreff",
+      "subjectPlaceholder": "Kurze Zusammenfassung Ihres Problems",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Beschreiben Sie Ihr Problem im Detail...",
+      "send": "Senden",
+      "cancel": "Abbrechen",
+      "noTickets": "Noch keine Support-Tickets",
+      "noTicketsDesc": "Erstellen Sie eine Anfrage, wenn Sie Hilfe benötigen",
+      "ticketCreated": "Ticket erfolgreich eingereicht!",
+      "reply": "Antworten",
+      "replyPlaceholder": "Geben Sie Ihre Antwort ein...",
+      "backToTickets": "Zurück zu den Tickets"
     },
     "home": {
       "plan": "Tarif",

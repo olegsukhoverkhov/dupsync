@@ -14,6 +14,7 @@ import {
   BarChart3,
   Gauge,
   LineChart,
+  LifeBuoy,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -66,6 +67,7 @@ export function DashboardSidebar() {
     { name: t("dashboard.nav.settings", "Settings"), href: "/settings", icon: Settings },
     { name: t("dashboard.nav.credits", "Credits"), href: "/credits", icon: CreditCard },
     { name: t("dashboard.nav.api", "API"), href: "/api-keys", icon: Code },
+    { name: t("dashboard.nav.support", "Support"), href: "/support", icon: LifeBuoy },
     ...(isAdmin
       ? [
           {
@@ -82,6 +84,11 @@ export function DashboardSidebar() {
             name: t("dashboard.nav.usage", "Usage"),
             href: "/admin/usage",
             icon: Gauge,
+          },
+          {
+            name: t("dashboard.nav.supportAdmin", "Support"),
+            href: "/admin/support",
+            icon: LifeBuoy,
           },
         ]
       : []),

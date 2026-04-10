@@ -314,7 +314,9 @@
       "newProject": "مشروع جديد",
       "analytics": "تحليلات الموقع",
       "admin": "المستخدمون",
-      "usage": "الاستخدام"
+      "usage": "الاستخدام",
+      "support": "الدعم",
+      "supportAdmin": "الدعم"
     },
     "onboarding": {
       "wizardTitle": "البدء",
@@ -337,6 +339,24 @@
       "title": "الحساب معلّق",
       "message": "تم تعليق حسابك. إذا كنت تعتقد أن هذا خطأ، يرجى التواصل مع فريق الدعم لدينا للمساعدة.",
       "contactSupport": "تواصل مع الدعم"
+    },
+    "support": {
+      "title": "الدعم",
+      "yourTickets": "تذاكرك",
+      "newRequest": "طلب دعم جديد",
+      "newRequestDesc": "صف مشكلتك وسنرد عليك في أقرب وقت ممكن.",
+      "subject": "الموضوع",
+      "subjectPlaceholder": "ملخص موجز لمشكلتك",
+      "description": "الوصف",
+      "descriptionPlaceholder": "صف مشكلتك بالتفصيل...",
+      "send": "إرسال",
+      "cancel": "إلغاء",
+      "noTickets": "لا توجد تذاكر دعم بعد",
+      "noTicketsDesc": "أنشئ طلبًا إذا كنت بحاجة إلى مساعدة",
+      "ticketCreated": "تم إرسال التذكرة بنجاح!",
+      "reply": "رد",
+      "replyPlaceholder": "اكتب ردك...",
+      "backToTickets": "العودة إلى التذاكر"
     },
     "home": {
       "plan": "الخطة",
