@@ -36,6 +36,7 @@ export function SupportTicketModal({
         throw new Error(data.error || "Failed to submit");
       }
       setSuccess(true);
+      window.dispatchEvent(new Event("support-updated"));
       setTimeout(() => {
         setSubject("");
         setDescription("");

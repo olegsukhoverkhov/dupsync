@@ -66,6 +66,7 @@ export default function AdminSupportPage() {
     });
     await openTicket(selectedTicket);
     fetchTickets();
+    window.dispatchEvent(new Event("support-updated"));
   }
 
   async function handleStatusChange(status: string) {
@@ -77,6 +78,7 @@ export default function AdminSupportPage() {
     });
     await openTicket(selectedTicket);
     fetchTickets();
+    window.dispatchEvent(new Event("support-updated"));
   }
 
   if (selectedTicket && ticketDetail) {

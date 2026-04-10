@@ -81,7 +81,10 @@ export function DashboardSidebar() {
     }
     fetchBadge();
     const interval = setInterval(fetchBadge, 30_000);
-    return () => { cancelled = true; clearInterval(interval); };
+    // Instant refresh when a ticket is replied to or created
+    const onUpdate = () => fetchBadge();
+    window.addEventListener("support-updated", onUpdate);
+    return () => { cancelled = true; clearInterval(interval); window.removeEventListener("support-updated", onUpdate); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, isAdmin]);
 

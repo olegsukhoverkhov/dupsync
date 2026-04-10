@@ -57,6 +57,7 @@ export default function SupportPage() {
     // Refresh detail
     await openTicket(selectedTicket);
     fetchTickets();
+    window.dispatchEvent(new Event("support-updated"));
   }
 
   if (selectedTicket && ticketDetail) {
