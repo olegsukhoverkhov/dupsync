@@ -122,7 +122,19 @@ export async function DELETE(
     await admin.from("dubs").delete().in("project_id", projectIds);
   }
 
-  // 2. Delete all user-owned rows across every table
+  // 2. Delete support tickets + messages (sender_id also references profiles)
+  const { data: userTickets } = await admin
+    .from("support_tickets")
+    .select("id")
+    .eq("user_id", targetId);
+  if (userTickets && userTickets.length > 0) {
+    const ticketIds = userTickets.map((t: { id: string }) => t.id);
+    await admin.from("support_messages").delete().in("ticket_id", ticketIds);
+  }
+  await admin.from("support_messages").delete().eq("sender_id", targetId);
+  await admin.from("support_tickets").delete().eq("user_id", targetId);
+
+  // 3. Delete all user-owned rows across every table
   await admin.from("credit_usage").delete().eq("user_id", targetId);
   await admin.from("transactions").delete().eq("user_id", targetId);
   await admin.from("api_keys").delete().eq("user_id", targetId);
