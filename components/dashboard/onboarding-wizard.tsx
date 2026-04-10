@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, Globe, Play, X } from "lucide-react";
+import { Upload, Mic, Globe, Subtitles, Play, X } from "lucide-react";
 import { useDashboardT } from "./locale-provider";
 
 const STEPS = [
@@ -14,25 +14,45 @@ const STEPS = [
     titleFallback: "Upload your video",
     descKey: "dashboard.onboarding.step1Desc",
     descFallback:
-      "Drop any video — we auto-detect the language of your speaker. Just upload and we handle the rest.",
+      "Drop any video file. We support most formats — MP4, MOV, AVI, MKV and more.",
+  },
+  {
+    icon: Mic,
+    color: "text-amber-400",
+    bg: "bg-amber-500/10 border-amber-500/20",
+    titleKey: "dashboard.onboarding.step2Title",
+    titleFallback: "Select original language",
+    descKey: "dashboard.onboarding.step2Desc",
+    descFallback:
+      "Tell us which language the speaker uses in your video. This helps our AI transcribe the speech accurately.",
   },
   {
     icon: Globe,
     color: "text-violet-400",
     bg: "bg-violet-500/10 border-violet-500/20",
-    titleKey: "dashboard.onboarding.step2Title",
+    titleKey: "dashboard.onboarding.step3Title",
     titleFallback: "Choose target languages",
-    descKey: "dashboard.onboarding.step2Desc",
+    descKey: "dashboard.onboarding.step3Desc",
     descFallback:
-      "Pick from 30+ languages. Your video will be dubbed with AI voice cloning and perfectly synced lip movements.",
+      "Pick from 30+ languages to dub your video into. AI will clone the speaker's voice and sync lip movements.",
+  },
+  {
+    icon: Subtitles,
+    color: "text-blue-400",
+    bg: "bg-blue-500/10 border-blue-500/20",
+    titleKey: "dashboard.onboarding.step4Title",
+    titleFallback: "Add subtitles",
+    descKey: "dashboard.onboarding.step4Desc",
+    descFallback:
+      "Optionally burn subtitles into the video. You can also download SRT/VTT files separately.",
   },
   {
     icon: Play,
     color: "text-emerald-400",
     bg: "bg-emerald-500/10 border-emerald-500/20",
-    titleKey: "dashboard.onboarding.step3Title",
+    titleKey: "dashboard.onboarding.step5Title",
     titleFallback: "Get your dubbed video",
-    descKey: "dashboard.onboarding.step3Desc",
+    descKey: "dashboard.onboarding.step5Desc",
     descFallback:
       "Download or preview the result in minutes. Your first video is completely free — no credit card required.",
   },
@@ -48,15 +68,15 @@ export function OnboardingWizard({
   const [step, setStep] = useState(0);
   const router = useRouter();
   const t = useDashboardT();
+  const lastStep = STEPS.length - 1;
 
   async function dismiss() {
     onComplete();
-    // Mark completed in DB (fire-and-forget)
     fetch("/api/profile/onboarding", { method: "PATCH" }).catch(() => {});
   }
 
   function next() {
-    if (step < 2) {
+    if (step < lastStep) {
       setStep(step + 1);
     } else {
       dismiss();
@@ -114,7 +134,7 @@ export function OnboardingWizard({
 
         {/* Actions */}
         <div className="flex gap-3">
-          {step === 2 && demoProjectId ? (
+          {step === lastStep && demoProjectId ? (
             <>
               <button
                 onClick={() => {
