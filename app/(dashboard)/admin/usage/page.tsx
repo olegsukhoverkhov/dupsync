@@ -10,10 +10,14 @@ import {
   Fish,
   Type,
   Video,
-  Key,
   Database,
   Check,
   X,
+  Brain,
+  Sparkles,
+  Clapperboard,
+  CreditCard,
+  DollarSign,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -33,23 +37,21 @@ export default async function AdminUsagePage() {
     .single();
   if (!profile?.is_admin) notFound();
 
-  const [elevenLabsQuota, fishQuota, falBalance] = await Promise.all([
+  const [elevenLabsQuota, fishQuota, falBalance, openaiBalance, anthropicBalance] = await Promise.all([
     getElevenLabsQuota(),
     getFishAudioQuota(),
     getFalAiBalance(),
+    getOpenAiBalance(),
+    getAnthropicBalance(),
   ]);
 
   // Check which API keys are configured (non-empty, non-placeholder)
   const keyStatus = (envVar: string | undefined): boolean =>
     !!envVar && envVar.length > 10 && !envVar.startsWith("placeholder") && !envVar.startsWith("sk-placeholder");
 
-  const services = [
-    { name: "Supabase", key: "SUPABASE_SERVICE_ROLE_KEY", configured: keyStatus(process.env.SUPABASE_SERVICE_ROLE_KEY) },
-    { name: "Anthropic", key: "ANTHROPIC_API_KEY", configured: keyStatus(process.env.ANTHROPIC_API_KEY) },
-    { name: "OpenAI", key: "OPENAI_API_KEY", configured: keyStatus(process.env.OPENAI_API_KEY) },
-    { name: "Shotstack", key: "SHOTSTACK_API_KEY", configured: keyStatus(process.env.SHOTSTACK_API_KEY) },
-    { name: "Stripe", key: "STRIPE_SECRET_KEY", configured: keyStatus(process.env.STRIPE_SECRET_KEY) },
-  ];
+  const shotstackConfigured = keyStatus(process.env.SHOTSTACK_API_KEY);
+  const stripeConfigured = keyStatus(process.env.STRIPE_SECRET_KEY);
+  const supabaseConfigured = keyStatus(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
   return (
     <div>
@@ -190,39 +192,159 @@ export default async function AdminUsagePage() {
         />
       </div>
 
-      {/* ── Other services ──────────────────────────────────── */}
+      {/* ── OpenAI ─────────────────────────────────────────── */}
+      <div className="mb-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+          OpenAI — Translation & AI
+        </h2>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-10">
+        <BalanceCard
+          icon={<Sparkles className="h-5 w-5" />}
+          label="Credits balance"
+          value={openaiBalance !== null ? `$${openaiBalance.toFixed(2)}` : null}
+          color="emerald"
+          subtitle="Prepaid credit balance"
+        />
+      </div>
+
+      {/* ── Anthropic ──────────────────────────────────────── */}
+      <div className="mb-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+          Anthropic — Claude API
+        </h2>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-10">
+        <BalanceCard
+          icon={<Brain className="h-5 w-5" />}
+          label="Credits balance"
+          value={anthropicBalance !== null ? `$${anthropicBalance.toFixed(2)}` : null}
+          color="blue"
+          subtitle="Prepaid credit balance"
+        />
+      </div>
+
+      {/* ── Other services (status only) ───────────────────── */}
       <div className="mb-4">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
           Other services
         </h2>
-        <p className="mt-1 text-xs text-slate-500">
-          API key status — green means configured, red means missing or placeholder
-        </p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {services.map((s) => (
-          <div
-            key={s.name}
-            className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-800/50 px-5 py-4"
-          >
-            <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-              s.configured ? "bg-emerald-500/10" : "bg-red-500/10"
-            }`}>
-              {s.configured ? (
-                <Check className="h-4 w-4 text-emerald-400" />
-              ) : (
-                <X className="h-4 w-4 text-red-400" />
-              )}
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-white">{s.name}</p>
-              <p className="text-[10px] text-slate-500 font-mono truncate">
-                {s.key}
-              </p>
-            </div>
-          </div>
-        ))}
+        <StatusCard name="Supabase" icon={<Database className="h-4 w-4" />} configured={supabaseConfigured} envKey="SUPABASE_SERVICE_ROLE_KEY" />
+        <StatusCard name="Shotstack" icon={<Clapperboard className="h-4 w-4" />} configured={shotstackConfigured} envKey="SHOTSTACK_API_KEY" />
+        <StatusCard name="Stripe" icon={<CreditCard className="h-4 w-4" />} configured={stripeConfigured} envKey="STRIPE_SECRET_KEY" />
       </div>
     </div>
   );
+}
+
+/* ── Helper components ─────────────────────────────────────── */
+
+const COLOR_MAP = {
+  emerald: { bg: "bg-emerald-500/10", text: "text-emerald-400" },
+  blue: { bg: "bg-blue-500/10", text: "text-blue-400" },
+  violet: { bg: "bg-violet-500/10", text: "text-violet-400" },
+  pink: { bg: "bg-pink-500/10", text: "text-pink-400" },
+} as const;
+
+function BalanceCard({
+  icon,
+  label,
+  value,
+  color,
+  subtitle,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | null;
+  color: keyof typeof COLOR_MAP;
+  subtitle: string;
+}) {
+  const c = COLOR_MAP[color];
+  return (
+    <div className="rounded-2xl border border-white/10 bg-slate-800/50 p-5">
+      <div className="flex items-center gap-3">
+        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${c.bg} ${c.text}`}>
+          {icon}
+        </div>
+        <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+          {label}
+        </p>
+      </div>
+      <p className={`mt-3 text-3xl font-bold tabular-nums ${value ? c.text : "text-slate-500"}`}>
+        {value ?? "—"}
+      </p>
+      <p className="mt-1 text-xs text-slate-500">{subtitle}</p>
+    </div>
+  );
+}
+
+function StatusCard({
+  name,
+  icon,
+  configured,
+  envKey,
+}: {
+  name: string;
+  icon: React.ReactNode;
+  configured: boolean;
+  envKey: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-800/50 px-5 py-4">
+      <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+        configured ? "bg-emerald-500/10" : "bg-red-500/10"
+      }`}>
+        {configured ? (
+          <Check className="h-4 w-4 text-emerald-400" />
+        ) : (
+          <X className="h-4 w-4 text-red-400" />
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <span className="text-slate-400">{icon}</span>
+          <p className="text-sm font-medium text-white">{name}</p>
+        </div>
+        <p className="text-[10px] text-slate-500 font-mono truncate">{envKey}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ── Data fetchers ─────────────────────────────────────────── */
+
+async function getOpenAiBalance(): Promise<number | null> {
+  try {
+    const key = process.env.OPENAI_API_KEY;
+    if (!key || key.startsWith("sk-placeholder") || key === "placeholder") return null;
+    const res = await fetch("https://api.openai.com/v1/dashboard/billing/credit_grants", {
+      headers: { Authorization: `Bearer ${key}` },
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { total_available?: number };
+    return typeof data.total_available === "number" ? data.total_available : null;
+  } catch {
+    return null;
+  }
+}
+
+async function getAnthropicBalance(): Promise<number | null> {
+  try {
+    const key = process.env.ANTHROPIC_API_KEY;
+    if (!key || key.startsWith("sk-ant-placeholder") || key === "placeholder") return null;
+    // Anthropic billing API — returns credit balance
+    const res = await fetch("https://api.anthropic.com/v1/organizations/billing", {
+      headers: {
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+      },
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { credit_balance?: number; credits_remaining?: number };
+    return data.credit_balance ?? data.credits_remaining ?? null;
+  } catch {
+    return null;
+  }
 }
