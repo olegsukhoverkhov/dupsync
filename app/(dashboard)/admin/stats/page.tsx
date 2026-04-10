@@ -4,6 +4,7 @@ import { getVisitStats } from "@/lib/analytics";
 import { getAdminUsers } from "@/lib/admin";
 import { resolveRange, type RangePreset } from "@/lib/admin";
 import { getElevenLabsQuota } from "@/lib/ai";
+import { getFishAudioQuota } from "@/lib/fish-audio";
 import { RangeFilter } from "@/components/admin/range-filter";
 import { UsersTable } from "@/components/admin/users-table";
 import {
@@ -13,6 +14,7 @@ import {
   Clock,
   Mic,
   Archive,
+  Fish,
   Type,
 } from "lucide-react";
 
@@ -79,14 +81,12 @@ export default async function AdminStatsPage({
     customTo || null
   );
 
-  // Run all three queries in parallel — they're independent.
-  // ElevenLabs quota is optional: if the helper returns null (probe
-  // failed, missing key, etc.) we render a disabled card instead of
-  // throwing.
-  const [stats, usersPageData, elevenLabsQuota] = await Promise.all([
+  // Run all queries in parallel — they're independent.
+  const [stats, usersPageData, elevenLabsQuota, fishQuota] = await Promise.all([
     getVisitStats({ from: range.from, to: range.to }),
     getAdminUsers(usersPage, 10),
     getElevenLabsQuota(),
+    getFishAudioQuota(),
   ]);
 
   return (
@@ -153,7 +153,45 @@ export default async function AdminStatsPage({
         />
       </div>
 
-      {/* ── ElevenLabs quota ─────────────────────────────────────
+      {/* ── Voice cloning provider ─────────────────────────────
+          Fish Audio is the active provider for ALL plans (free +
+          paid). ElevenLabs is kept as a fallback for languages
+          Fish doesn't support. The badge shows which is active. */}
+      <div className="mt-10 mb-4">
+        <div className="flex items-center gap-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+            Voice cloning
+          </h2>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-300">
+            <Fish className="h-3 w-3" />
+            Fish Audio — active
+          </span>
+        </div>
+        <p className="mt-1 text-xs text-slate-500">
+          Fish Audio: primary (all plans, unlimited clones). ElevenLabs: fallback only.
+        </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
+        <div className="rounded-2xl border border-emerald-500/20 bg-slate-800/50 p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
+              <Fish className="h-5 w-5 text-emerald-400" />
+            </div>
+            <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+              Fish Audio credits
+            </p>
+          </div>
+          <p className="mt-3 text-3xl font-bold tabular-nums text-emerald-400">
+            {fishQuota ? `$${fishQuota.credit.toFixed(2)}` : "—"}
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            Pay-as-you-go · ~$0.0006/clone · No monthly quota
+          </p>
+        </div>
+      </div>
+
+      {/* ── ElevenLabs quota (fallback) ────────────────────────
           Operational telemetry for the voice cloning provider.
           Shows the three counters ElevenLabs exposes on
           /v1/user/subscription: voice_add_edit_counter (hard cap
@@ -161,12 +199,17 @@ export default async function AdminStatsPage({
           slots used vs limit, and character count used vs limit.
           Each card goes red once the counter hits >= 90% of its
           cap so the state is obvious at a glance. */}
-      <div className="mt-10 mb-2 flex items-baseline justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
-          ElevenLabs quota
-        </h2>
+      <div className="mb-2 flex items-baseline justify-between">
+        <div className="flex items-center gap-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+            ElevenLabs
+          </h2>
+          <span className="inline-flex items-center gap-1 rounded-full border border-slate-500/30 bg-slate-500/10 px-2 py-0.5 text-[10px] font-medium text-slate-400">
+            fallback only
+          </span>
+        </div>
         <p className="text-xs text-slate-500">
-          Voice cloning provider · resets each billing cycle
+          Pre-made voices for unsupported languages
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

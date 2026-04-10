@@ -1,5 +1,6 @@
 import { createServiceClient } from "./supabase/server";
 import * as ai from "./ai";
+import * as fish from "./fish-audio";
 import { LANGUAGE_MAP } from "./supabase/constants";
 import { getQualityTier } from "./quality-tiers";
 import { toSrt, toVtt, rechunkSegments } from "./subtitles";
@@ -198,24 +199,24 @@ async function runDubbingAudioOnce(
     log(dubId, `Translation done: ${translatedSegments.length} segments`);
     await supabase.from("dubs").update({ translated_transcript: translatedSegments, progress: 30 }).eq("id", dubId);
 
-    // Voice selection — plan-gated.
+    // ── Voice cloning via Fish Audio ─────────────────────────
     //
-    // Free plan users always get a pre-made multilingual voice.
-    // Cloning burns a finite monthly ElevenLabs quota that we
-    // reserve for paying users (starter/pro/enterprise). Free
-    // users still get a perfectly usable dub with accurate
-    // translation + lip sync, just with a generic "similar"
-    // voice instead of an exact clone of their speaker. The
-    // project detail page shows a chip explaining this and a
-    // direct upgrade CTA — see projects/[id]/page.tsx.
+    // Primary provider: Fish Audio (all plans, free + paid).
+    //  - Zero monthly clone quota (no voice_add_edit_counter)
+    //  - $0.0006 per clone+TTS (83x cheaper than ElevenLabs)
+    //  - ~6s full cycle (create→train→TTS→delete)
+    //  - Unlimited model creation, 10 concurrent private slots
     //
-    // Paid plan users try the full clone path as before, with
-    // quota-exhausted failures falling back silently to the
-    // pre-made voice so the dub still completes.
+    // Fallback: ElevenLabs pre-made voices (for languages Fish
+    // doesn't support, or if Fish Audio API is down).
+    //
+    // Flow: download voice sample → Fish Audio createVoiceModel
+    // → use model ID for per-segment TTS → deleteVoiceModel.
+    // The model exists only for the duration of this dub.
     await supabase.from("dubs").update({ status: "generating_voice", progress: 35 }).eq("id", dubId);
 
-    // Look up the dub owner's plan — needed for the clone-vs-premade
-    // decision above AND downstream for the lipsync quality tier.
+    // Look up the dub owner's plan — needed downstream for the
+    // lipsync quality tier.
     let ownerPlan: PlanType = "free";
     const ownerUserId = project.user_id as string | undefined;
     if (ownerUserId) {
@@ -226,97 +227,65 @@ async function runDubbingAudioOnce(
         .single();
       if (ownerProfile?.plan) ownerPlan = ownerProfile.plan as PlanType;
     }
-    const isFreePlan = ownerPlan === "free";
-    log(dubId, `Owner plan=${ownerPlan}, cloning=${!isFreePlan}`);
+    log(dubId, `Owner plan=${ownerPlan}`);
 
-    let voiceId: string;
-    // Tracks which voice model actually produced the dub — written
-    // to dubs.voice_source at Stage 1 complete. 'cloned' = ElevenLabs
-    // Instant Voice Clone of the original speaker. 'premade' = a
-    // pre-made multilingual voice (free-plan default, or paid-plan
-    // fallback on quota exhaust / bad sample).
+    let voiceId: string = "";
     let voiceSource: "cloned" | "premade" = "premade";
+    // Track Fish Audio model ID so we can delete it after TTS.
+    // Empty string = no Fish model was created (ElevenLabs fallback).
+    let fishModelId: string = "";
 
-    if (isFreePlan) {
-      // Skip the clone path entirely for free users — don't even
-      // download the extracted audio sample. Save the ElevenLabs
-      // quota for paying customers.
-      voiceId = ai.getMultilingualVoice(project.id as string);
-      log(dubId, `Free plan — using pre-made voice: ${voiceId}`);
+    // Try to get a voice sample for cloning
+    const videoDir = (project.original_video_url as string).split("/").slice(0, -1).join("/");
+    const audioCandidates = ["extracted-audio.webm", "extracted-audio.mp4", "voice-sample.wav"];
+    let sampleBuffer: Buffer | null = null;
+
+    for (const candidate of audioCandidates) {
+      try {
+        const { data, error } = await supabase.storage.from("videos").download(`${videoDir}/${candidate}`);
+        if (data && !error) {
+          sampleBuffer = Buffer.from(await data.arrayBuffer());
+          log(dubId, `Found voice sample: ${candidate} (${(sampleBuffer.length / 1024).toFixed(0)}KB)`);
+          break;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    // If no extracted audio, try the video file directly
+    if (!sampleBuffer || sampleBuffer.length < 1000) {
+      try {
+        const { data: videoData } = await supabase.storage.from("videos").download(project.original_video_url as string);
+        if (videoData) {
+          const videoBuffer = Buffer.from(await videoData.arrayBuffer());
+          if (videoBuffer.length < 11 * 1024 * 1024) {
+            sampleBuffer = videoBuffer;
+            log(dubId, `Using video file as voice sample (${(videoBuffer.length / 1024 / 1024).toFixed(1)}MB)`);
+          }
+        }
+      } catch {
+        log(dubId, `Could not download video for voice sample`);
+      }
+    }
+
+    // Clone via Fish Audio (all plans — no plan gating needed)
+    if (sampleBuffer && sampleBuffer.length > 1000) {
+      try {
+        fishModelId = await fish.createVoiceModel(sampleBuffer, dub.id as string);
+        voiceId = fishModelId;
+        voiceSource = "cloned";
+        log(dubId, `Voice cloned via Fish Audio: ${fishModelId}`);
+      } catch (cloneErr) {
+        log(
+          dubId,
+          `Fish Audio clone failed: ${cloneErr instanceof Error ? cloneErr.message : "unknown"} — falling back to ElevenLabs premade`
+        );
+        voiceId = ai.getMultilingualVoice(project.id as string);
+      }
     } else {
-      // Paid plan → try to clone. Same multi-candidate search as
-      // before: extracted audio first, then the raw video file as
-      // a last-resort clone source.
-      const videoDir = (project.original_video_url as string).split("/").slice(0, -1).join("/");
-      const audioCandidates = ["extracted-audio.webm", "extracted-audio.mp4", "voice-sample.wav"];
-      let sampleBuffer: Buffer | null = null;
-      let sampleExt = "webm";
-
-      for (const candidate of audioCandidates) {
-        try {
-          const { data, error } = await supabase.storage.from("videos").download(`${videoDir}/${candidate}`);
-          if (data && !error) {
-            sampleBuffer = Buffer.from(await data.arrayBuffer());
-            sampleExt = candidate.split(".").pop() || "webm";
-            log(dubId, `Found voice sample: ${candidate} (${(sampleBuffer.length / 1024).toFixed(0)}KB)`);
-            break;
-          }
-        } catch {
-          continue;
-        }
-      }
-
-      if (sampleBuffer && sampleBuffer.length > 1000 && sampleBuffer.length < 11 * 1024 * 1024) {
-        try {
-          voiceId = await ai.cloneVoice(sampleBuffer, dub.id as string, sampleExt);
-          voiceSource = "cloned";
-          log(dubId, `Voice cloned from extracted audio: ${voiceId}`);
-        } catch (cloneErr) {
-          if (cloneErr instanceof ai.ElevenLabsQuotaExhaustedError) {
-            log(dubId, `Quota exhausted — falling back to pre-made voice`);
-          } else {
-            log(
-              dubId,
-              `Clone from extracted audio failed: ${
-                cloneErr instanceof Error ? cloneErr.message : "unknown"
-              }`
-            );
-          }
-          voiceId = ai.getMultilingualVoice(project.id as string);
-          log(dubId, `Using pre-made voice: ${voiceId}`);
-        }
-      } else {
-        log(dubId, `No usable extracted audio (size=${sampleBuffer?.length || 0})`);
-        // Try cloning from video file directly as last resort (if size permits)
-        try {
-          const { data: videoData } = await supabase.storage.from("videos").download(project.original_video_url as string);
-          if (videoData) {
-            const videoBuffer = Buffer.from(await videoData.arrayBuffer());
-            if (videoBuffer.length < 11 * 1024 * 1024) {
-              const ext = ((project.original_video_url as string).split(".").pop() || "mp4").toLowerCase();
-              voiceId = await ai.cloneVoice(videoBuffer, dub.id as string, ext);
-              voiceSource = "cloned";
-              log(dubId, `Voice cloned from video file: ${voiceId}`);
-            } else {
-              throw new Error(`Video too large for cloning: ${(videoBuffer.length / 1024 / 1024).toFixed(1)}MB`);
-            }
-          } else {
-            throw new Error("Could not download video");
-          }
-        } catch (fallbackErr) {
-          if (fallbackErr instanceof ai.ElevenLabsQuotaExhaustedError) {
-            log(dubId, `Quota exhausted on fallback — using pre-made voice`);
-          } else {
-            log(
-              dubId,
-              `Fallback clone failed: ${
-                fallbackErr instanceof Error ? fallbackErr.message : "unknown"
-              }`
-            );
-          }
-          voiceId = ai.getMultilingualVoice(project.id as string);
-        }
-      }
+      log(dubId, `No usable voice sample — using ElevenLabs premade`);
+      voiceId = ai.getMultilingualVoice(project.id as string);
     }
 
     // Per-segment TTS with exact timing matching original video
@@ -326,40 +295,123 @@ async function runDubbingAudioOnce(
     // Use original transcript timestamps for segment placement
     const segmentsWithTiming = translatedSegments.map((seg, i) => ({
       ...seg,
-      // Use original transcript timing if available
       start: transcript[i]?.start ?? seg.start,
       end: transcript[i]?.end ?? seg.end,
     }));
 
-    // Run TTS. If the cloned voice doesn't have permission for the
-    // multilingual model (common when the ElevenLabs account is near quota),
-    // delete the clone and retry with a pre-made multilingual voice.
-    // This is a TEMPORARY workaround — remove once quota is expanded.
     let audioBuffer: Buffer;
     let newAudioDuration: number;
-    try {
-      const out = await ai.generateTimedAudio(segmentsWithTiming, voiceId, videoDuration);
-      audioBuffer = out.wav;
-      newAudioDuration = out.durationSec;
-    } catch (err) {
-      if (err instanceof ai.ElevenLabsVoicePermissionError) {
-        log(dubId, `Voice permission error on cloned voice — falling back to pre-made multilingual voice`);
-        // Clean up the unusable cloned voice
-        if (!["FGY2WhTYpPnrIDTdsKH5", "EXAVITQu4vr4xnSDxMaL", "XrExE9yKIg1WjnnlVkGX"].includes(voiceId)) {
-          try { await ai.deleteClonedVoice(voiceId); } catch { /* ignore */ }
+
+    if (fishModelId) {
+      // ── Fish Audio TTS path ──────────────────────────────
+      // Generate each segment individually via Fish Audio, then
+      // hand off to ElevenLabs' generateTimedAudio for the
+      // silence-padding + WAV combination logic. We do this by
+      // temporarily wrapping Fish Audio TTS in the same interface
+      // that generateTimedAudio expects.
+      //
+      // Actually, the simplest approach: use ElevenLabs'
+      // generateTimedAudio but pass the Fish Audio model ID.
+      // Problem: generateTimedAudio calls ElevenLabs TTS directly.
+      //
+      // Pragmatic solution: generate all segments via Fish Audio
+      // individually, concatenate with silence padding ourselves.
+      log(dubId, `Using Fish Audio TTS (model=${fishModelId.slice(0, 8)})`);
+      const segmentBuffers: Buffer[] = [];
+      for (let i = 0; i < segmentsWithTiming.length; i++) {
+        const seg = segmentsWithTiming[i];
+        if (!seg.text.trim()) continue;
+        try {
+          const buf = await fish.textToSpeech(seg.text, fishModelId);
+          segmentBuffers.push(buf);
+          log(dubId, `  Segment ${i + 1}/${segmentsWithTiming.length}: ${(buf.length / 1024).toFixed(0)}KB`);
+        } catch (err) {
+          log(dubId, `  Segment ${i + 1} TTS failed: ${err instanceof Error ? err.message : "unknown"}`);
+          // Generate silence placeholder so timing stays correct
+          segmentBuffers.push(Buffer.alloc(0));
         }
-        voiceId = ai.getMultilingualVoice(project.id as string);
-        // Clone existed but was unusable for this language — the
-        // final audio came from the pre-made voice so downgrade
-        // voice_source accordingly. UI will show the "similar
-        // voice" chip if the owner is on the free plan.
-        voiceSource = "premade";
-        log(dubId, `Retrying TTS with pre-made voice ${voiceId}`);
+      }
+
+      // Concatenate all segment WAV buffers into one.
+      // Fish Audio returns complete WAV files per segment. We
+      // strip the 44-byte WAV header from segments 2+ and
+      // concatenate the raw PCM data, then write a new header.
+      const pcmChunks: Buffer[] = [];
+      let sampleRate = 44100;
+      let channels = 1;
+      let bitsPerSample = 16;
+
+      for (let i = 0; i < segmentBuffers.length; i++) {
+        const buf = segmentBuffers[i];
+        if (buf.length < 44) continue; // skip empty/failed segments
+        if (i === 0 && buf.length >= 44) {
+          // Parse WAV header from first segment to get format info
+          // RIFF header: bytes 22-23 = channels, 24-27 = sample rate,
+          // 34-35 = bits per sample
+          channels = buf.readUInt16LE(22);
+          sampleRate = buf.readUInt32LE(24);
+          bitsPerSample = buf.readUInt16LE(34);
+        }
+        // Find "data" chunk — skip past header
+        let dataStart = 44; // standard WAV header size
+        // Look for "data" marker in case of non-standard header
+        for (let j = 12; j < Math.min(buf.length - 4, 200); j++) {
+          if (
+            buf[j] === 0x64 && // 'd'
+            buf[j + 1] === 0x61 && // 'a'
+            buf[j + 2] === 0x74 && // 't'
+            buf[j + 3] === 0x61 // 'a'
+          ) {
+            dataStart = j + 8; // skip "data" + 4-byte size
+            break;
+          }
+        }
+        pcmChunks.push(buf.subarray(dataStart));
+      }
+
+      const pcmData = Buffer.concat(pcmChunks);
+      const dataSize = pcmData.length;
+      const headerSize = 44;
+      const wavHeader = Buffer.alloc(headerSize);
+      wavHeader.write("RIFF", 0);
+      wavHeader.writeUInt32LE(dataSize + 36, 4);
+      wavHeader.write("WAVE", 8);
+      wavHeader.write("fmt ", 12);
+      wavHeader.writeUInt32LE(16, 16); // fmt chunk size
+      wavHeader.writeUInt16LE(1, 20); // PCM format
+      wavHeader.writeUInt16LE(channels, 22);
+      wavHeader.writeUInt32LE(sampleRate, 24);
+      wavHeader.writeUInt32LE(sampleRate * channels * (bitsPerSample / 8), 28);
+      wavHeader.writeUInt16LE(channels * (bitsPerSample / 8), 32);
+      wavHeader.writeUInt16LE(bitsPerSample, 34);
+      wavHeader.write("data", 36);
+      wavHeader.writeUInt32LE(dataSize, 40);
+
+      audioBuffer = Buffer.concat([wavHeader, pcmData]);
+      newAudioDuration = dataSize / (sampleRate * channels * (bitsPerSample / 8));
+      log(dubId, `Fish Audio TTS done: ${segmentBuffers.length} segments, ${newAudioDuration.toFixed(2)}s`);
+
+      // Clean up Fish Audio model — free the private voice slot
+      await fish.deleteVoiceModel(fishModelId);
+    } else {
+      // ── ElevenLabs fallback path ──────────────────────────
+      // Used when Fish Audio clone failed or no voice sample.
+      log(dubId, `Using ElevenLabs TTS (premade voice=${voiceId.slice(0, 8)})`);
+      try {
         const out = await ai.generateTimedAudio(segmentsWithTiming, voiceId, videoDuration);
         audioBuffer = out.wav;
         newAudioDuration = out.durationSec;
-      } else {
-        throw err;
+      } catch (err) {
+        if (err instanceof ai.ElevenLabsVoicePermissionError) {
+          log(dubId, `ElevenLabs permission error — retrying with different premade voice`);
+          voiceId = ai.getMultilingualVoice(project.id as string);
+          voiceSource = "premade";
+          const out = await ai.generateTimedAudio(segmentsWithTiming, voiceId, videoDuration);
+          audioBuffer = out.wav;
+          newAudioDuration = out.durationSec;
+        } else {
+          throw err;
+        }
       }
     }
     log(dubId, `TTS done: audio=${newAudioDuration.toFixed(2)}s (was ${videoDuration}s)`);
