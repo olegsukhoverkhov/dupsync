@@ -11,6 +11,71 @@ function log(dubId: string, msg: string) {
   console.log(`[DUB:${dubId.slice(0, 8)}] ${msg}`);
 }
 
+// ── Voice clone cache ────────────────────────────────────────
+// Shared across parallel dubs of the same project so we clone once.
+// Key = projectId, value = { fishModelId, voiceId, voiceSource }
+// Cleaned up after all dubs complete in the /api/dub route.
+const voiceCloneCache = new Map<
+  string,
+  { fishModelId: string; voiceId: string; voiceSource: "cloned" | "premade"; promise?: Promise<void> }
+>();
+
+/**
+ * Get or create a voice clone for a project. First caller creates
+ * the clone, concurrent callers await the same promise.
+ */
+async function getOrCreateVoiceClone(
+  projectId: string,
+  sampleBuffer: Buffer | null,
+  dubId: string,
+  fallbackVoiceId: string,
+  supabase: Awaited<ReturnType<typeof createServiceClient>>
+): Promise<{ fishModelId: string; voiceId: string; voiceSource: "cloned" | "premade" }> {
+  // Already cached (or in-progress)
+  const cached = voiceCloneCache.get(projectId);
+  if (cached) {
+    if (cached.promise) await cached.promise;
+    log(dubId, `Voice clone reused from cache: ${cached.fishModelId || "premade"}`);
+    return { fishModelId: cached.fishModelId, voiceId: cached.voiceId, voiceSource: cached.voiceSource };
+  }
+
+  // First caller — create the clone
+  let resolve: () => void;
+  const promise = new Promise<void>((r) => { resolve = r; });
+  const entry: { fishModelId: string; voiceId: string; voiceSource: "cloned" | "premade"; promise: Promise<void> | undefined } = { fishModelId: "", voiceId: fallbackVoiceId, voiceSource: "premade", promise };
+  voiceCloneCache.set(projectId, entry);
+
+  try {
+    if (sampleBuffer && sampleBuffer.length > 1000) {
+      const modelId = await fish.createVoiceModel(sampleBuffer, dubId);
+      entry.fishModelId = modelId;
+      entry.voiceId = modelId;
+      entry.voiceSource = "cloned";
+      log(dubId, `Voice cloned via Fish Audio (shared): ${modelId}`);
+    } else {
+      log(dubId, `No usable voice sample — using premade (shared)`);
+    }
+  } catch (err) {
+    log(dubId, `Fish Audio clone failed: ${err instanceof Error ? err.message : "unknown"} — using premade (shared)`);
+  }
+
+  entry.promise = undefined; // mark as ready
+  resolve!();
+  return { fishModelId: entry.fishModelId, voiceId: entry.voiceId, voiceSource: entry.voiceSource };
+}
+
+/**
+ * Clean up voice clone cache for a project. Call after all dubs complete.
+ */
+export async function cleanupVoiceClone(projectId: string): Promise<void> {
+  const cached = voiceCloneCache.get(projectId);
+  if (cached?.fishModelId) {
+    await fish.deleteVoiceModel(cached.fishModelId);
+    log(projectId, `Shared voice model deleted: ${cached.fishModelId}`);
+  }
+  voiceCloneCache.delete(projectId);
+}
+
 export async function runTranscription(projectId: string) {
   const supabase = await createServiceClient();
 
@@ -229,13 +294,7 @@ async function runDubbingAudioOnce(
     }
     log(dubId, `Owner plan=${ownerPlan}`);
 
-    let voiceId: string = "";
-    let voiceSource: "cloned" | "premade" = "premade";
-    // Track Fish Audio model ID so we can delete it after TTS.
-    // Empty string = no Fish model was created (ElevenLabs fallback).
-    let fishModelId: string = "";
-
-    // Try to get a voice sample for cloning
+    // Voice cloning: use shared cache so parallel dubs reuse the same clone
     const videoDir = (project.original_video_url as string).split("/").slice(0, -1).join("/");
     const audioCandidates = ["extracted-audio.webm", "extracted-audio.mp4", "voice-sample.wav"];
     let sampleBuffer: Buffer | null = null;
@@ -253,7 +312,6 @@ async function runDubbingAudioOnce(
       }
     }
 
-    // If no extracted audio, try the video file directly
     if (!sampleBuffer || sampleBuffer.length < 1000) {
       try {
         const { data: videoData } = await supabase.storage.from("videos").download(project.original_video_url as string);
@@ -269,24 +327,13 @@ async function runDubbingAudioOnce(
       }
     }
 
-    // Clone via Fish Audio (all plans — no plan gating needed)
-    if (sampleBuffer && sampleBuffer.length > 1000) {
-      try {
-        fishModelId = await fish.createVoiceModel(sampleBuffer, dub.id as string);
-        voiceId = fishModelId;
-        voiceSource = "cloned";
-        log(dubId, `Voice cloned via Fish Audio: ${fishModelId}`);
-      } catch (cloneErr) {
-        log(
-          dubId,
-          `Fish Audio clone failed: ${cloneErr instanceof Error ? cloneErr.message : "unknown"} — falling back to ElevenLabs premade`
-        );
-        voiceId = ai.getMultilingualVoice(project.id as string);
-      }
-    } else {
-      log(dubId, `No usable voice sample — using ElevenLabs premade`);
-      voiceId = ai.getMultilingualVoice(project.id as string);
-    }
+    const fallbackVoiceId = ai.getMultilingualVoice(project.id as string);
+    const clone = await getOrCreateVoiceClone(
+      project.id as string, sampleBuffer, dubId, fallbackVoiceId, supabase
+    );
+    let voiceId = clone.voiceId;
+    let voiceSource: "cloned" | "premade" = clone.voiceSource;
+    const fishModelId = clone.fishModelId;
 
     // Per-segment TTS with exact timing matching original video
     const videoDuration = (project.duration_seconds as number) || 0;
@@ -391,8 +438,8 @@ async function runDubbingAudioOnce(
       newAudioDuration = dataSize / (sampleRate * channels * (bitsPerSample / 8));
       log(dubId, `Fish Audio TTS done: ${segmentBuffers.length} segments, ${newAudioDuration.toFixed(2)}s`);
 
-      // Clean up Fish Audio model — free the private voice slot
-      await fish.deleteVoiceModel(fishModelId);
+      // Voice model cleanup is now handled by cleanupVoiceClone()
+      // after ALL parallel dubs complete (called from /api/dub route).
     } else {
       // ── ElevenLabs fallback path ──────────────────────────
       // Used when Fish Audio clone failed or no voice sample.

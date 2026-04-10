@@ -292,42 +292,46 @@ export default function ProjectDetailPage({
     }
   }, [dubs, activeTab, userSwitchedTab]);
 
-  // Auto-trigger lip sync for audio_ready dubs, STRICTLY one at a time.
-  //
-  // Previously this effect fired /api/dub/lipsync for every audio_ready
-  // dub without waiting — so multiple languages ran lip sync in parallel
-  // on fal.ai and the progress bar showed them all at once. Now we:
-  //   1. Process dubs in creation order (= order the user picked languages)
-  //   2. Only fire a new lip sync when NO other dub is in lip_syncing or
-  //      merging status, AND nothing we already triggered is still pending.
-  //   3. Consider triggered-but-not-yet-lip_syncing dubs as "in progress"
-  //      so we don't accidentally fire a second one during the brief window
-  //      while the server is updating the status.
+  // Auto-trigger lip sync for audio_ready dubs, up to 3 in parallel.
+  // As each completes (webhook fires, status changes), new slots open
+  // and more dubs are submitted.
+  const MAX_PARALLEL_LIPSYNC = 3;
   useEffect(() => {
-    // Is any dub actively being processed (server-confirmed OR just fired)?
-    const anyInFlight = dubs.some((d) => {
-      if (d.status === "lip_syncing" || d.status === "merging") return true;
-      // Triggered by us but server hasn't moved it past audio_ready yet
-      if (d.status === "audio_ready" && lipSyncTriggered.has(d.id)) return true;
-      return false;
-    });
-    if (anyInFlight) return;
-
-    // Pick the NEXT audio_ready dub in user-selected order (= creation order)
     const sorted = [...dubs].sort((a, b) =>
       a.created_at.localeCompare(b.created_at)
     );
-    const nextDub = sorted.find(
+
+    // Count how many are currently in-flight
+    const inFlight = dubs.filter((d) =>
+      d.status === "lip_syncing" ||
+      d.status === "merging" ||
+      d.status === "burning_subs" ||
+      (d.status === "audio_ready" && lipSyncTriggered.has(d.id))
+    ).length;
+
+    const slotsAvailable = MAX_PARALLEL_LIPSYNC - inFlight;
+    if (slotsAvailable <= 0) return;
+
+    // Pick next N audio_ready dubs that haven't been triggered
+    const readyDubs = sorted.filter(
       (d) => d.status === "audio_ready" && !lipSyncTriggered.has(d.id)
     );
-    if (!nextDub) return;
+    const toSubmit = readyDubs.slice(0, slotsAvailable);
+    if (toSubmit.length === 0) return;
 
-    setLipSyncTriggered((prev) => new Set(prev).add(nextDub.id));
-    fetch("/api/dub/lipsync", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ dubId: nextDub.id }),
-    }).catch(() => {});
+    setLipSyncTriggered((prev) => {
+      const next = new Set(prev);
+      toSubmit.forEach((d) => next.add(d.id));
+      return next;
+    });
+
+    for (const dub of toSubmit) {
+      fetch("/api/dub/lipsync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dubId: dub.id }),
+      }).catch(() => {});
+    }
   }, [dubs, lipSyncTriggered]);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
