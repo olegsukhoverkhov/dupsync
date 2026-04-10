@@ -35,6 +35,7 @@ export function DashboardSidebar() {
   // paint) is acceptable because the /admin/stats page itself is
   // server-side gated.
   const [isAdmin, setIsAdmin] = useState(false);
+  const [supportBadge, setSupportBadge] = useState(0);
   useEffect(() => {
     let cancelled = false;
     async function loadAdmin() {
@@ -47,15 +48,24 @@ export function DashboardSidebar() {
         .select("is_admin")
         .eq("id", user.id)
         .single();
-      if (!cancelled) setIsAdmin(Boolean(data?.is_admin));
+      if (!cancelled) {
+        const admin = Boolean(data?.is_admin);
+        setIsAdmin(admin);
+        // Fetch unread ticket count
+        const status = admin ? "waiting_admin" : "waiting_user";
+        let query = supabase
+          .from("support_tickets")
+          .select("id", { count: "exact", head: true })
+          .eq("status", status);
+        if (!admin) query = query.eq("user_id", user.id);
+        const { count } = await query;
+        if (!cancelled) setSupportBadge(count || 0);
+      }
     }
     loadAdmin();
     return () => {
       cancelled = true;
     };
-    // supabase client identity is stable for the component lifetime
-    // so the empty dep array is correct — re-running this on every
-    // render would hammer auth.getUser.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -67,7 +77,9 @@ export function DashboardSidebar() {
     { name: t("dashboard.nav.settings", "Settings"), href: "/settings", icon: Settings },
     { name: t("dashboard.nav.credits", "Credits"), href: "/credits", icon: CreditCard },
     { name: t("dashboard.nav.api", "API"), href: "/api-keys", icon: Code },
-    { name: t("dashboard.nav.support", "Support"), href: "/support", icon: LifeBuoy },
+    ...(!isAdmin
+      ? [{ name: t("dashboard.nav.support", "Support"), href: "/support", icon: LifeBuoy, badge: supportBadge }]
+      : []),
     ...(isAdmin
       ? [
           {
@@ -89,6 +101,7 @@ export function DashboardSidebar() {
             name: t("dashboard.nav.supportAdmin", "Support"),
             href: "/admin/support",
             icon: LifeBuoy,
+            badge: supportBadge,
           },
         ]
       : []),
@@ -130,8 +143,9 @@ export function DashboardSidebar() {
           <ul className="space-y-1">
             {navigation.map((item) => {
               const isActive = pathname === item.href;
+              const badge = (item as { badge?: number }).badge;
               return (
-                <li key={item.name}>
+                <li key={item.href}>
                   <Link
                     href={item.href}
                     className={cn(
@@ -142,7 +156,12 @@ export function DashboardSidebar() {
                     )}
                   >
                     <item.icon className="h-4 w-4" />
-                    {item.name}
+                    <span className="flex-1">{item.name}</span>
+                    {badge !== undefined && badge > 0 && (
+                      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-pink-500 px-1.5 text-[10px] font-bold text-white">
+                        {badge > 99 ? "99+" : badge}
+                      </span>
+                    )}
                   </Link>
                 </li>
               );
@@ -167,12 +186,13 @@ export function DashboardSidebar() {
       <nav className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-center justify-around border-t border-white/10 bg-slate-900/95 backdrop-blur-sm h-16">
         {mobileNavItems.map((item) => {
           const isActive = pathname === item.href;
+          const badge = (item as { badge?: number }).badge;
           return (
             <Link
-              key={item.name}
+              key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 min-w-[3rem] h-11 w-11 rounded-xl transition-colors",
+                "relative flex flex-col items-center justify-center gap-1 min-w-[3rem] h-11 w-11 rounded-xl transition-colors",
                 isActive
                   ? "text-white"
                   : "text-slate-500"
@@ -180,6 +200,11 @@ export function DashboardSidebar() {
             >
               <item.icon className="h-5 w-5" />
               <span className="text-[10px] font-medium">{item.name}</span>
+              {badge !== undefined && badge > 0 && (
+                <span className="absolute -top-1 -right-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-pink-500 px-1 text-[9px] font-bold text-white">
+                  {badge}
+                </span>
+              )}
             </Link>
           );
         })}
