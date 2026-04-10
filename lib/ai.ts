@@ -99,7 +99,9 @@ export type FalAiBalance = {
 
 export async function getFalAiBalance(): Promise<FalAiBalance | null> {
   try {
-    const key = process.env.FAL_KEY;
+    // Billing endpoint requires an admin-scoped key, which is
+    // separate from the regular FAL_KEY used by the pipeline.
+    const key = process.env.FAL_ADMIN_KEY || process.env.FAL_KEY;
     if (!key) return null;
     const res = await fetch(
       "https://api.fal.ai/v1/account/billing?expand=credits",
