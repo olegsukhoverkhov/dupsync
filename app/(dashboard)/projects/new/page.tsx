@@ -111,7 +111,7 @@ export default function NewProjectPage() {
 
   async function createProject(path?: string, fallbackTitle?: string) {
     const videoPath = path || uploadedPath;
-    const projectTitle = title || fallbackTitle || t("dashboard.newProject.untitled", "Untitled");
+    const projectTitle = fallbackTitle || title || t("dashboard.newProject.untitled", "Untitled");
     if (!videoPath) return;
 
     setLoading(true);
