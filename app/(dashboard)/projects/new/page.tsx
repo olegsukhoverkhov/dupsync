@@ -495,38 +495,44 @@ export default function NewProjectPage() {
                     </div>
 
                     <div>
-                      <Label htmlFor="language">
+                      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 mb-3">
+                        <p className="text-xs font-medium text-amber-300">
+                          ⚠️ {t(
+                            "dashboard.newProject.sourceLanguageWarning",
+                            "Select the language SPOKEN in your video — not the language you want to translate to. You'll choose target languages in the next step."
+                          )}
+                        </p>
+                      </div>
+                      <Label>
                         {t("dashboard.newProject.sourceLanguageLabel", "What language is the speaker in your video using?")}
                       </Label>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {t(
-                          "dashboard.newProject.sourceLanguageHelp",
-                          "This is the original language of the speech in your video — not the language you want to translate it to. You'll choose target languages in the next step."
-                        )}
-                      </p>
-                      <select
-                        id="language"
-                        value={sourceLanguage}
-                        onChange={(e) => setSourceLanguage(e.target.value)}
-                        className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-pink-500/50 focus:outline-none focus:ring-1 focus:ring-pink-500/50"
-                      >
-                        <option value="" disabled>{t("dashboard.newProject.selectLanguage", "Select language...")}</option>
-                        <option value="auto">{t("dashboard.newProject.autoDetect", "Auto-detect (recommended)")}</option>
-                        <option value="en">English</option>
-                        <option value="es">Spanish</option>
-                        <option value="fr">French</option>
-                        <option value="de">German</option>
-                        <option value="pt">Portuguese</option>
-                        <option value="ja">Japanese</option>
-                        <option value="ko">Korean</option>
-                        <option value="zh">Chinese</option>
-                        <option value="hi">Hindi</option>
-                        <option value="ar">Arabic</option>
-                        <option value="it">Italian</option>
-                        <option value="tr">Turkish</option>
-                        <option value="uk">Ukrainian</option>
-                        <option value="ru">Russian</option>
-                      </select>
+                      <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setSourceLanguage("auto")}
+                          className={`rounded-xl border px-3 py-2.5 text-sm transition-all cursor-pointer text-left ${
+                            sourceLanguage === "auto"
+                              ? "border-pink-500/50 bg-pink-500/10 text-white"
+                              : "border-white/10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white"
+                          }`}
+                        >
+                          🔍 {t("dashboard.newProject.autoDetect", "Auto-detect")}
+                        </button>
+                        {SOURCE_LANGUAGES.map((lang) => (
+                          <button
+                            key={lang.code}
+                            type="button"
+                            onClick={() => setSourceLanguage(lang.code)}
+                            className={`rounded-xl border px-3 py-2.5 text-sm transition-all cursor-pointer ${
+                              sourceLanguage === lang.code
+                                ? "border-pink-500/50 bg-pink-500/10 text-white"
+                                : "border-white/10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white"
+                            }`}
+                          >
+                            {lang.name}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     <button
