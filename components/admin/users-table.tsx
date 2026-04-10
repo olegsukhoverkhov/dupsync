@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Pencil, Loader2, ChevronLeft, ChevronRight, Shield } from "lucide-react";
+import { Pencil, Loader2, ChevronLeft, ChevronRight, Shield, LogIn } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import type { AdminUserRow, AdminUsersPage } from "@/lib/admin";
 import type { PlanType } from "@/lib/supabase/types";
@@ -29,6 +29,7 @@ export function UsersTable({ initial }: { initial: AdminUsersPage }) {
   const params = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [editing, setEditing] = useState<AdminUserRow | null>(null);
+  const [loggingInAs, setLoggingInAs] = useState<string | null>(null);
 
   function goToPage(page: number) {
     const next = new URLSearchParams(params.toString());
@@ -120,14 +121,44 @@ export function UsersTable({ initial }: { initial: AdminUsersPage }) {
                     {formatDate(u.created_at)}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button
-                      type="button"
-                      onClick={() => setEditing(u)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-medium text-slate-200 hover:bg-white/10 transition-colors cursor-pointer"
-                    >
-                      <Pencil className="h-3 w-3" />
-                      Edit
-                    </button>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setLoggingInAs(u.id);
+                          try {
+                            const res = await fetch(
+                              `/api/admin/users/${u.id}/login-link`,
+                              { method: "POST" }
+                            );
+                            if (!res.ok) throw new Error("Failed");
+                            const { url } = await res.json();
+                            window.open(url, "_blank");
+                          } catch {
+                            alert("Could not generate login link");
+                          } finally {
+                            setLoggingInAs(null);
+                          }
+                        }}
+                        disabled={loggingInAs === u.id}
+                        className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1.5 text-xs font-medium text-emerald-300 hover:bg-emerald-500/20 transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        {loggingInAs === u.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <LogIn className="h-3 w-3" />
+                        )}
+                        Login
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditing(u)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-medium text-slate-200 hover:bg-white/10 transition-colors cursor-pointer"
+                      >
+                        <Pencil className="h-3 w-3" />
+                        Edit
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
