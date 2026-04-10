@@ -12,6 +12,7 @@ import {
   LogOut,
   Plus,
   BarChart3,
+  Gauge,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -67,9 +68,14 @@ export function DashboardSidebar() {
     ...(isAdmin
       ? [
           {
-            name: t("dashboard.nav.admin", "Admin"),
+            name: t("dashboard.nav.admin", "Analytics"),
             href: "/admin/stats",
             icon: BarChart3,
+          },
+          {
+            name: t("dashboard.nav.usage", "Usage"),
+            href: "/admin/usage",
+            icon: Gauge,
           },
         ]
       : []),
