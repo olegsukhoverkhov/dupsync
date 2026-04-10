@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -11,8 +11,23 @@ import { Progress } from "@/components/ui/progress";
 import { createClient } from "@/lib/supabase/client";
 import { PLAN_LIMITS, LANGUAGE_MAP } from "@/lib/supabase/constants";
 import type { Profile } from "@/lib/supabase/types";
-import { Loader2, CreditCard, TrendingUp, Clock, ChevronDown } from "lucide-react";
+import {
+  Loader2,
+  CreditCard,
+  TrendingUp,
+  Clock,
+  ChevronDown,
+  Plus,
+  Sparkles,
+} from "lucide-react";
 import Link from "next/link";
+import {
+  MIN_TOPUP_CREDITS,
+  MAX_TOPUP_CREDITS,
+  TOPUP_PRESETS,
+  quoteTopup,
+} from "@/lib/credits-topup";
+import { useDashboardT } from "@/components/dashboard/locale-provider";
 
 interface UsageRecord {
   id: string;
@@ -35,6 +50,15 @@ export default function CreditsPage() {
   const [usage, setUsage] = useState<UsageRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
+  const t = useDashboardT();
+
+  // Top-up state
+  const [topupCredits, setTopupCredits] = useState<number>(50);
+  const [topupLoading, setTopupLoading] = useState(false);
+  const [topupMessage, setTopupMessage] = useState<{
+    type: "success" | "error" | "info";
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -55,6 +79,7 @@ export default function CreditsPage() {
         if (profileRes.data) {
           const p = profileRes.data as Profile;
           p.credits_remaining = Number(p.credits_remaining) || 0;
+          p.topup_credits = Number(p.topup_credits) || 0;
           setProfile(p);
         }
         if (usageRes.data) setUsage(usageRes.data as UsageRecord[]);
@@ -63,11 +88,74 @@ export default function CreditsPage() {
     }
     loadData();
 
-    // Refresh on page focus (user comes back from dubbing)
+    // Refresh on page focus (user comes back from dubbing or checkout)
     const onFocus = () => loadData();
     window.addEventListener("focus", onFocus);
+
+    // Surface success/cancel from Stripe checkout redirect
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("topup") === "success") {
+        setTopupMessage({
+          type: "success",
+          text: t(
+            "dashboard.credits.topupSuccess",
+            "Top-up successful! Your credits will appear in a few seconds."
+          ),
+        });
+      } else if (params.get("topup") === "canceled") {
+        setTopupMessage({
+          type: "info",
+          text: t(
+            "dashboard.credits.topupCanceled",
+            "Top-up canceled. Your card was not charged."
+          ),
+        });
+      }
+    }
+
     return () => window.removeEventListener("focus", onFocus);
   }, []);
+
+  const quote = useMemo(() => quoteTopup(topupCredits), [topupCredits]);
+
+  async function handleTopup() {
+    if (!quote) return;
+    setTopupLoading(true);
+    setTopupMessage(null);
+    try {
+      const res = await fetch("/api/credits/topup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ credits: quote.credits }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setTopupMessage({
+          type: "error",
+          text:
+            data.error ||
+            t("dashboard.credits.topupError", "Could not start checkout."),
+        });
+        return;
+      }
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
+      setTopupMessage({
+        type: "error",
+        text: t("dashboard.credits.noCheckoutUrl", "No checkout URL returned."),
+      });
+    } catch (err) {
+      setTopupMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : t("dashboard.credits.unknownError", "Unknown error"),
+      });
+    } finally {
+      setTopupLoading(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -80,15 +168,18 @@ export default function CreditsPage() {
   if (!profile) return null;
 
   const planLimits = PLAN_LIMITS[profile.plan];
-  const rawRemaining = Number(profile.credits_remaining) || 0;
+  const creditsRemaining = Number(profile.credits_remaining) || 0;
+  const rawTopup = Number(profile.topup_credits) || 0;
   const totalCredits = planLimits.credits === -1 ? Infinity : planLimits.credits;
-  // Clamp display so a stale DB row with credits > plan total can never
-  // produce negative usage or > 100% bars.
-  const creditsRemaining =
-    totalCredits === Infinity ? rawRemaining : Math.min(rawRemaining, totalCredits);
   const usedCredits = totalCredits === Infinity ? 0 : Math.max(0, totalCredits - creditsRemaining);
-  const usagePercent = totalCredits === Infinity ? 0 : Math.min(100, Math.round((usedCredits / totalCredits) * 100));
-  const totalSpend = usedCredits; // Total spend = credits used from plan
+  const usagePercent =
+    totalCredits === Infinity || totalCredits === 0
+      ? 0
+      : Math.round((Math.max(0, usedCredits) / totalCredits) * 100);
+  const totalSpend = usedCredits;
+  // Effective balance the user can actually spend right now
+  const effectiveRemaining =
+    totalCredits === Infinity ? Infinity : creditsRemaining + rawTopup;
 
   // Group usage by day
   const dayGroups: DayGroup[] = [];
@@ -110,7 +201,24 @@ export default function CreditsPage() {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-bold mb-8 text-white">Credits & Usage</h1>
+      <h1 className="text-2xl font-bold mb-8 text-white">
+        {t("dashboard.credits.title", "Credits & Usage")}
+      </h1>
+
+      {/* Top-up result banner */}
+      {topupMessage && (
+        <div
+          className={`mb-6 rounded-xl px-4 py-3 text-sm ${
+            topupMessage.type === "success"
+              ? "bg-green-500/10 border border-green-500/30 text-green-300"
+              : topupMessage.type === "error"
+                ? "bg-red-500/10 border border-red-500/30 text-red-300"
+                : "bg-blue-500/10 border border-blue-500/30 text-blue-300"
+          }`}
+        >
+          {topupMessage.text}
+        </div>
+      )}
 
       {/* Stats cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-8">
@@ -121,10 +229,20 @@ export default function CreditsPage() {
                 <Clock className="h-5 w-5 text-green-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">Remaining</p>
+                <p className="text-xs text-slate-500">{t("dashboard.credits.remaining", "Remaining")}</p>
                 <p className="text-xl font-bold text-white">
-                  {creditsRemaining === -1 ? "∞" : Math.floor(creditsRemaining).toLocaleString()}
+                  {effectiveRemaining === Infinity
+                    ? "∞"
+                    : Math.floor(effectiveRemaining).toLocaleString()}
                 </p>
+                {rawTopup > 0 && effectiveRemaining !== Infinity && (
+                  <p className="text-[10px] text-slate-500">
+                    {t("dashboard.credits.topupPlanSplit", "{plan} plan + {topup} top-up", {
+                      plan: String(Math.floor(creditsRemaining)),
+                      topup: String(Math.floor(rawTopup)),
+                    })}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -137,7 +255,7 @@ export default function CreditsPage() {
                 <TrendingUp className="h-5 w-5 text-blue-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">Used</p>
+                <p className="text-xs text-slate-500">{t("dashboard.credits.used", "Used")}</p>
                 <p className="text-xl font-bold text-white">{Math.floor(usedCredits).toLocaleString()}</p>
               </div>
             </div>
@@ -148,11 +266,13 @@ export default function CreditsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-500/10">
-                <CreditCard className="h-5 w-5 text-pink-400" />
+                <Sparkles className="h-5 w-5 text-pink-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">Total Spend</p>
-                <p className="text-xl font-bold text-white">{Math.floor(totalSpend).toLocaleString()}</p>
+                <p className="text-xs text-slate-500">{t("dashboard.credits.topupCredits", "Top-up credits")}</p>
+                <p className="text-xl font-bold text-white">
+                  {Math.floor(rawTopup).toLocaleString()}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -165,7 +285,7 @@ export default function CreditsPage() {
                 <CreditCard className="h-5 w-5 text-violet-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">Plan</p>
+                <p className="text-xs text-slate-500">{t("dashboard.credits.plan", "Plan")}</p>
                 <p className="text-xl font-bold text-white">{planLimits.name}</p>
               </div>
             </div>
@@ -173,22 +293,118 @@ export default function CreditsPage() {
         </Card>
       </div>
 
+      {/* Top-up purchase card */}
+      <Card className="mb-8 border-white/10 bg-gradient-to-br from-pink-500/10 via-violet-500/5 to-blue-600/10">
+        <CardHeader>
+          <CardTitle className="text-base text-white flex items-center gap-2">
+            <Plus className="h-4 w-4 text-pink-400" />
+            {t("dashboard.credits.buyMoreCredits", "Buy more credits")}
+          </CardTitle>
+          <p className="text-xs text-slate-400 mt-1">
+            {t(
+              "dashboard.credits.buyMoreSubtitle",
+              "One-time purchase. Top-up credits never expire and are used only after your plan credits run out."
+            )}
+          </p>
+        </CardHeader>
+        <CardContent>
+          {/* Slider + price preview */}
+          <div className="flex items-baseline justify-between mb-2">
+            <span className="text-sm text-slate-400">{t("dashboard.credits.amount", "Amount")}</span>
+            <span className="text-2xl font-bold text-white">
+              {topupCredits}{" "}
+              <span className="text-sm font-normal text-slate-400">{t("dashboard.credits.creditsLabel", "credits")}</span>
+            </span>
+          </div>
+          <input
+            type="range"
+            min={MIN_TOPUP_CREDITS}
+            max={MAX_TOPUP_CREDITS}
+            step={1}
+            value={topupCredits}
+            onChange={(e) => setTopupCredits(parseInt(e.target.value, 10))}
+            className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-pink-500"
+            aria-label={t("dashboard.credits.creditsAriaLabel", "Number of credits to buy")}
+          />
+          <div className="flex justify-between text-[11px] text-slate-500 mt-1">
+            <span>{MIN_TOPUP_CREDITS}</span>
+            <span>{MAX_TOPUP_CREDITS}</span>
+          </div>
+
+          {/* Quick presets */}
+          <div className="flex flex-wrap gap-2 mt-4">
+            {TOPUP_PRESETS.map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setTopupCredits(n)}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                  topupCredits === n
+                    ? "bg-white text-slate-900"
+                    : "bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+
+          {/* Price breakdown */}
+          {quote && (
+            <div className="mt-5 rounded-xl border border-white/10 bg-slate-900/50 p-4">
+              <div>
+                <p className="text-xs text-slate-500">
+                  {quote.credits} {t("dashboard.credits.creditsLabel", "credits")} × $1 {t("dashboard.credits.perCredit", "per credit")}
+                </p>
+                <p className="text-2xl font-bold text-white mt-1">
+                  {quote.priceLabel}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                disabled={topupLoading || !quote}
+                onClick={handleTopup}
+                className="mt-4 w-full gradient-button inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {topupLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {t("dashboard.credits.openingCheckout", "Opening checkout…")}
+                  </>
+                ) : (
+                  <>
+                    {t("dashboard.credits.buyButton", "Buy {n} credits — {price}", {
+                      n: String(quote.credits),
+                      price: quote.priceLabel,
+                    })}
+                  </>
+                )}
+              </button>
+              <p className="text-[10px] text-slate-500 text-center mt-2">
+                {t("dashboard.credits.checkoutNote", "Secure checkout · One-time payment · Credits never expire")}
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Usage bar */}
       {totalCredits !== Infinity && (
         <Card className="mb-8 border-white/10 bg-slate-800/50">
           <CardHeader>
-            <CardTitle className="text-base text-white">Monthly Usage</CardTitle>
+            <CardTitle className="text-base text-white">{t("dashboard.credits.monthlyUsage", "Monthly Usage")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex justify-between text-sm mb-2">
-              <span className="text-slate-400">{Math.floor(usedCredits).toLocaleString()} credits used</span>
-              <span className="text-slate-400">{totalCredits.toLocaleString()} credits total</span>
+              <span className="text-slate-400">{t("dashboard.credits.creditsUsedOf", "{used} credits used", { used: Math.floor(usedCredits).toLocaleString() })}</span>
+              <span className="text-slate-400">{t("dashboard.credits.creditsTotalOf", "{total} credits total", { total: totalCredits.toLocaleString() })}</span>
             </div>
             <Progress value={usagePercent} />
             {usagePercent > 80 && (
               <p className="mt-2 text-xs text-amber-400">
-                You&apos;ve used {usagePercent}% of your credits.{" "}
-                <Link href="/settings" className="text-pink-400 hover:text-pink-300 underline">Upgrade</Link>
+                {t("dashboard.credits.usedNCredits", "You've used {n}% of your credits.", { n: String(usagePercent) })}{" "}
+                <Link href="/settings" className="text-pink-400 hover:text-pink-300 underline">{t("dashboard.home.upgrade", "Upgrade")}</Link>
               </p>
             )}
           </CardContent>
@@ -198,12 +414,12 @@ export default function CreditsPage() {
       {/* Daily usage history */}
       <Card className="border-white/10 bg-slate-800/50">
         <CardHeader>
-          <CardTitle className="text-base text-white">Usage History</CardTitle>
+          <CardTitle className="text-base text-white">{t("dashboard.credits.usageHistory", "Usage History")}</CardTitle>
         </CardHeader>
         <CardContent>
           {dayGroups.length === 0 ? (
             <p className="text-sm text-slate-500 text-center py-8">
-              No usage recorded yet. Start dubbing to see your credits history.
+              {t("dashboard.credits.noUsage", "No usage recorded yet. Start dubbing to see your credits history.")}
             </p>
           ) : (
             <div className="space-y-2">
@@ -216,7 +432,7 @@ export default function CreditsPage() {
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-medium text-white">{day.date}</span>
-                      <span className="text-xs text-slate-500">{day.items.length} dub(s)</span>
+                      <span className="text-xs text-slate-500">{day.items.length} {t("dashboard.credits.dubs", "dub(s)")}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-pink-400">

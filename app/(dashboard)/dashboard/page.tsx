@@ -134,14 +134,7 @@ export default function DashboardPage() {
 
   const plan = profile ? PLAN_LIMITS[profile.plan] : PLAN_LIMITS.free;
   const creditsTotal = plan.credits === -1 ? Infinity : plan.credits;
-  // Clamp remaining to plan total — defends against stale DB rows where
-  // credits_remaining could be > total (e.g. legacy users from old credit
-  // schemes). Without this clamp the "used" calc goes negative and the
-  // progress bar / percentage become nonsense.
-  const creditsRemainingClamped =
-    creditsTotal === Infinity
-      ? Number(profile?.credits_remaining ?? 0)
-      : Math.min(Number(profile?.credits_remaining ?? 0), creditsTotal);
+  const creditsRemaining = Number(profile?.credits_remaining ?? 0);
   const topupCredits = Number(profile?.topup_credits ?? 0);
   // Effective balance = plan + top-up. This is what we show in the
   // "Credits Left" card because it's the number the user can actually
@@ -149,11 +142,13 @@ export default function DashboardPage() {
   const effectiveCredits =
     creditsTotal === Infinity
       ? Infinity
-      : creditsRemainingClamped + topupCredits;
+      : creditsRemaining + topupCredits;
   const creditsUsed =
-    creditsTotal === Infinity ? 0 : Math.max(0, creditsTotal - creditsRemainingClamped);
+    creditsTotal === Infinity ? 0 : Math.max(0, creditsTotal - creditsRemaining);
   const usagePercent =
-    creditsTotal === Infinity ? 0 : Math.round((creditsUsed / creditsTotal) * 100);
+    creditsTotal === Infinity || creditsTotal === 0
+      ? 0
+      : Math.round((Math.max(0, creditsUsed) / creditsTotal) * 100);
 
   return (
     <div>
