@@ -2,52 +2,42 @@ import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import type { PlanType } from "@/lib/supabase/types";
 
-/**
- * PATCH /api/admin/users/[id]
- *
- * Admin-only. Updates `plan` and/or `credits_remaining` on the target
- * profile. Caller identity is taken from the authed cookie session;
- * the mutation itself runs through the service-role client so it
- * bypasses RLS even if we later tighten the profiles policies.
- *
- * Accepts:
- *   { plan?: PlanType, credits_remaining?: number }
- *
- * Returns the updated profile row on success.
- */
 const VALID_PLANS: PlanType[] = ["free", "starter", "pro", "enterprise"];
 
-export async function PATCH(
-  request: Request,
-  ctx: { params: Promise<{ id: string }> }
-) {
-  const { id: targetId } = await ctx.params;
-  if (!targetId) {
-    return NextResponse.json({ error: "Missing user id" }, { status: 400 });
-  }
-
-  // 1. Auth: caller must be an admin
+/** Shared admin auth check — returns caller user or error response */
+async function requireAdmin() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!user) return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
 
   const { data: caller } = await supabase
     .from("profiles")
     .select("is_admin")
     .eq("id", user.id)
     .single();
-  if (!caller?.is_admin) {
-    // 404 not 403 — the admin API surface is not a secret we want
-    // to confirm exists to non-admins.
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  if (!caller?.is_admin) return { error: NextResponse.json({ error: "Not found" }, { status: 404 }) };
 
-  // 2. Parse + validate body
-  let body: { plan?: string; credits_remaining?: number };
+  return { user };
+}
+
+/**
+ * PATCH /api/admin/users/[id]
+ *
+ * Admin-only. Updates plan, credits_remaining, and/or is_suspended.
+ */
+export async function PATCH(
+  request: Request,
+  ctx: { params: Promise<{ id: string }> }
+) {
+  const { id: targetId } = await ctx.params;
+  if (!targetId) return NextResponse.json({ error: "Missing user id" }, { status: 400 });
+
+  const auth = await requireAdmin();
+  if (auth.error) return auth.error;
+
+  let body: { plan?: string; credits_remaining?: number; is_suspended?: boolean };
   try {
     body = await request.json();
   } catch {
@@ -74,21 +64,20 @@ export async function PATCH(
     }
     updates.credits_remaining = n;
   }
-
-  if (Object.keys(updates).length === 0) {
-    return NextResponse.json(
-      { error: "Nothing to update" },
-      { status: 400 }
-    );
+  if (typeof body.is_suspended === "boolean") {
+    updates.is_suspended = body.is_suspended;
   }
 
-  // 3. Apply via service role so row-level policies can't block
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+  }
+
   const admin = await createServiceClient();
   const { data, error } = await admin
     .from("profiles")
     .update(updates)
     .eq("id", targetId)
-    .select("id, plan, credits_remaining, topup_credits")
+    .select("id, plan, credits_remaining, topup_credits, is_suspended")
     .single();
 
   if (error) {
@@ -97,4 +86,50 @@ export async function PATCH(
   }
 
   return NextResponse.json({ profile: data });
+}
+
+/**
+ * DELETE /api/admin/users/[id]
+ *
+ * Admin-only. Permanently deletes a user from auth.users (cascades
+ * to profiles via the DB trigger). Also deletes all their projects
+ * and dubs.
+ */
+export async function DELETE(
+  _request: Request,
+  ctx: { params: Promise<{ id: string }> }
+) {
+  const { id: targetId } = await ctx.params;
+  if (!targetId) return NextResponse.json({ error: "Missing user id" }, { status: 400 });
+
+  const auth = await requireAdmin();
+  if (auth.error) return auth.error;
+
+  // Don't allow self-deletion
+  if (auth.user.id === targetId) {
+    return NextResponse.json({ error: "Cannot delete your own account" }, { status: 400 });
+  }
+
+  const admin = await createServiceClient();
+
+  // Delete user's data: fetch project IDs, delete dubs, then projects
+  const { data: userProjects } = await admin
+    .from("projects")
+    .select("id")
+    .eq("user_id", targetId);
+  if (userProjects && userProjects.length > 0) {
+    const projectIds = userProjects.map((p: { id: string }) => p.id);
+    await admin.from("dubs").delete().in("project_id", projectIds);
+  }
+  await admin.from("projects").delete().eq("user_id", targetId);
+  await admin.from("profiles").delete().eq("id", targetId);
+
+  // Delete from auth.users via admin API
+  const { error } = await admin.auth.admin.deleteUser(targetId);
+  if (error) {
+    console.error("[admin/users DELETE] failed", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
 }

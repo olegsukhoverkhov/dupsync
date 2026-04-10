@@ -329,6 +329,11 @@
       "startDubbing": "Dubbing starten",
       "viewDemo": "Demo ansehen"
     },
+    "suspended": {
+      "title": "Konto gesperrt",
+      "message": "Ihr Konto wurde gesperrt. Wenn Sie glauben, dass dies ein Fehler ist, wenden Sie sich bitte an unser Support-Team.",
+      "contactSupport": "Support kontaktieren"
+    },
     "home": {
       "plan": "Tarif",
       "creditsLeft": "Verbleibende Credits",

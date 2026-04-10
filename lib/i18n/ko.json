@@ -329,6 +329,11 @@
       "startDubbing": "더빙 시작",
       "viewDemo": "데모 보기"
     },
+    "suspended": {
+      "title": "계정 정지",
+      "message": "계정이 정지되었습니다. 이것이 실수라고 생각되시면 지원팀에 문의하여 도움을 받으세요.",
+      "contactSupport": "지원팀 문의"
+    },
     "home": {
       "plan": "플랜",
       "creditsLeft": "남은 크레딧",

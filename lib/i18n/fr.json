@@ -329,6 +329,11 @@
       "startDubbing": "Commencer le doublage",
       "viewDemo": "Voir la démo"
     },
+    "suspended": {
+      "title": "Compte suspendu",
+      "message": "Votre compte a été suspendu. Si vous pensez qu'il s'agit d'une erreur, veuillez contacter notre équipe d'assistance.",
+      "contactSupport": "Contacter le support"
+    },
     "home": {
       "plan": "Forfait",
       "creditsLeft": "Crédits restants",

@@ -2,7 +2,8 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Pencil, Loader2, ChevronLeft, ChevronRight, Shield, LogIn } from "lucide-react";
+import { Pencil, Loader2, ChevronLeft, ChevronRight, Shield, LogIn, Ban, Trash2, ShieldOff } from "lucide-react";
+import { ConfirmModal } from "@/components/ui/modal";
 import { Modal } from "@/components/ui/modal";
 import type { AdminUserRow, AdminUsersPage } from "@/lib/admin";
 import type { PlanType } from "@/lib/supabase/types";
@@ -30,6 +31,8 @@ export function UsersTable({ initial }: { initial: AdminUsersPage }) {
   const [isPending, startTransition] = useTransition();
   const [editing, setEditing] = useState<AdminUserRow | null>(null);
   const [loggingInAs, setLoggingInAs] = useState<string | null>(null);
+  const [suspendTarget, setSuspendTarget] = useState<AdminUserRow | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AdminUserRow | null>(null);
 
   function goToPage(page: number) {
     const next = new URLSearchParams(params.toString());
@@ -94,6 +97,15 @@ export function UsersTable({ initial }: { initial: AdminUsersPage }) {
                         >
                           <Shield className="h-3 w-3" />
                           admin
+                        </span>
+                      )}
+                      {u.is_suspended && (
+                        <span
+                          className="inline-flex shrink-0 items-center gap-1 rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-400"
+                          title="Suspended"
+                        >
+                          <Ban className="h-3 w-3" />
+                          suspended
                         </span>
                       )}
                     </div>
@@ -163,6 +175,29 @@ export function UsersTable({ initial }: { initial: AdminUsersPage }) {
                         <Pencil className="h-3 w-3" />
                         Edit
                       </button>
+                      {!u.is_admin && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setSuspendTarget(u)}
+                            className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
+                              u.is_suspended
+                                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
+                                : "border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
+                            }`}
+                          >
+                            {u.is_suspended ? <ShieldOff className="h-3 w-3" /> : <Ban className="h-3 w-3" />}
+                            {u.is_suspended ? "Unsuspend" : "Suspend"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteTarget(u)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/10 px-2.5 py-1.5 text-xs font-medium text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -201,6 +236,48 @@ export function UsersTable({ initial }: { initial: AdminUsersPage }) {
         onSaved={() => {
           setEditing(null);
           router.refresh();
+        }}
+      />
+
+      {/* Suspend / Unsuspend confirm */}
+      <ConfirmModal
+        open={!!suspendTarget}
+        onClose={() => setSuspendTarget(null)}
+        title={suspendTarget?.is_suspended ? "Unsuspend user" : "Suspend user"}
+        message={
+          suspendTarget?.is_suspended
+            ? `Unsuspend ${suspendTarget.email}? They will regain access to their account.`
+            : `Suspend ${suspendTarget?.email}? They will see a blocking modal and cannot use the app.`
+        }
+        confirmLabel={suspendTarget?.is_suspended ? "Unsuspend" : "Suspend"}
+        destructive={!suspendTarget?.is_suspended}
+        onConfirm={() => {
+          if (!suspendTarget) return;
+          fetch(`/api/admin/users/${suspendTarget.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ is_suspended: !suspendTarget.is_suspended }),
+          }).then((res) => {
+            if (res.ok) router.refresh();
+            else alert("Failed to update user");
+          });
+        }}
+      />
+
+      {/* Delete confirm */}
+      <ConfirmModal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete user permanently"
+        message={`Permanently delete ${deleteTarget?.email}? This will remove their account, all projects, and all dubs. This action cannot be undone.`}
+        confirmLabel="Delete forever"
+        destructive
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          fetch(`/api/admin/users/${deleteTarget.id}`, { method: "DELETE" }).then((res) => {
+            if (res.ok) router.refresh();
+            else alert("Failed to delete user");
+          });
         }}
       />
     </section>

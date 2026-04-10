@@ -69,6 +69,9 @@ export interface Profile {
    * in the DB — there's intentionally no self-serve way to grant this.
    */
   is_admin: boolean;
+  /** When true, the user sees a blocking modal on every dashboard page
+   *  and cannot use the app. Set by admin via /api/admin/users/[id]. */
+  is_suspended: boolean;
   /** Set to true after the user dismisses or completes the onboarding
    *  wizard. Controls whether the wizard modal shows on the dashboard. */
   onboarding_completed: boolean;

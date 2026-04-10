@@ -329,6 +329,11 @@
       "startDubbing": "吹き替え開始",
       "viewDemo": "デモを見る"
     },
+    "suspended": {
+      "title": "アカウント停止",
+      "message": "お客様のアカウントは停止されました。これが誤りであると思われる場合は、サポートチームまでお問い合わせください。",
+      "contactSupport": "サポートに連絡"
+    },
     "home": {
       "plan": "プラン",
       "creditsLeft": "残りクレジット",

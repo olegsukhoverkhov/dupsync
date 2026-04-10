@@ -329,6 +329,11 @@
       "startDubbing": "Mulai dubbing",
       "viewDemo": "Lihat demo"
     },
+    "suspended": {
+      "title": "Akun Ditangguhkan",
+      "message": "Akun Anda telah ditangguhkan. Jika Anda merasa ini adalah kesalahan, silakan hubungi tim dukungan kami untuk bantuan.",
+      "contactSupport": "Hubungi Dukungan"
+    },
     "home": {
       "plan": "Paket",
       "creditsLeft": "Kredit Tersisa",

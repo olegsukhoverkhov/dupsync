@@ -19,6 +19,7 @@ export type AdminUserRow = {
   last_login_at: string | null;
   created_at: string;
   is_admin: boolean;
+  is_suspended: boolean;
 };
 
 export type AdminUsersPage = {
@@ -67,6 +68,7 @@ export async function getAdminUsers(
       last_login_at: r.last_login_at,
       created_at: r.created_at,
       is_admin: Boolean(r.is_admin),
+      is_suspended: Boolean(r.is_suspended),
     }));
     const totalCount = Number(
       (data as unknown as RawAdminUserRow[])[0]?.total_count ?? 0
@@ -100,5 +102,6 @@ type RawAdminUserRow = {
   last_login_at: string | null;
   created_at: string;
   is_admin: boolean;
+  is_suspended: boolean;
   total_count: number | string;
 };

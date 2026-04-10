@@ -329,6 +329,11 @@
       "startDubbing": "Start dubbing",
       "viewDemo": "View demo"
     },
+    "suspended": {
+      "title": "Account Suspended",
+      "message": "Your account has been suspended. If you believe this is a mistake, please contact our support team for assistance.",
+      "contactSupport": "Contact Support"
+    },
     "home": {
       "plan": "Plan",
       "creditsLeft": "Credits Left",

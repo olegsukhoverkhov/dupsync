@@ -329,6 +329,11 @@
       "startDubbing": "Seslendirmeye başla",
       "viewDemo": "Demoyu görüntüle"
     },
+    "suspended": {
+      "title": "Hesap Askıya Alındı",
+      "message": "Hesabınız askıya alınmıştır. Bunun bir hata olduğunu düşünüyorsanız, yardım için lütfen destek ekibimizle iletişime geçin.",
+      "contactSupport": "Destek ile İletişime Geç"
+    },
     "home": {
       "plan": "Plan",
       "creditsLeft": "Kalan Krediler",
