@@ -60,7 +60,9 @@ async function getOrCreateVoiceClone(
 
   if (sampleBuffer && sampleBuffer.length > 1000) {
     // Try Cartesia with retry (2 attempts with 3s delay)
-    if (process.env.CARTESIA_API_KEY) {
+    const cartesiaKey = process.env.CARTESIA_API_KEY;
+    log(dubId, `Voice clone: sample=${(sampleBuffer.length / 1024).toFixed(0)}KB, cartesiaKey=${cartesiaKey ? "set" : "MISSING"}, lang=${originalLanguage}`);
+    if (cartesiaKey) {
       for (let attempt = 1; attempt <= 2; attempt++) {
         try {
           if (attempt > 1) {
@@ -993,16 +995,25 @@ async function refundDubCredits(
       .single();
     const refundAmount = usage ? Number(usage.credits_used) : 1;
 
-    // Refund to credits_remaining
+    // Refund to plan credits first (up to plan limit), remainder to topup
     const { data: profile } = await supabase
       .from("profiles")
-      .select("credits_remaining")
+      .select("credits_remaining, topup_credits, plan")
       .eq("id", userId)
       .single();
     if (profile) {
+      const { PLAN_LIMITS } = await import("./supabase/constants");
+      const planMax = PLAN_LIMITS[profile.plan as keyof typeof PLAN_LIMITS]?.credits || 0;
+      const currentPlan = Number(profile.credits_remaining);
+      const canRefundToPlan = Math.min(refundAmount, Math.max(0, planMax - currentPlan));
+      const refundToTopup = refundAmount - canRefundToPlan;
+
       await supabase
         .from("profiles")
-        .update({ credits_remaining: Number(profile.credits_remaining) + refundAmount })
+        .update({
+          credits_remaining: currentPlan + canRefundToPlan,
+          topup_credits: Number(profile.topup_credits) + refundToTopup,
+        })
         .eq("id", userId);
     }
 

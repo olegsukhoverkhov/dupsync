@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Languages, ArrowRight, Loader2, Mail, Lock, User, AlertCircle, MailOpen } from "lucide-react";
+import { Languages, ArrowRight, Loader2, Mail, Lock, User, AlertCircle, MailOpen, Globe } from "lucide-react";
+import { LOCALES, LOCALE_INFO } from "@/lib/i18n/dictionaries";
 
 /** Small DOM helper to read a cookie value from document.cookie by name. */
 function readCookie(name: string): string | null {
@@ -414,15 +415,21 @@ const AUTH_STRINGS: Record<string, Record<string, string>> = {
   },
 };
 
-function useAuthStrings(): Record<string, string> {
-  const locale = readCookie("dubsync_locale") || "en";
-  return AUTH_STRINGS[locale] || AUTH_STRINGS.en;
+function useAuthStrings(): { strings: Record<string, string>; locale: string; setLocale: (l: string) => void } {
+  const [locale, setLocaleState] = useState(() => readCookie("dubsync_locale") || "en");
+
+  function setLocale(l: string) {
+    document.cookie = `dubsync_locale=${l};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
+    setLocaleState(l);
+  }
+
+  return { strings: AUTH_STRINGS[locale] || AUTH_STRINGS.en, locale, setLocale };
 }
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const t = useAuthStrings();
+  const { strings: t, locale: currentLocale, setLocale } = useAuthStrings();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -680,12 +687,32 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
         {/* Footer */}
         {!registered && (
-        <p className="mt-6 text-center text-xs text-slate-600">
-          {t.terms}{" "}
-          <Link href="/terms" className="text-slate-500 hover:text-slate-400 underline">{t.termsLink}</Link>{" "}
-          {t.and}{" "}
-          <Link href="/privacy" className="text-slate-500 hover:text-slate-400 underline">{t.privacyLink}</Link>
-        </p>
+          <>
+            <p className="mt-6 text-center text-xs text-slate-600">
+              {t.terms}{" "}
+              <Link href="/terms" className="text-slate-500 hover:text-slate-400 underline">{t.termsLink}</Link>{" "}
+              {t.and}{" "}
+              <Link href="/privacy" className="text-slate-500 hover:text-slate-400 underline">{t.privacyLink}</Link>
+            </p>
+
+            {/* Language switcher */}
+            <div className="mt-4 flex justify-center">
+              <div className="relative">
+                <select
+                  value={currentLocale}
+                  onChange={(e) => setLocale(e.target.value)}
+                  className="appearance-none rounded-lg border border-white/10 bg-white/5 pl-8 pr-6 py-1.5 text-xs text-slate-400 hover:text-white focus:outline-none cursor-pointer"
+                >
+                  {LOCALES.map((l) => (
+                    <option key={l} value={l}>
+                      {LOCALE_INFO[l].flag} {LOCALE_INFO[l].nativeName}
+                    </option>
+                  ))}
+                </select>
+                <Globe className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-500 pointer-events-none" />
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>
