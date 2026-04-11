@@ -48,7 +48,6 @@ export async function cloneVoice(
   fd.append("name", `dubsync-${name.slice(0, 8)}-${Date.now()}`);
   fd.append("language", mapLanguageCode(language));
   fd.append("mode", "similarity");
-  fd.append("enhance", "true");
 
   const res = await fetch(`${CARTESIA_API}/voices/clone`, {
     method: "POST",
@@ -61,13 +60,23 @@ export async function cloneVoice(
     throw new Error(`Cartesia clone failed: ${res.status} ${err.slice(0, 300)}`);
   }
 
-  const data = (await res.json()) as { id?: string };
-  if (!data.id) {
-    throw new Error(`Cartesia clone: no voice ID in response: ${JSON.stringify(data).slice(0, 200)}`);
+  const rawText = await res.text();
+  console.log(`[CARTESIA_CLONE] Raw response: ${rawText.slice(0, 300)}`);
+
+  let data: Record<string, unknown>;
+  try {
+    data = JSON.parse(rawText);
+  } catch {
+    throw new Error(`Cartesia clone: invalid JSON response: ${rawText.slice(0, 200)}`);
   }
 
-  console.log(`[CARTESIA_CLONE] Created voice ${data.id} (${(audioBuffer.length / 1024).toFixed(0)}KB sample)`);
-  return data.id;
+  const voiceId = (data.id as string) || (data.voice_id as string);
+  if (!voiceId) {
+    throw new Error(`Cartesia clone: no voice ID in response: ${rawText.slice(0, 200)}`);
+  }
+
+  console.log(`[CARTESIA_CLONE] Created voice ${voiceId} (${(audioBuffer.length / 1024).toFixed(0)}KB sample)`);
+  return voiceId;
 }
 
 /**
@@ -121,6 +130,7 @@ export async function textToSpeech(
 
   if (!res.ok) {
     const err = await res.text().catch(() => "");
+    console.error(`[CARTESIA_TTS] Failed: ${res.status} voice=${voiceId} lang=${language} text="${text.slice(0, 50)}" err=${err.slice(0, 300)}`);
     throw new Error(`Cartesia TTS failed: ${res.status} ${err.slice(0, 300)}`);
   }
 
