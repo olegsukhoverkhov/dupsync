@@ -44,25 +44,19 @@ export async function cloneVoice(
   language: string = "en"
 ): Promise<string> {
   let mimeType = detectAudioMime(audioBuffer);
-  let processedBuffer = audioBuffer;
 
   console.log(`[CARTESIA_CLONE] Sample: ${(audioBuffer.length / 1024).toFixed(0)}KB, mime=${mimeType}, lang=${language}`);
 
-  // If the sample is a video file (MOV/MP4), extract audio first
+  // Cartesia rejects video/mp4 MIME with 422. Send as audio/mpeg instead —
+  // Cartesia extracts the audio track internally from the container.
   if (mimeType === "video/mp4" || mimeType === "application/octet-stream") {
-    try {
-      processedBuffer = await extractAudioFromVideo(audioBuffer);
-      mimeType = "audio/wav";
-      console.log(`[CARTESIA_CLONE] Extracted audio: ${(processedBuffer.length / 1024).toFixed(0)}KB`);
-    } catch (err) {
-      console.warn(`[CARTESIA_CLONE] Audio extraction failed, trying raw: ${err instanceof Error ? err.message : err}`);
-    }
+    mimeType = "audio/mpeg";
   }
 
-  const ext = mimeType === "audio/webm" ? "webm" : mimeType === "audio/wav" ? "wav" : "mp4";
+  const ext = mimeType === "audio/webm" ? "webm" : mimeType === "audio/wav" ? "wav" : "mp3";
 
   const fd = new FormData();
-  const blob = new Blob([new Uint8Array(processedBuffer) as BlobPart], { type: mimeType });
+  const blob = new Blob([new Uint8Array(audioBuffer) as BlobPart], { type: mimeType });
   fd.append("clip", blob, `voice.${ext}`);
   fd.append("name", `dubsync-${name.slice(0, 8)}-${Date.now()}`);
   fd.append("language", mapLanguageCode(language));
@@ -219,64 +213,6 @@ export const CARTESIA_SUPPORTED_LANGUAGES = [
 
 export function isCartesiaSupported(langCode: string): boolean {
   return (CARTESIA_SUPPORTED_LANGUAGES as readonly string[]).includes(langCode);
-}
-
-/**
- * Extract audio from a video file by uploading to a temp Supabase path,
- * creating a signed URL, and running fal.ai ffmpeg to extract audio track.
- */
-async function extractAudioFromVideo(videoBuffer: Buffer): Promise<Buffer> {
-  const falKey = process.env.FAL_KEY;
-  if (!falKey) throw new Error("FAL_KEY not set");
-
-  // Upload video to temp storage
-  const { createServiceClient } = await import("./supabase/server");
-  const supabase = await createServiceClient();
-  const tempPath = `temp/clone-extract-${Date.now()}.mp4`;
-
-  const { error: upErr } = await supabase.storage
-    .from("videos")
-    .upload(tempPath, videoBuffer, { contentType: "video/mp4", upsert: true });
-  if (upErr) throw new Error(`Upload failed: ${upErr.message}`);
-
-  // Get signed URL
-  const { data: signed } = await supabase.storage
-    .from("videos")
-    .createSignedUrl(tempPath, 600);
-  if (!signed?.signedUrl) throw new Error("No signed URL");
-
-  try {
-    // Run ffmpeg to extract audio
-    const res = await fetch("https://fal.run/fal-ai/ffmpeg-api", {
-      method: "POST",
-      headers: {
-        Authorization: `Key ${falKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        input_url: signed.signedUrl,
-        arguments: "-vn -acodec pcm_s16le -ar 44100 -ac 1",
-        output_format: "wav",
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.text().catch(() => "");
-      throw new Error(`ffmpeg failed: ${res.status} ${err.slice(0, 200)}`);
-    }
-
-    const result = (await res.json()) as { output_url?: string; audio_url?: string; url?: string };
-    const audioUrl = result.output_url || result.audio_url || result.url;
-    if (!audioUrl) throw new Error("No output URL from ffmpeg");
-
-    const audioRes = await fetch(audioUrl);
-    if (!audioRes.ok) throw new Error(`Download failed: ${audioRes.status}`);
-
-    return Buffer.from(await audioRes.arrayBuffer());
-  } finally {
-    // Cleanup temp file
-    await supabase.storage.from("videos").remove([tempPath]);
-  }
 }
 
 /**
