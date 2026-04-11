@@ -18,7 +18,6 @@ import {
   Sparkles,
   Clapperboard,
   CreditCard,
-  DollarSign,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -38,12 +37,10 @@ export default async function AdminUsagePage() {
     .single();
   if (!profile?.is_admin) notFound();
 
-  const [elevenLabsQuota, fishQuota, falBalance, openaiBalance, anthropicBalance, shotstackUsage, cartesiaQuota] = await Promise.all([
+  const [elevenLabsQuota, fishQuota, falBalance, shotstackUsage, cartesiaQuota] = await Promise.all([
     getElevenLabsQuota(),
     getFishAudioQuota(),
     getFalAiBalance(),
-    getOpenAiBalance(),
-    getAnthropicBalance(),
     getShotstackUsage(),
     getCartesiaQuota(),
   ]);
@@ -55,6 +52,8 @@ export default async function AdminUsagePage() {
   const shotstackConfigured = keyStatus(process.env.SHOTSTACK_API_KEY);
   const dodoConfigured = keyStatus(process.env.DODO_PAYMENTS_API_KEY);
   const supabaseConfigured = keyStatus(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const openaiConfigured = keyStatus(process.env.OPENAI_API_KEY);
+  const anthropicConfigured = keyStatus(process.env.ANTHROPIC_API_KEY);
 
   return (
     <div>
@@ -205,38 +204,6 @@ export default async function AdminUsagePage() {
         />
       </div>
 
-      {/* ── OpenAI ─────────────────────────────────────────── */}
-      <div className="mb-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
-          OpenAI — Translation & AI
-        </h2>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-10">
-        <BalanceCard
-          icon={<Sparkles className="h-5 w-5" />}
-          label="Credits balance"
-          value={openaiBalance !== null ? `$${openaiBalance.toFixed(2)}` : null}
-          color="emerald"
-          subtitle="Prepaid credit balance"
-        />
-      </div>
-
-      {/* ── Anthropic ──────────────────────────────────────── */}
-      <div className="mb-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
-          Anthropic — Claude API
-        </h2>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-10">
-        <BalanceCard
-          icon={<Brain className="h-5 w-5" />}
-          label="Credits balance"
-          value={anthropicBalance !== null ? `$${anthropicBalance.toFixed(2)}` : null}
-          color="blue"
-          subtitle="Prepaid credit balance"
-        />
-      </div>
-
       {/* ── Other services (status only) ───────────────────── */}
       <div className="mb-4">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
@@ -244,6 +211,8 @@ export default async function AdminUsagePage() {
         </h2>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <StatusCard name="OpenAI" icon={<Sparkles className="h-4 w-4" />} configured={openaiConfigured} envKey="OPENAI_API_KEY" />
+        <StatusCard name="Anthropic" icon={<Brain className="h-4 w-4" />} configured={anthropicConfigured} envKey="ANTHROPIC_API_KEY" />
         <StatusCard name="Supabase" icon={<Database className="h-4 w-4" />} configured={supabaseConfigured} envKey="SUPABASE_SERVICE_ROLE_KEY" />
         <StatusCard name="Shotstack" icon={<Clapperboard className="h-4 w-4" />} configured={shotstackConfigured} envKey="SHOTSTACK_API_KEY" />
         <StatusCard name="Dodo Payments" icon={<CreditCard className="h-4 w-4" />} configured={dodoConfigured} envKey="DODO_PAYMENTS_API_KEY" />
@@ -350,40 +319,6 @@ function StatusCard({
 }
 
 /* ── Data fetchers ─────────────────────────────────────────── */
-
-async function getOpenAiBalance(): Promise<number | null> {
-  try {
-    const key = process.env.OPENAI_API_KEY;
-    if (!key || key.startsWith("sk-placeholder") || key === "placeholder") return null;
-    const res = await fetch("https://api.openai.com/v1/dashboard/billing/credit_grants", {
-      headers: { Authorization: `Bearer ${key}` },
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { total_available?: number };
-    return typeof data.total_available === "number" ? data.total_available : null;
-  } catch {
-    return null;
-  }
-}
-
-async function getAnthropicBalance(): Promise<number | null> {
-  try {
-    const key = process.env.ANTHROPIC_API_KEY;
-    if (!key || key.startsWith("sk-ant-placeholder") || key === "placeholder") return null;
-    // Anthropic billing API — returns credit balance
-    const res = await fetch("https://api.anthropic.com/v1/organizations/billing", {
-      headers: {
-        "x-api-key": key,
-        "anthropic-version": "2023-06-01",
-      },
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { credit_balance?: number; credits_remaining?: number };
-    return data.credit_balance ?? data.credits_remaining ?? null;
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Track Shotstack usage. Shotstack has no billing API, so:
