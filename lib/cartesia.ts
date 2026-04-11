@@ -55,34 +55,46 @@ export async function cloneVoice(
 
   const ext = mimeType === "audio/webm" ? "webm" : mimeType === "audio/wav" ? "wav" : "mp3";
 
-  // Build multipart form manually to avoid Blob/FormData issues on Vercel
+  // Build multipart exactly like curl does
   const boundary = `----DubSync${Date.now()}`;
-  const parts: Buffer[] = [];
+  const CRLF = "\r\n";
+  const parts: (Buffer | string)[] = [];
 
-  function addField(name: string, value: string) {
-    parts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${name}"\r\n\r\n${value}\r\n`));
+  // File part
+  parts.push(`--${boundary}${CRLF}`);
+  parts.push(`Content-Disposition: form-data; name="clip"; filename="voice.${ext}"${CRLF}`);
+  parts.push(`Content-Type: ${mimeType}${CRLF}`);
+  parts.push(CRLF);
+  parts.push(audioBuffer);
+  parts.push(CRLF);
+
+  // Text fields
+  for (const [k, v] of [
+    ["name", `dubsync-${name.slice(0, 8)}-${Date.now()}`],
+    ["language", mapLanguageCode(language)],
+    ["mode", "similarity"],
+  ]) {
+    parts.push(`--${boundary}${CRLF}`);
+    parts.push(`Content-Disposition: form-data; name="${k}"${CRLF}`);
+    parts.push(CRLF);
+    parts.push(v);
+    parts.push(CRLF);
   }
-  function addFile(name: string, filename: string, contentType: string, data: Buffer) {
-    parts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${name}"; filename="${filename}"\r\nContent-Type: ${contentType}\r\n\r\n`));
-    parts.push(data);
-    parts.push(Buffer.from("\r\n"));
-  }
+  parts.push(`--${boundary}--${CRLF}`);
 
-  addFile("clip", `voice.${ext}`, mimeType, audioBuffer);
-  addField("name", `dubsync-${name.slice(0, 8)}-${Date.now()}`);
-  addField("language", mapLanguageCode(language));
-  addField("mode", "similarity");
-  parts.push(Buffer.from(`--${boundary}--\r\n`));
+  const bodyParts = parts.map((p) => typeof p === "string" ? Buffer.from(p, "utf-8") : p);
+  const body = Buffer.concat(bodyParts);
 
-  const body = Buffer.concat(parts);
+  console.log(`[CARTESIA_CLONE_V2] Sending ${body.length} bytes, boundary=${boundary}, mime=${mimeType}`);
 
   const res = await fetch(`${CARTESIA_API}/voices/clone`, {
     method: "POST",
     headers: {
       ...headers(),
       "Content-Type": `multipart/form-data; boundary=${boundary}`,
+      "Content-Length": String(body.length),
     },
-    body,
+    body: body as unknown as BodyInit,
   });
 
   if (!res.ok) {
