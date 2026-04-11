@@ -117,6 +117,11 @@ export function DashboardSidebar() {
             icon: Gauge,
           },
           {
+            name: t("dashboard.nav.payments", "Payments"),
+            href: "/admin/payments",
+            icon: CreditCard,
+          },
+          {
             name: t("dashboard.nav.supportAdmin", "Support"),
             href: "/admin/support",
             icon: LifeBuoy,
