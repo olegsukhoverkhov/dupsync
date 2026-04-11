@@ -2,9 +2,8 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Pencil, Loader2, ChevronLeft, ChevronRight, Shield, LogIn, Ban, Trash2, ShieldOff } from "lucide-react";
-import { ConfirmModal } from "@/components/ui/modal";
-import { Modal } from "@/components/ui/modal";
+import { Pencil, Loader2, ChevronLeft, ChevronRight, Shield, LogIn, Ban, Trash2, ShieldOff, MessageSquarePlus } from "lucide-react";
+import { ConfirmModal, Modal } from "@/components/ui/modal";
 import type { AdminUserRow, AdminUsersPage } from "@/lib/admin";
 import type { PlanType } from "@/lib/supabase/types";
 
@@ -33,6 +32,10 @@ export function UsersTable({ initial }: { initial: AdminUsersPage }) {
   const [loggingInAs, setLoggingInAs] = useState<string | null>(null);
   const [suspendTarget, setSuspendTarget] = useState<AdminUserRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminUserRow | null>(null);
+  const [ticketTarget, setTicketTarget] = useState<AdminUserRow | null>(null);
+  const [ticketSubject, setTicketSubject] = useState("");
+  const [ticketMessage, setTicketMessage] = useState("");
+  const [ticketSending, setTicketSending] = useState(false);
 
   function goToPage(page: number) {
     const next = new URLSearchParams(params.toString());
@@ -187,6 +190,13 @@ export function UsersTable({ initial }: { initial: AdminUsersPage }) {
                         <Pencil className="h-3 w-3" />
                         Edit
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => { setTicketTarget(u); setTicketSubject(""); setTicketMessage(""); }}
+                        className="inline-flex items-center gap-1 rounded-lg border border-blue-500/30 bg-blue-500/10 px-2.5 py-1.5 text-xs font-medium text-blue-300 hover:bg-blue-500/20 transition-colors cursor-pointer"
+                      >
+                        <MessageSquarePlus className="h-3 w-3" />
+                      </button>
                       {!u.is_admin && (
                         <>
                           <button
@@ -292,6 +302,82 @@ export function UsersTable({ initial }: { initial: AdminUsersPage }) {
           });
         }}
       />
+
+      {/* Create support ticket to user */}
+      <Modal open={!!ticketTarget} onClose={() => setTicketTarget(null)}>
+        <div>
+          <h3 className="text-lg font-semibold text-white">Message to user</h3>
+          <p className="mt-1 text-xs text-slate-400">{ticketTarget?.email}</p>
+
+          <div className="mt-5 space-y-4">
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-wider text-slate-500 mb-1.5">
+                Subject
+              </label>
+              <input
+                type="text"
+                value={ticketSubject}
+                onChange={(e) => setTicketSubject(e.target.value)}
+                placeholder="Subject of the message"
+                className="w-full rounded-lg border border-white/10 bg-slate-900/50 px-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-pink-500/50 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-wider text-slate-500 mb-1.5">
+                Message
+              </label>
+              <textarea
+                value={ticketMessage}
+                onChange={(e) => setTicketMessage(e.target.value)}
+                placeholder="Write your message to the user..."
+                rows={4}
+                className="w-full rounded-lg border border-white/10 bg-slate-900/50 px-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-pink-500/50 focus:outline-none resize-none"
+              />
+            </div>
+          </div>
+
+          <div className="mt-5 flex gap-3">
+            <button
+              type="button"
+              onClick={() => setTicketTarget(null)}
+              className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white hover:bg-white/10 transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={ticketSending || !ticketSubject.trim() || !ticketMessage.trim()}
+              onClick={async () => {
+                if (!ticketTarget) return;
+                setTicketSending(true);
+                try {
+                  const res = await fetch("/api/admin/support-ticket", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      userId: ticketTarget.id,
+                      subject: ticketSubject.trim(),
+                      message: ticketMessage.trim(),
+                    }),
+                  });
+                  if (res.ok) {
+                    setTicketTarget(null);
+                    window.dispatchEvent(new Event("support-updated"));
+                  } else {
+                    alert("Failed to create ticket");
+                  }
+                } finally {
+                  setTicketSending(false);
+                }
+              }}
+              className="flex-1 gradient-button rounded-xl px-4 py-3 text-sm font-semibold disabled:opacity-50 inline-flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {ticketSending && <Loader2 className="h-4 w-4 animate-spin" />}
+              Send
+            </button>
+          </div>
+        </div>
+      </Modal>
     </section>
   );
 }
