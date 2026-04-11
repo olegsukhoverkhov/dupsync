@@ -16,7 +16,7 @@ import { VideoUpload } from "@/components/project/video-upload";
 import { TranscriptEditor } from "@/components/project/transcript-editor";
 import { LanguageSelector } from "@/components/project/language-selector";
 import { createClient } from "@/lib/supabase/client";
-import { PLAN_LIMITS } from "@/lib/supabase/constants";
+import { PLAN_LIMITS, SUPPORTED_LANGUAGES } from "@/lib/supabase/constants";
 import type { Profile, TranscriptSegment, Project } from "@/lib/supabase/types";
 import { ArrowLeft, ArrowRight, Loader2, Check, AlertTriangle, Globe } from "lucide-react";
 import { ProcessingIndicator } from "@/components/ui/processing-indicator";
@@ -29,25 +29,8 @@ import { SubsChoiceModal } from "@/components/project/subs-choice-modal";
 
 type Step = "upload" | "confirm-language" | "transcript" | "languages" | "processing";
 
-const SOURCE_LANGUAGES = [
-  { code: "en", name: "English" },
-  { code: "es", name: "Spanish" },
-  { code: "fr", name: "French" },
-  { code: "de", name: "German" },
-  { code: "pt", name: "Portuguese" },
-  { code: "ja", name: "Japanese" },
-  { code: "ko", name: "Korean" },
-  { code: "zh", name: "Chinese" },
-  { code: "hi", name: "Hindi" },
-  { code: "ar", name: "Arabic" },
-  { code: "it", name: "Italian" },
-  { code: "tr", name: "Turkish" },
-  { code: "uk", name: "Ukrainian" },
-  { code: "ru", name: "Russian" },
-  { code: "nl", name: "Dutch" },
-  { code: "sv", name: "Swedish" },
-  { code: "pl", name: "Polish" },
-];
+// Source languages — use the full Cartesia-supported list from constants
+const SOURCE_LANGUAGES = SUPPORTED_LANGUAGES.map((l) => ({ code: l.code, name: l.name }));
 
 export default function NewProjectPage() {
   const router = useRouter();

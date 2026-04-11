@@ -1,6 +1,11 @@
 import { PlanType } from "./types";
 
+/**
+ * All supported languages — matches Cartesia Sonic-3's full 47 language list.
+ * Used for both source language selection and target language selection.
+ */
 export const SUPPORTED_LANGUAGES = [
+  // Europe — Western
   { code: "en", name: "English", region: "Europe" },
   { code: "es", name: "Spanish", region: "Europe" },
   { code: "fr", name: "French", region: "Europe" },
@@ -8,17 +13,23 @@ export const SUPPORTED_LANGUAGES = [
   { code: "it", name: "Italian", region: "Europe" },
   { code: "pt", name: "Portuguese", region: "Europe" },
   { code: "nl", name: "Dutch", region: "Europe" },
-  { code: "pl", name: "Polish", region: "Europe" },
   { code: "sv", name: "Swedish", region: "Europe" },
   { code: "da", name: "Danish", region: "Europe" },
   { code: "no", name: "Norwegian", region: "Europe" },
   { code: "fi", name: "Finnish", region: "Europe" },
   { code: "el", name: "Greek", region: "Europe" },
+  // Europe — Eastern
+  { code: "pl", name: "Polish", region: "Europe" },
   { code: "cs", name: "Czech", region: "Europe" },
   { code: "ro", name: "Romanian", region: "Europe" },
   { code: "uk", name: "Ukrainian", region: "Europe" },
   { code: "hu", name: "Hungarian", region: "Europe" },
   { code: "bg", name: "Bulgarian", region: "Europe" },
+  { code: "hr", name: "Croatian", region: "Europe" },
+  { code: "sk", name: "Slovak", region: "Europe" },
+  { code: "ru", name: "Russian", region: "Europe" },
+  { code: "ka", name: "Georgian", region: "Europe" },
+  // Asia
   { code: "zh", name: "Chinese (Mandarin)", region: "Asia" },
   { code: "ja", name: "Japanese", region: "Asia" },
   { code: "ko", name: "Korean", region: "Asia" },
@@ -28,10 +39,19 @@ export const SUPPORTED_LANGUAGES = [
   { code: "id", name: "Indonesian", region: "Asia" },
   { code: "ms", name: "Malay", region: "Asia" },
   { code: "tl", name: "Filipino", region: "Asia" },
-  { code: "ar", name: "Arabic", region: "Middle East & Africa" },
-  { code: "tr", name: "Turkish", region: "Middle East & Africa" },
-  { code: "he", name: "Hebrew", region: "Middle East & Africa" },
-  { code: "pt-BR", name: "Portuguese (Brazilian)", region: "Americas" },
+  // Asia — Indian languages
+  { code: "ta", name: "Tamil", region: "Asia" },
+  { code: "bn", name: "Bengali", region: "Asia" },
+  { code: "te", name: "Telugu", region: "Asia" },
+  { code: "gu", name: "Gujarati", region: "Asia" },
+  { code: "kn", name: "Kannada", region: "Asia" },
+  { code: "ml", name: "Malayalam", region: "Asia" },
+  { code: "mr", name: "Marathi", region: "Asia" },
+  { code: "pa", name: "Punjabi", region: "Asia" },
+  // Middle East
+  { code: "ar", name: "Arabic", region: "Middle East" },
+  { code: "tr", name: "Turkish", region: "Middle East" },
+  { code: "he", name: "Hebrew", region: "Middle East" },
 ] as const;
 
 export type LanguageCode = (typeof SUPPORTED_LANGUAGES)[number]["code"];
