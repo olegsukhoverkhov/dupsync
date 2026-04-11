@@ -43,8 +43,12 @@ export async function cloneVoice(
   name: string,
   language: string = "en"
 ): Promise<string> {
+  // Detect audio format from buffer magic bytes
+  const mimeType = detectAudioMime(audioBuffer);
+  const ext = mimeType === "audio/webm" ? "webm" : mimeType === "audio/mp4" ? "mp4" : "wav";
+
   const fd = new FormData();
-  fd.append("clip", new Blob([new Uint8Array(audioBuffer)], { type: "audio/wav" }), "voice.wav");
+  fd.append("clip", new Blob([new Uint8Array(audioBuffer)], { type: mimeType }), `voice.${ext}`);
   fd.append("name", `dubsync-${name.slice(0, 8)}-${Date.now()}`);
   fd.append("language", mapLanguageCode(language));
   fd.append("mode", "similarity");
@@ -204,9 +208,28 @@ export function isCartesiaSupported(langCode: string): boolean {
 
 /**
  * Map our language codes to Cartesia's expected format.
- * Most are the same ISO 639-1 codes.
  */
 function mapLanguageCode(code: string): string {
-  // Cartesia uses standard ISO 639-1 codes for most languages
   return code;
+}
+
+/**
+ * Detect audio MIME type from buffer magic bytes.
+ */
+function detectAudioMime(buf: Buffer): string {
+  if (buf.length < 12) return "application/octet-stream";
+  // WebM: starts with 0x1A45DFA3
+  if (buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3) return "audio/webm";
+  // MP4/M4A: "ftyp" at offset 4
+  if (buf[4] === 0x66 && buf[5] === 0x74 && buf[6] === 0x79 && buf[7] === 0x70) return "audio/mp4";
+  // WAV: "RIFF" at offset 0
+  if (buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46) return "audio/wav";
+  // OGG: "OggS"
+  if (buf[0] === 0x4f && buf[1] === 0x67 && buf[2] === 0x67 && buf[3] === 0x53) return "audio/ogg";
+  // FLAC: "fLaC"
+  if (buf[0] === 0x66 && buf[1] === 0x4c && buf[2] === 0x61 && buf[3] === 0x43) return "audio/flac";
+  // MP3: ID3 tag or sync word
+  if ((buf[0] === 0x49 && buf[1] === 0x44 && buf[2] === 0x33) || (buf[0] === 0xff && (buf[1] & 0xe0) === 0xe0)) return "audio/mpeg";
+  // Default
+  return "application/octet-stream";
 }
