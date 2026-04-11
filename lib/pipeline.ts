@@ -59,37 +59,35 @@ async function getOrCreateVoiceClone(
   voiceCloneCache.set(projectId, entry);
 
   if (sampleBuffer && sampleBuffer.length > 1000) {
-    // 1. Try Cartesia first (primary provider)
+    // Try Cartesia with retry (2 attempts with 3s delay)
     if (process.env.CARTESIA_API_KEY) {
-      try {
-        const voiceId = await cartesia.cloneVoice(sampleBuffer, dubId, originalLanguage);
-        entry.voiceId = voiceId;
-        entry.voiceSource = "cloned";
-        entry.provider = "cartesia";
-        log(dubId, `Voice cloned via Cartesia (shared): ${voiceId}`);
-      } catch (err) {
-        log(dubId, `Cartesia clone failed: ${err instanceof Error ? err.message : "unknown"} — trying Fish Audio`);
-      }
-    }
-
-    // 2. Fish Audio fallback (if Cartesia failed or not configured)
-    if (entry.provider === "premade" && fish.isFishSupported(originalLanguage)) {
-      try {
-        const modelId = await fish.createVoiceModel(sampleBuffer, dubId);
-        entry.voiceId = modelId;
-        entry.voiceSource = "cloned";
-        entry.provider = "fish";
-        log(dubId, `Voice cloned via Fish Audio (shared): ${modelId}`);
-      } catch (err) {
-        log(dubId, `Fish Audio clone failed: ${err instanceof Error ? err.message : "unknown"} — using premade`);
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          if (attempt > 1) {
+            log(dubId, `Cartesia clone retry ${attempt}/2...`);
+            await new Promise((r) => setTimeout(r, 3000));
+          }
+          const voiceId = await cartesia.cloneVoice(sampleBuffer, dubId, originalLanguage);
+          entry.voiceId = voiceId;
+          entry.voiceSource = "cloned";
+          entry.provider = "cartesia";
+          log(dubId, `Voice cloned via Cartesia (shared): ${voiceId}`);
+          break;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "unknown";
+          log(dubId, `Cartesia clone attempt ${attempt} failed: ${msg}`);
+          if (attempt === 2) {
+            log(dubId, `Cartesia clone failed after 2 attempts`);
+          }
+        }
       }
     }
 
     if (entry.provider === "premade") {
-      log(dubId, `All clone providers failed — using premade voice`);
+      log(dubId, `Voice clone failed — marking dub as error instead of using premade`);
     }
   } else {
-    log(dubId, `No usable voice sample — using premade (shared)`);
+    log(dubId, `No usable voice sample (${sampleBuffer?.length || 0} bytes) — marking as error`);
   }
 
   entry.promise = undefined;
@@ -373,7 +371,13 @@ async function runDubbingAudioOnce(
     let voiceId = clone.voiceId;
     let voiceSource: "cloned" | "premade" = clone.voiceSource;
     const cloneProvider = clone.provider;
-    // For backward compat: fishModelId is set when provider is fish or cartesia
+
+    // Never use premade voice — if clone failed, throw error so user can retry
+    if (cloneProvider === "premade") {
+      throw new Error("Voice cloning failed. Please try again — if the issue persists, try uploading a longer video (10+ seconds) with clear speech.");
+    }
+
+    // For backward compat: fishModelId is set when provider is fish
     const fishModelId = cloneProvider === "fish" ? voiceId : "";
 
     // Per-segment TTS with exact timing matching original video
