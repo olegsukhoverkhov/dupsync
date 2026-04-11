@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Video, Clock, Check, Coins, AlertCircle, Upload } from "lucide-react";
+import { Video, Clock, Check, Coins, AlertCircle, Upload, Play } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import type { ProjectWithDubs, ProjectStatus } from "@/lib/supabase/types";
 import type { MouseEvent } from "react";
 import { useDashboardT } from "./locale-provider";
@@ -21,6 +23,53 @@ function formatDuration(seconds: number | null) {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+/** Video thumbnail — loads a signed URL and shows the first frame */
+function VideoThumbnail({ videoUrl, isDemo }: { videoUrl: string | null; isDemo?: boolean }) {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!videoUrl) return;
+    // Demo projects use public URLs
+    if (videoUrl.includes("/storage/v1/object/public/")) {
+      setUrl(videoUrl);
+      return;
+    }
+    const supabase = createClient();
+    supabase.storage.from("videos").createSignedUrl(videoUrl, 3600).then(({ data }) => {
+      if (data?.signedUrl) setUrl(data.signedUrl);
+    });
+  }, [videoUrl]);
+
+  if (!url) {
+    return (
+      <div className="w-full aspect-video rounded-xl bg-slate-800/80 flex items-center justify-center mb-3">
+        <Play className="h-6 w-6 text-slate-600" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full aspect-video rounded-xl overflow-hidden bg-black mb-3 relative">
+      <video
+        src={url}
+        preload="metadata"
+        muted
+        className="w-full h-full object-cover"
+        onLoadedData={(e) => {
+          // Seek to 1s for a better thumbnail than black first frame
+          const v = e.currentTarget;
+          if (v.duration > 1) v.currentTime = 1;
+        }}
+      />
+      <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity">
+        <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+          <Play className="h-5 w-5 text-white ml-0.5" />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 interface ProjectCardProps {
@@ -51,6 +100,9 @@ export function ProjectCard({
           : "border-white/10 bg-slate-800/50 hover:bg-slate-800/80 hover:border-white/20"
       } ${selectMode ? "cursor-pointer" : "cursor-pointer"}`}
     >
+      {/* Video thumbnail */}
+      <VideoThumbnail videoUrl={project.original_video_url} isDemo={project.is_demo} />
+
       {/* Selection checkbox (only shown in select mode) */}
       {selectMode && (
         <div
