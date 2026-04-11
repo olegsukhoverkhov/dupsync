@@ -20,8 +20,19 @@ export async function POST(req: Request) {
   if (!projectId) return NextResponse.json({ error: "projectId required" }, { status: 400 });
 
   const service = await createServiceClient();
+  // Use service role to access any project regardless of ownership
   const { data: project } = await service.from("projects").select("original_video_url, original_language").eq("id", projectId).single();
-  if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  if (!project) {
+    // If project not found, try to test with admin's latest project
+    const { data: latestProject } = await service.from("projects")
+      .select("id, original_video_url, original_language")
+      .eq("is_demo", false)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+    if (!latestProject) return NextResponse.json({ error: "No projects found" }, { status: 404 });
+    return NextResponse.json({ redirect: "Use this projectId instead", projectId: latestProject.id });
+  }
 
   const debug: Record<string, unknown> = {
     projectId,
