@@ -78,9 +78,12 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-white/5 pt-6">
-          <p className="text-xs text-zinc-600 text-center">
+        <div className="border-t border-white/5 pt-6 flex flex-col items-center gap-1">
+          <p className="text-xs text-zinc-600">
             &copy; {new Date().getFullYear()} DubSync. All rights reserved.
+          </p>
+          <p className="text-[10px] text-zinc-700">
+            Apptica OÜ (17398194) · Harju maakond, Tallinn, Kesklinna linnaosa, Kaupmehe tn 7-120, 10114
           </p>
         </div>
       </div>
