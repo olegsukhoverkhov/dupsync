@@ -57,17 +57,43 @@ export async function cloneVoice(
   const path = await import("path");
   const { execSync } = await import("child_process");
 
-  // Keep original extension for the temp file — Cartesia may inspect it
-  const origExt = mimeType === "video/mp4" ? "mov" : ext;
-  const tempFile = path.join(os.tmpdir(), `cartesia-clone-${Date.now()}.${origExt}`);
-  fs.writeFileSync(tempFile, audioBuffer);
+  let cloneBuffer = audioBuffer;
+  let cloneMime = sendMime;
+  let cloneExt = ext;
+
+  // If video file, extract audio with ffmpeg-static (Cartesia rejects video from Vercel)
+  if (mimeType === "video/mp4" || mimeType === "application/octet-stream") {
+    try {
+      const ffmpegPath = (await import("ffmpeg-static")).default;
+      if (ffmpegPath) {
+        const tempIn = path.join(os.tmpdir(), `clone-in-${Date.now()}.mov`);
+        const tempOut = path.join(os.tmpdir(), `clone-out-${Date.now()}.wav`);
+        fs.writeFileSync(tempIn, audioBuffer);
+        execSync(`"${ffmpegPath}" -i "${tempIn}" -vn -acodec pcm_s16le -ar 44100 -ac 1 "${tempOut}" -y`, {
+          timeout: 30000, stdio: "pipe",
+        });
+        cloneBuffer = fs.readFileSync(tempOut);
+        cloneMime = "audio/wav";
+        cloneExt = "wav";
+        console.log(`[CARTESIA_CLONE] Extracted audio via ffmpeg: ${(cloneBuffer.length / 1024).toFixed(0)}KB WAV`);
+        try { fs.unlinkSync(tempIn); } catch {}
+        try { fs.unlinkSync(tempOut); } catch {}
+      }
+    } catch (err) {
+      console.warn(`[CARTESIA_CLONE] ffmpeg extraction failed: ${err instanceof Error ? err.message : err}`);
+    }
+  }
+
+  // Upload via curl (Vercel Node.js FormData corrupts binary data)
+  const tempFile = path.join(os.tmpdir(), `cartesia-clone-${Date.now()}.${cloneExt}`);
+  fs.writeFileSync(tempFile, cloneBuffer);
 
   try {
     const cloneName = `dubsync-${name.slice(0, 8)}-${Date.now()}`;
     const cmd = `curl -s -w "\\n%{http_code}" -X POST "https://api.cartesia.ai/voices/clone" ` +
       `-H "X-API-Key: ${getApiKey()}" ` +
       `-H "Cartesia-Version: ${CARTESIA_VERSION}" ` +
-      `-F "clip=@${tempFile};type=${sendMime}" ` +
+      `-F "clip=@${tempFile};type=${cloneMime}" ` +
       `-F "name=${cloneName}" ` +
       `-F "language=${mapLanguageCode(language)}" ` +
       `-F "mode=similarity"`;
@@ -76,22 +102,19 @@ export async function cloneVoice(
     const lines = rawResult.trim().split("\n");
     const httpCode = lines[lines.length - 1].trim();
     const result = lines.slice(0, -1).join("\n");
-    console.log(`[CARTESIA_CLONE] curl HTTP ${httpCode}, response: ${result.slice(0, 300)}`);
+    console.log(`[CARTESIA_CLONE] curl HTTP ${httpCode}, response: ${result.slice(0, 200)}`);
 
-    // Check if response is an error (not JSON starting with {)
     if (!result.trim().startsWith("{")) {
       throw new Error(`Cartesia clone failed: ${result.slice(0, 300)}`);
     }
 
     const data = JSON.parse(result);
     if (data.error || data.detail) {
-      throw new Error(`Cartesia clone failed: ${data.error || data.detail || result.slice(0, 300)}`);
+      throw new Error(`Cartesia clone failed: ${data.error || data.detail}`);
     }
 
     const voiceId = data.id;
-    if (!voiceId) {
-      throw new Error(`Cartesia clone: no voice ID in response: ${result.slice(0, 300)}`);
-    }
+    if (!voiceId) throw new Error(`Cartesia clone: no voice ID`);
 
     console.log(`[CARTESIA_CLONE] Created voice ${voiceId}`);
     return voiceId;

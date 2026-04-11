@@ -13,7 +13,7 @@ function log(dubId: string, msg: string) {
 }
 
 /**
- * Extract audio from a video file server-side using fal.ai ffmpeg.
+ * Extract audio from a video file server-side using ffmpeg-static.
  * Saves the extracted WAV to Supabase storage alongside the video.
  * Called during transcription so audio is always ready for voice cloning.
  */
@@ -22,91 +22,53 @@ async function ensureExtractedAudio(
   videoPath: string
 ): Promise<void> {
   const videoDir = videoPath.split("/").slice(0, -1).join("/");
-  const audioPath = `${videoDir}/extracted-audio.wav`;
+  const audioStoragePath = `${videoDir}/extracted-audio.wav`;
 
   // Check if already exists
   const { data: existing } = await supabase.storage.from("videos").list(videoDir, { search: "extracted-audio" });
   if (existing && existing.length > 0) return;
 
-  const falKey = process.env.FAL_KEY;
-  if (!falKey) {
-    console.warn("[EXTRACT_AUDIO] FAL_KEY not set, skipping audio extraction");
-    return;
-  }
-
   try {
-    // Get signed URL for the video
-    const { data: signed } = await supabase.storage.from("videos").createSignedUrl(videoPath, 600);
-    if (!signed?.signedUrl) return;
+    const fs = await import("fs");
+    const os = await import("os");
+    const path = await import("path");
+    const { execSync } = await import("child_process");
+    const ffmpegPath = (await import("ffmpeg-static")).default;
 
-    // Submit ffmpeg job to fal.ai queue
-    const submitRes = await fetch("https://queue.fal.run/fal-ai/ffmpeg-api", {
-      method: "POST",
-      headers: {
-        Authorization: `Key ${falKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        input_files: [{ url: signed.signedUrl, filename: "input.mov" }],
-        command: "-i input.mov -vn -acodec pcm_s16le -ar 44100 -ac 1 output.wav",
-        output_files: ["output.wav"],
-      }),
+    if (!ffmpegPath) {
+      console.warn("[EXTRACT_AUDIO] ffmpeg-static not available");
+      return;
+    }
+
+    // Download video to temp file
+    const { data: videoData } = await supabase.storage.from("videos").download(videoPath);
+    if (!videoData) return;
+    const videoBuffer = Buffer.from(await videoData.arrayBuffer());
+
+    const tempVideo = path.join(os.tmpdir(), `extract-input-${Date.now()}.mov`);
+    const tempAudio = path.join(os.tmpdir(), `extract-output-${Date.now()}.wav`);
+    fs.writeFileSync(tempVideo, videoBuffer);
+
+    // Extract audio with ffmpeg
+    execSync(`${ffmpegPath} -i "${tempVideo}" -vn -acodec pcm_s16le -ar 44100 -ac 1 "${tempAudio}" -y`, {
+      timeout: 30000,
+      stdio: "pipe",
     });
 
-    if (!submitRes.ok) {
-      console.warn(`[EXTRACT_AUDIO] fal.ai submit failed: ${submitRes.status}`);
-      return;
-    }
-
-    const submitData = (await submitRes.json()) as { request_id?: string; status_url?: string };
-    if (!submitData.request_id) {
-      console.warn("[EXTRACT_AUDIO] No request_id");
-      return;
-    }
-
-    // Poll for completion (max 30s)
-    let audioUrl: string | null = null;
-    for (let i = 0; i < 15; i++) {
-      await new Promise((r) => setTimeout(r, 2000));
-      const statusRes = await fetch(
-        `https://queue.fal.run/fal-ai/ffmpeg-api/requests/${submitData.request_id}/status`,
-        { headers: { Authorization: `Key ${falKey}` } }
-      );
-      if (!statusRes.ok) continue;
-      const status = (await statusRes.json()) as { status?: string };
-
-      if (status.status === "COMPLETED") {
-        // Get result
-        const resultRes = await fetch(
-          `https://queue.fal.run/fal-ai/ffmpeg-api/requests/${submitData.request_id}`,
-          { headers: { Authorization: `Key ${falKey}` } }
-        );
-        if (resultRes.ok) {
-          const result = (await resultRes.json()) as { output_files?: Array<{ url: string }> };
-          audioUrl = result.output_files?.[0]?.url || null;
-        }
-        break;
-      }
-      if (status.status === "FAILED") break;
-    }
-
-    if (!audioUrl) {
-      console.warn("[EXTRACT_AUDIO] No audio URL from ffmpeg result");
-      return;
-    }
-
-    // Download extracted audio
-    const audioRes = await fetch(audioUrl);
-    if (!audioRes.ok) return;
-    const audioBuffer = Buffer.from(await audioRes.arrayBuffer());
+    const audioBuffer = fs.readFileSync(tempAudio);
+    console.log(`[EXTRACT_AUDIO] Extracted ${(audioBuffer.length / 1024).toFixed(0)}KB WAV`);
 
     // Upload to storage
-    await supabase.storage.from("videos").upload(audioPath, audioBuffer, {
+    await supabase.storage.from("videos").upload(audioStoragePath, audioBuffer, {
       contentType: "audio/wav",
       upsert: true,
     });
 
-    console.log(`[EXTRACT_AUDIO] Saved ${(audioBuffer.length / 1024).toFixed(0)}KB to ${audioPath}`);
+    console.log(`[EXTRACT_AUDIO] Saved to ${audioStoragePath}`);
+
+    // Cleanup
+    try { fs.unlinkSync(tempVideo); } catch {}
+    try { fs.unlinkSync(tempAudio); } catch {}
   } catch (err) {
     console.warn(`[EXTRACT_AUDIO] Failed: ${err instanceof Error ? err.message : err}`);
   }
