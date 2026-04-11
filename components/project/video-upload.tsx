@@ -287,12 +287,18 @@ export function VideoUpload({
         <div className="rounded-xl border border-white/10 overflow-hidden">
           {/* Video preview */}
           {previewUrl && (
-            <div className="bg-black">
+            <div className="bg-black rounded-t-xl overflow-hidden">
               <video
                 src={previewUrl}
                 controls
+                playsInline
+                muted
                 className="w-full max-h-48 object-contain"
-                preload="metadata"
+                preload="auto"
+                onLoadedData={(e) => {
+                  const v = e.currentTarget;
+                  if (v.duration > 1) v.currentTime = 1;
+                }}
               />
             </div>
           )}
