@@ -45,10 +45,14 @@ export async function cloneVoice(
 ): Promise<string> {
   // Detect audio format from buffer magic bytes
   const mimeType = detectAudioMime(audioBuffer);
-  const ext = mimeType === "audio/webm" ? "webm" : mimeType === "audio/mp4" ? "mp4" : "wav";
+  const ext = mimeType === "audio/webm" ? "webm" : mimeType === "audio/mp4" ? "mp4" : mimeType === "video/mp4" ? "mp4" : "wav";
+
+  console.log(`[CARTESIA_CLONE] Sample: ${(audioBuffer.length / 1024).toFixed(0)}KB, mime=${mimeType}, ext=${ext}, lang=${language}`);
 
   const fd = new FormData();
-  fd.append("clip", new Blob([new Uint8Array(audioBuffer)], { type: mimeType }), `voice.${ext}`);
+  // Convert to Blob for FormData compatibility
+  const blob = new Blob([new Uint8Array(audioBuffer) as BlobPart], { type: mimeType });
+  fd.append("clip", blob, `voice.${ext}`);
   fd.append("name", `dubsync-${name.slice(0, 8)}-${Date.now()}`);
   fd.append("language", mapLanguageCode(language));
   fd.append("mode", "similarity");
@@ -220,8 +224,8 @@ function detectAudioMime(buf: Buffer): string {
   if (buf.length < 12) return "application/octet-stream";
   // WebM: starts with 0x1A45DFA3
   if (buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3) return "audio/webm";
-  // MP4/M4A: "ftyp" at offset 4
-  if (buf[4] === 0x66 && buf[5] === 0x74 && buf[6] === 0x79 && buf[7] === 0x70) return "audio/mp4";
+  // MP4/M4A/MOV: "ftyp" at offset 4 — use video/mp4 for better compatibility
+  if (buf[4] === 0x66 && buf[5] === 0x74 && buf[6] === 0x79 && buf[7] === 0x70) return "video/mp4";
   // WAV: "RIFF" at offset 0
   if (buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46) return "audio/wav";
   // OGG: "OggS"
