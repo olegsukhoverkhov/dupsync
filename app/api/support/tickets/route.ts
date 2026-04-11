@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
   // Create ticket
   const { data: ticket, error: ticketErr } = await service
     .from("support_tickets")
-    .insert({ user_id: user.id, subject, status: "open" })
+    .insert({ user_id: user.id, subject, status: "waiting_admin" })
     .select("id")
     .single();
 

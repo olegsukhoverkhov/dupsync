@@ -27,6 +27,11 @@ type EmailStrings = {
   confirmHeading: string;
   confirmBody: string;
   confirmButton: string;
+  // Welcome
+  welcomeSubject: string;
+  welcomeHeading: string;
+  welcomeBody: string;
+  welcomeButton: string;
   // Dub complete
   dubSubject: string;
   dubHeading: string;
@@ -47,6 +52,10 @@ const STRINGS: Record<string, EmailStrings> = {
     confirmHeading: "Verify your email",
     confirmBody: "Click the button below to confirm your email address and activate your DubSync account.",
     confirmButton: "Confirm Email",
+    welcomeSubject: "Welcome to DubSync! 🎬",
+    welcomeHeading: "Welcome to DubSync!",
+    welcomeBody: "Thanks for signing up! Your first video dub is free — just upload a video and pick a language. We auto-detect the speaker's language, so no setup needed.<br><br>Check out the demo project on your dashboard to see a sample result.",
+    welcomeButton: "Go to Dashboard",
     dubSubject: "Your dubbed video is ready! 🎬",
     dubHeading: "Your video is ready",
     dubBody: "Your video has been dubbed and is ready to download. Click below to view the result.",
@@ -62,6 +71,10 @@ const STRINGS: Record<string, EmailStrings> = {
     confirmHeading: "Verifica tu correo",
     confirmBody: "Haz clic en el botón para confirmar tu correo electrónico y activar tu cuenta de DubSync.",
     confirmButton: "Confirmar correo",
+    welcomeSubject: "¡Bienvenido a DubSync! 🎬",
+    welcomeHeading: "¡Bienvenido a DubSync!",
+    welcomeBody: "¡Gracias por registrarte! Tu primer doblaje de video es gratis — solo sube un video y elige un idioma. Detectamos automáticamente el idioma del hablante.<br><br>Revisa el proyecto demo en tu panel para ver un resultado de ejemplo.",
+    welcomeButton: "Ir al panel",
     dubSubject: "¡Tu video doblado está listo! 🎬",
     dubHeading: "Tu video está listo",
     dubBody: "Tu video ha sido doblado y está listo para descargar. Haz clic para ver el resultado.",
@@ -77,6 +90,10 @@ const STRINGS: Record<string, EmailStrings> = {
     confirmHeading: "Vérifiez votre email",
     confirmBody: "Cliquez sur le bouton ci-dessous pour confirmer votre adresse email et activer votre compte DubSync.",
     confirmButton: "Confirmer l'email",
+    welcomeSubject: "Bienvenue sur DubSync ! 🎬",
+    welcomeHeading: "Bienvenue sur DubSync !",
+    welcomeBody: "Merci de vous être inscrit ! Votre premier doublage est gratuit — téléchargez une vidéo et choisissez une langue. Nous détectons automatiquement la langue du locuteur.<br><br>Consultez le projet démo sur votre tableau de bord pour voir un exemple.",
+    welcomeButton: "Aller au tableau de bord",
     dubSubject: "Votre vidéo doublée est prête ! 🎬",
     dubHeading: "Votre vidéo est prête",
     dubBody: "Votre vidéo a été doublée et est prête à être téléchargée. Cliquez ci-dessous pour voir le résultat.",
@@ -92,6 +109,10 @@ const STRINGS: Record<string, EmailStrings> = {
     confirmHeading: "E-Mail bestätigen",
     confirmBody: "Klicke auf den Button, um deine E-Mail-Adresse zu bestätigen und dein DubSync-Konto zu aktivieren.",
     confirmButton: "E-Mail bestätigen",
+    welcomeSubject: "Willkommen bei DubSync! 🎬",
+    welcomeHeading: "Willkommen bei DubSync!",
+    welcomeBody: "Danke für deine Anmeldung! Deine erste Video-Synchronisation ist kostenlos — lade ein Video hoch und wähle eine Sprache. Wir erkennen die Sprache des Sprechers automatisch.<br><br>Schau dir das Demo-Projekt auf deinem Dashboard an.",
+    welcomeButton: "Zum Dashboard",
     dubSubject: "Dein synchronisiertes Video ist fertig! 🎬",
     dubHeading: "Dein Video ist fertig",
     dubBody: "Dein Video wurde synchronisiert und ist zum Download bereit. Klicke unten, um das Ergebnis zu sehen.",
@@ -107,6 +128,10 @@ const STRINGS: Record<string, EmailStrings> = {
     confirmHeading: "Verifique seu email",
     confirmBody: "Clique no botão abaixo para confirmar seu endereço de email e ativar sua conta DubSync.",
     confirmButton: "Confirmar email",
+    welcomeSubject: "Bem-vindo ao DubSync! 🎬",
+    welcomeHeading: "Bem-vindo ao DubSync!",
+    welcomeBody: "Obrigado por se cadastrar! Sua primeira dublagem é gratuita — envie um vídeo e escolha um idioma. Detectamos automaticamente o idioma do falante.<br><br>Confira o projeto demo no seu painel para ver um exemplo.",
+    welcomeButton: "Ir ao painel",
     dubSubject: "Seu vídeo dublado está pronto! 🎬",
     dubHeading: "Seu vídeo está pronto",
     dubBody: "Seu vídeo foi dublado e está pronto para download. Clique abaixo para ver o resultado.",
@@ -122,6 +147,10 @@ const STRINGS: Record<string, EmailStrings> = {
     confirmHeading: "メールを確認",
     confirmBody: "下のボタンをクリックしてメールアドレスを確認し、DubSyncアカウントを有効にしてください。",
     confirmButton: "メールを確認",
+    welcomeSubject: "DubSyncへようこそ！🎬",
+    welcomeHeading: "DubSyncへようこそ！",
+    welcomeBody: "ご登録ありがとうございます！最初のビデオ吹き替えは無料です — ビデオをアップロードして言語を選ぶだけ。話者の言語は自動検出されます。<br><br>ダッシュボードのデモプロジェクトでサンプルをご覧ください。",
+    welcomeButton: "ダッシュボードへ",
     dubSubject: "吹き替えビデオの準備ができました！🎬",
     dubHeading: "ビデオの準備完了",
     dubBody: "ビデオの吹き替えが完了し、ダウンロード可能です。下のボタンをクリックして結果をご覧ください。",
@@ -137,6 +166,10 @@ const STRINGS: Record<string, EmailStrings> = {
     confirmHeading: "이메일 확인",
     confirmBody: "아래 버튼을 클릭하여 이메일 주소를 확인하고 DubSync 계정을 활성화하세요.",
     confirmButton: "이메일 확인",
+    welcomeSubject: "DubSync에 오신 것을 환영합니다! 🎬",
+    welcomeHeading: "DubSync에 오신 것을 환영합니다!",
+    welcomeBody: "가입해 주셔서 감사합니다! 첫 번째 비디오 더빙은 무료입니다 — 비디오를 업로드하고 언어를 선택하세요. 화자의 언어는 자동으로 감지됩니다.<br><br>대시보드의 데모 프로젝트에서 샘플을 확인하세요.",
+    welcomeButton: "대시보드로 이동",
     dubSubject: "더빙된 비디오가 준비되었습니다! 🎬",
     dubHeading: "비디오 준비 완료",
     dubBody: "비디오 더빙이 완료되어 다운로드할 수 있습니다. 아래를 클릭하여 결과를 확인하세요.",
@@ -152,6 +185,10 @@ const STRINGS: Record<string, EmailStrings> = {
     confirmHeading: "تحقق من بريدك الإلكتروني",
     confirmBody: "انقر على الزر أدناه لتأكيد عنوان بريدك الإلكتروني وتفعيل حساب DubSync.",
     confirmButton: "تأكيد البريد",
+    welcomeSubject: "مرحباً بك في DubSync! 🎬",
+    welcomeHeading: "!مرحباً بك في DubSync",
+    welcomeBody: "شكراً لتسجيلك! أول دبلجة فيديو مجانية — فقط ارفع فيديو واختر لغة. نكتشف لغة المتحدث تلقائياً.<br><br>تحقق من المشروع التجريبي في لوحة التحكم لرؤية مثال.",
+    welcomeButton: "الذهاب للوحة التحكم",
     dubSubject: "فيديو الدبلجة جاهز! 🎬",
     dubHeading: "الفيديو جاهز",
     dubBody: "تم دبلجة الفيديو وهو جاهز للتنزيل. انقر أدناه لعرض النتيجة.",
@@ -167,6 +204,10 @@ const STRINGS: Record<string, EmailStrings> = {
     confirmHeading: "ईमेल सत्यापित करें",
     confirmBody: "अपना ईमेल पता कन्फ़र्म करने और DubSync अकाउंट एक्टिवेट करने के लिए नीचे बटन पर क्लिक करें।",
     confirmButton: "ईमेल कन्फ़र्म करें",
+    welcomeSubject: "DubSync में आपका स्वागत है! 🎬",
+    welcomeHeading: "DubSync में आपका स्वागत है!",
+    welcomeBody: "साइन अप करने के लिए धन्यवाद! आपकी पहली वीडियो डबिंग मुफ्त है — बस एक वीडियो अपलोड करें और भाषा चुनें। हम स्पीकर की भाषा स्वतः पहचान लेते हैं।<br><br>नमूना परिणाम देखने के लिए डैशबोर्ड पर डेमो प्रोजेक्ट देखें।",
+    welcomeButton: "डैशबोर्ड पर जाएं",
     dubSubject: "आपका डब किया गया वीडियो तैयार है! 🎬",
     dubHeading: "वीडियो तैयार है",
     dubBody: "आपके वीडियो की डबिंग पूरी हो गई है और डाउनलोड के लिए तैयार है।",
@@ -182,6 +223,10 @@ const STRINGS: Record<string, EmailStrings> = {
     confirmHeading: "Verifikasi email",
     confirmBody: "Klik tombol di bawah untuk mengonfirmasi alamat email Anda dan mengaktifkan akun DubSync.",
     confirmButton: "Konfirmasi Email",
+    welcomeSubject: "Selamat datang di DubSync! 🎬",
+    welcomeHeading: "Selamat datang di DubSync!",
+    welcomeBody: "Terima kasih telah mendaftar! Dubbing video pertama Anda gratis — cukup unggah video dan pilih bahasa. Kami mendeteksi bahasa pembicara secara otomatis.<br><br>Lihat proyek demo di dasbor Anda untuk melihat contoh.",
+    welcomeButton: "Ke Dasbor",
     dubSubject: "Video dubbing Anda siap! 🎬",
     dubHeading: "Video Anda siap",
     dubBody: "Video Anda telah didubbing dan siap diunduh. Klik di bawah untuk melihat hasilnya.",
@@ -197,6 +242,10 @@ const STRINGS: Record<string, EmailStrings> = {
     confirmHeading: "E-postanızı doğrulayın",
     confirmBody: "E-posta adresinizi onaylamak ve DubSync hesabınızı etkinleştirmek için aşağıdaki düğmeye tıklayın.",
     confirmButton: "E-postayı Onayla",
+    welcomeSubject: "DubSync'e hoş geldiniz! 🎬",
+    welcomeHeading: "DubSync'e hoş geldiniz!",
+    welcomeBody: "Kaydolduğunuz için teşekkürler! İlk video dublajınız ücretsiz — sadece bir video yükleyin ve dil seçin. Konuşmacının dilini otomatik algılarız.<br><br>Örnek sonucu görmek için panelinizdeki demo projeye göz atın.",
+    welcomeButton: "Panele Git",
     dubSubject: "Dublajlı videonuz hazır! 🎬",
     dubHeading: "Videonuz hazır",
     dubBody: "Videonuz dublajlandı ve indirmeye hazır. Sonucu görmek için aşağıya tıklayın.",
@@ -316,6 +365,34 @@ export async function sendCreditsLowEmail(opts: {
     await logEmailSent("credits_low", opts.to);
   } catch (err) {
     console.error("[EMAIL] credits low failed:", err);
+  }
+}
+
+/**
+ * Send welcome email to newly registered user.
+ */
+export async function sendWelcomeEmail(opts: {
+  to: string;
+  locale: string | null;
+}): Promise<void> {
+  try {
+    const t = getStrings(opts.locale);
+    const resend = getResend();
+    await resend.emails.send({
+      from: FROM,
+      to: opts.to,
+      subject: t.welcomeSubject,
+      html: emailTemplate({
+        heading: t.welcomeHeading,
+        body: t.welcomeBody,
+        buttonText: t.welcomeButton,
+        buttonUrl: `${APP_URL}/dashboard`,
+        footer: t.footer,
+      }),
+    });
+    await logEmailSent("welcome", opts.to);
+  } catch (err) {
+    console.error("[EMAIL] welcome failed:", err);
   }
 }
 

@@ -69,7 +69,7 @@ export function DashboardSidebar() {
         const { count } = await supabase
           .from("support_tickets")
           .select("id", { count: "exact", head: true })
-          .in("status", ["open", "waiting_admin"]);
+          .in("status", ["waiting_admin"]);
         if (!cancelled) setSupportBadge(count || 0);
       } else {
         const { count } = await supabase

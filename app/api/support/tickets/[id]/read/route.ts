@@ -36,12 +36,13 @@ export async function POST(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  // User reading a waiting_user ticket → open
-  // Admin reading a waiting_admin ticket → open
-  if (
+  // User reading a waiting_user ticket → open (badge clears)
+  // Admin reading a waiting_admin ticket → open (badge clears)
+  const shouldClear =
     (!isAdmin && ticket.status === "waiting_user") ||
-    (isAdmin && ticket.status === "waiting_admin")
-  ) {
+    (isAdmin && (ticket.status === "waiting_admin" || ticket.status === "open"));
+
+  if (shouldClear) {
     await service
       .from("support_tickets")
       .update({ status: "open", updated_at: new Date().toISOString() })

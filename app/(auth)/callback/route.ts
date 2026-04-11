@@ -4,6 +4,7 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { LOCALES } from "@/lib/i18n/dictionaries";
 import { createDemoProject } from "@/lib/demo-project";
 import { createWelcomeTicket } from "@/lib/welcome-ticket";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -81,6 +82,9 @@ export async function GET(request: Request) {
             );
             createWelcomeTicket(user.id, userLocale).catch((e) =>
               console.warn("[CALLBACK] Welcome ticket creation failed:", e)
+            );
+            sendWelcomeEmail({ to: user.email!, locale: userLocale }).catch((e) =>
+              console.warn("[CALLBACK] Welcome email failed:", e)
             );
           }
         }
