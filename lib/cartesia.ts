@@ -43,83 +43,33 @@ export async function cloneVoice(
   name: string,
   language: string = "en"
 ): Promise<string> {
-  let mimeType = detectAudioMime(audioBuffer);
+  const mimeType = detectAudioMime(audioBuffer);
+  const sendMime = (mimeType === "video/mp4" || mimeType === "application/octet-stream") ? "audio/mpeg" : mimeType;
+  const ext = sendMime === "audio/webm" ? "webm" : sendMime === "audio/wav" ? "wav" : "mp3";
 
-  console.log(`[CARTESIA_CLONE_V2] Sample: ${(audioBuffer.length / 1024).toFixed(0)}KB, originalMime=${mimeType}, sendAs=${mimeType === "video/mp4" || mimeType === "application/octet-stream" ? "audio/mpeg" : mimeType}, lang=${language}`);
+  console.log(`[CARTESIA_CLONE] Sample: ${(audioBuffer.length / 1024).toFixed(0)}KB, mime=${mimeType}→${sendMime}, lang=${language}`);
 
-  // Cartesia rejects video/mp4 MIME with 422. Send as audio/mpeg instead —
-  // Cartesia extracts the audio track internally from the container.
-  if (mimeType === "video/mp4" || mimeType === "application/octet-stream") {
-    mimeType = "audio/mpeg";
-  }
+  // Use Cartesia SDK for reliable file upload (handles multipart correctly)
+  const Cartesia = (await import("@cartesia/cartesia-js")).default;
+  const client = new Cartesia({ apiKey: getApiKey() });
 
-  const ext = mimeType === "audio/webm" ? "webm" : mimeType === "audio/wav" ? "wav" : "mp3";
+  // SDK's Uploadable accepts File
+  const file = new File([new Uint8Array(audioBuffer)], `voice.${ext}`, { type: sendMime });
 
-  // Build multipart exactly like curl does
-  const boundary = `----DubSync${Date.now()}`;
-  const CRLF = "\r\n";
-  const parts: (Buffer | string)[] = [];
-
-  // File part
-  parts.push(`--${boundary}${CRLF}`);
-  parts.push(`Content-Disposition: form-data; name="clip"; filename="voice.${ext}"${CRLF}`);
-  parts.push(`Content-Type: ${mimeType}${CRLF}`);
-  parts.push(CRLF);
-  parts.push(audioBuffer);
-  parts.push(CRLF);
-
-  // Text fields
-  for (const [k, v] of [
-    ["name", `dubsync-${name.slice(0, 8)}-${Date.now()}`],
-    ["language", mapLanguageCode(language)],
-    ["mode", "similarity"],
-  ]) {
-    parts.push(`--${boundary}${CRLF}`);
-    parts.push(`Content-Disposition: form-data; name="${k}"${CRLF}`);
-    parts.push(CRLF);
-    parts.push(v);
-    parts.push(CRLF);
-  }
-  parts.push(`--${boundary}--${CRLF}`);
-
-  const bodyParts = parts.map((p) => typeof p === "string" ? Buffer.from(p, "utf-8") : p);
-  const body = Buffer.concat(bodyParts);
-
-  console.log(`[CARTESIA_CLONE_V2] Sending ${body.length} bytes, boundary=${boundary}, mime=${mimeType}`);
-
-  const res = await fetch(`${CARTESIA_API}/voices/clone`, {
-    method: "POST",
-    headers: {
-      ...headers(),
-      "Content-Type": `multipart/form-data; boundary=${boundary}`,
-      "Content-Length": String(body.length),
-    },
-    body: body as unknown as BodyInit,
+  const result = await client.voices.clone({
+    clip: file,
+    name: `dubsync-${name.slice(0, 8)}-${Date.now()}`,
+    language: mapLanguageCode(language) as Parameters<typeof client.voices.clone>[0]["language"],
   });
 
-  if (!res.ok) {
-    const err = await res.text().catch(() => "");
-    throw new Error(`Cartesia clone failed: ${res.status} ${err.slice(0, 300)}`);
-  }
-
-  const rawText = await res.text();
-  console.log(`[CARTESIA_CLONE] Raw response: ${rawText.slice(0, 300)}`);
-
-  let data: Record<string, unknown>;
-  try {
-    data = JSON.parse(rawText);
-  } catch {
-    throw new Error(`Cartesia clone: invalid JSON response: ${rawText.slice(0, 200)}`);
-  }
-
-  const voiceId = (data.id as string) || (data.voice_id as string);
+  const voiceId = result.id;
   if (!voiceId) {
-    throw new Error(`Cartesia clone: no voice ID in response: ${rawText.slice(0, 200)}`);
+    throw new Error(`Cartesia clone: no voice ID in response`);
   }
 
-  console.log(`[CARTESIA_CLONE] Created voice ${voiceId} (${(audioBuffer.length / 1024).toFixed(0)}KB sample)`);
+  console.log(`[CARTESIA_CLONE] Created voice ${voiceId}`);
 
-  // Verify the clone is ready for TTS with a quick test
+  // Verify with a quick TTS test
   try {
     const testRes = await fetch(`${CARTESIA_API}/tts/bytes`, {
       method: "POST",
@@ -133,16 +83,11 @@ export async function cloneVoice(
       }),
     });
     if (!testRes.ok) {
-      const errText = await testRes.text().catch(() => "");
-      console.error(`[CARTESIA_CLONE] Voice ${voiceId} TTS test failed: ${testRes.status} ${errText.slice(0, 200)}`);
-      // Wait and retry once
-      await new Promise((r) => setTimeout(r, 3000));
+      console.warn(`[CARTESIA_CLONE] TTS verification failed: ${testRes.status}`);
     } else {
-      console.log(`[CARTESIA_CLONE] Voice ${voiceId} TTS test OK`);
+      console.log(`[CARTESIA_CLONE] TTS verification OK`);
     }
-  } catch (err) {
-    console.warn(`[CARTESIA_CLONE] TTS test error:`, err instanceof Error ? err.message : err);
-  }
+  } catch {}
 
   return voiceId;
 }
