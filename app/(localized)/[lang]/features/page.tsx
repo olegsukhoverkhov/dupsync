@@ -911,6 +911,95 @@ const TRANSLATIONS = {
       },
     ],
     breadcrumbFeatures: "기능",
+  },
+  zh: {
+    title: "DubSync功能 — 声音克隆、口型同步和AI视频配音",
+    description:
+      "了解DubSync的AI配音功能：声音克隆、口型同步、30+语言、多说话人检测和API。",
+    h1: "AI视频配音功能",
+    h1Highlight: "为创作者和团队打造",
+    subtitle:
+      "上传视频，选择语言，让DubSync处理声音克隆、口型同步和翻译。只需几分钟即可触达全球。",
+    ctaPrimary: "免费开始",
+    ctaPricing: "查看价格",
+    learnMore: "了解更多",
+    howItWorks: "工作原理",
+    howCompares: "功能对比",
+    comparesSubtitle:
+      "在最重要的功能上对比DubSync与其他AI配音工具。",
+    featureLabel: "功能",
+    readyTitle: "准备好配音你的第一个视频了吗？",
+    readySubtitle:
+      "免费开始5分钟配音。无需信用卡。",
+    faqTitle: "常见问题",
+    features: {
+      voiceCloning: "声音克隆",
+      voiceCloningDesc:
+        "克隆任何说话人的声音，在每种语言中保留其独特的音调、音高和节奏。",
+      lipSync: "口型同步",
+      lipSyncDesc:
+        "AI调整嘴部动作以匹配配音音频。结果看起来完全自然。",
+      languages: "30+种语言",
+      languagesDesc:
+        "将视频翻译并配音为30多种语言，包括中文、西班牙语、法语、日语、印地语、阿拉伯语等。",
+      multiSpeaker: "多说话人检测",
+      multiSpeakerDesc:
+        "自动检测并分离多个说话人，独立克隆每个声音。",
+      scriptEditor: "脚本编辑器",
+      scriptEditorDesc:
+        "在配音前审查、编辑和调整翻译脚本。调整时间、措辞和重点。",
+      api: "API访问",
+      apiDesc:
+        "通过REST API将DubSync集成到你的产品或工作流中。大规模自动化配音。",
+      subtitles: "AI字幕",
+      subtitlesDesc:
+        "自动生成与配音音频同步的字幕。导出为内嵌字幕或SRT/VTT文件。自定义字体、颜色、位置和样式。",
+    },
+    steps: {
+      step1: "上传你的视频",
+      step1Desc:
+        "拖放视频文件或粘贴YouTube链接。DubSync接受最长2小时的MP4、MOV和WebM。",
+      step2: "选择语言和设置",
+      step2Desc:
+        "选择目标语言，启用口型同步，选择声音克隆保真度。",
+      step3: "下载配音视频",
+      step3Desc:
+        "几分钟内获得可发布到YouTube、TikTok或任何平台的录音棚品质配音视频。",
+    },
+    comparison: {
+      voiceCloning: "声音克隆",
+      lipSync: "口型同步",
+      languages: "30+种语言",
+      multiSpeaker: "说话人检测",
+      scriptEditor: "脚本编辑器",
+      restApi: "REST API",
+      freePlan: "免费计划",
+      youtubeImport: "YouTube导入",
+      aiSubtitles: "AI字幕（内嵌+SRT）",
+    },
+    faqs: [
+      {
+        question: "DubSync支持哪些视频格式？",
+        answer:
+          "DubSync支持最长2小时的MP4、MOV和WebM文件。你也可以粘贴YouTube链接自动导入视频。所有视频以与原始相同分辨率的MP4格式交付。",
+      },
+      {
+        question: "声音克隆有多精确？",
+        answer:
+          "DubSync以高保真度捕捉说话人的音调、音高和节奏。大多数听众无法区分克隆声音和原始声音。为获得最佳效果，请使用背景噪音较少的音频。",
+      },
+      {
+        question: "我可以在配音前编辑翻译脚本吗？",
+        answer:
+          "可以。翻译后，内置脚本编辑器允许你审查和调整每一行。你可以更改措辞、修改时间和添加重音标记。",
+      },
+      {
+        question: "有自动配音的API吗？",
+        answer:
+          "有。DubSync提供在Pro和Enterprise计划中可用的REST API。你可以提交视频、选择语言并以编程方式获取结果。",
+      },
+    ],
+    breadcrumbFeatures: "功能",
   },};
 
 type Lang = keyof typeof TRANSLATIONS;

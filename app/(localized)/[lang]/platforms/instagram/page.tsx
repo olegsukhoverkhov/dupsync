@@ -247,6 +247,30 @@ const TRANSLATIONS = {
     ctaTitle: "Conquista Instagram en todos los idiomas",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
+  },
+  zh: {
+    title: "Instagram AI配音 — Reels和Stories | DubSync",
+    description:
+      "用AI语音克隆和口型同步为Instagram Reels和Stories配音。",
+    h1: "为Instagram Reels和Stories配音",
+    subtitle:
+      "用您的克隆声音将Instagram Reels和Stories翻译为任何语言。为Instagram优化的口型同步和格式。",
+    ctaText: "配音我的Reel",
+    statBadge: "Reels和Stories优化",
+    steps: ["上传Reel或Story", "选择语言", "下载结果"],
+    faqTitle: "常见问题",
+    faqs: [
+      { q: "DubSync支持Instagram竖屏格式吗？", a: "支持。DubSync处理9:16（Reels/Stories）和1:1（信息流）格式，保持视觉质量。" },
+      { q: "可以配音带背景音乐的Reels吗？", a: "可以。DubSync将人声与音乐和音效分离，仅替换叙述部分。" },
+      { q: "配音一个Instagram Reel需要多长时间？", a: "30-90秒的Reels大约需要1-2分钟处理。" },
+      { q: "原始字幕会保留吗？", a: "DubSync生成新的翻译字幕，可单独下载。" },
+    ],
+    alsoWorksWith: "同样适用于",
+    breadcrumbPlatforms: "平台",
+    breadcrumbInstagram: "Instagram",
+    ctaTitle: "用所有语言征服Instagram",
+    ctaSubtitle: "5分钟免费开始。无需信用卡。",
+    ctaButton: "免费开始",
   },};
 
 type Lang = keyof typeof TRANSLATIONS;

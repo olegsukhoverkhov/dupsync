@@ -246,6 +246,30 @@ const TRANSLATIONS = {
     ctaTitle: "Haz viral tu contenido en todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
+  },
+  zh: {
+    title: "TikTok AI配音 — 全球走红 | DubSync",
+    description:
+      "用AI语音克隆和口型同步为TikTok视频配音。",
+    h1: "将TikTok视频配音为任何语言",
+    subtitle:
+      "用您克隆的声音将TikTok翻译为任何语言。为竖屏格式完美口型同步。",
+    ctaText: "配音我的TikTok",
+    statBadge: "竖屏格式优化",
+    steps: ["上传TikTok", "选择语言", "下载结果"],
+    faqTitle: "常见问题",
+    faqs: [
+      { q: "DubSync针对TikTok竖屏格式优化吗？", a: "是的。DubSync处理任何格式的视频，包括TikTok的9:16竖屏，保持视觉质量。" },
+      { q: "配音一个TikTok需要多长时间？", a: "短TikTok（15-60秒）处理时间不到2分钟。" },
+      { q: "背景音乐会保留吗？", a: "会。DubSync将人声与音乐和音效分离，仅替换翻译后的克隆声音。" },
+      { q: "可以配音其他创作者的TikTok视频吗？", a: "您只能配音自己拥有的或有明确配音权利的内容。" },
+    ],
+    alsoWorksWith: "同样适用于",
+    breadcrumbPlatforms: "平台",
+    breadcrumbTikTok: "TikTok",
+    ctaTitle: "让您的内容在全球走红",
+    ctaSubtitle: "5分钟免费开始。无需信用卡。",
+    ctaButton: "免费开始",
   },};
 
 type Lang = keyof typeof TRANSLATIONS;

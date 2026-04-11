@@ -247,6 +247,30 @@ const TRANSLATIONS = {
     ctaTitle: "Localiza tu presencia en Facebook globalmente",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
+  },
+  zh: {
+    title: "Facebook AI配音 — 视频广告 | DubSync",
+    description:
+      "用AI配音本地化Facebook视频广告和内容。",
+    h1: "为Facebook视频广告配音",
+    subtitle:
+      "为全球受众本地化您的Facebook视频广告和内容。AI语音克隆和口型同步。",
+    ctaText: "配音我的Facebook视频",
+    statBadge: "广告和内容优化",
+    steps: ["上传视频", "选择语言", "下载结果"],
+    faqTitle: "常见问题",
+    faqs: [
+      { q: "DubSync适用于Facebook广告吗？", a: "适用。DubSync处理任何时长的视频，包括为Facebook Ads优化的15-30秒短广告。" },
+      { q: "可以配音录制的Facebook直播吗？", a: "可以。您可以上传Facebook直播录像并配音为多种语言。" },
+      { q: "能提升广告效果吗？", a: "使用受众母语本地化的广告通常有更好的点击率和更低的每次转化成本。" },
+      { q: "支持哪些视频格式？", a: "DubSync支持横屏、竖屏和方形格式的MP4、MOV、AVI和WebM。" },
+    ],
+    alsoWorksWith: "同样适用于",
+    breadcrumbPlatforms: "平台",
+    breadcrumbFacebook: "Facebook",
+    ctaTitle: "将您的Facebook影响力推向全球",
+    ctaSubtitle: "5分钟免费开始。无需信用卡。",
+    ctaButton: "免费开始",
   },};
 
 type Lang = keyof typeof TRANSLATIONS;

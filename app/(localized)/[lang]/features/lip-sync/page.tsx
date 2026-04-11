@@ -466,6 +466,51 @@ const TRANSLATIONS = {
     ],
     breadcrumbFeatures: "기능",
     breadcrumbLipSync: "립싱크",
+  },
+  zh: {
+    title: "AI口型同步配音视频 — 任何语言的自然嘴部动作 | DubSync",
+    description:
+      "DubSync的AI口型同步调整嘴部动作以匹配任何语言的配音音频。结果看起来完全自然。",
+    badge: "口型同步",
+    h1: "AI口型同步 —",
+    h1Highlight: "任何语言的自然嘴部动作",
+    subtitle:
+      "DubSync重新渲染说话人的嘴部动作，使其与配音音频完美匹配。结果是一个看起来像原本就用目标语言录制的视频。",
+    cta: "免费试用口型同步",
+    howWorksTitle: "口型同步的工作原理",
+    whyMattersTitle: "为什么口型同步很重要",
+    whyMattersSubtitle: "纯音频配音在观众听到的和看到的之间留下了差距。口型同步弥合了这个差距。",
+    contentTypesTitle: "支持的内容类型",
+    ctaTitle: "让配音视频看起来像原生内容",
+    ctaSubtitle: "免费试用口型同步，含5分钟免费配音。无需信用卡。",
+    ctaButton: "免费开始",
+    faqTitle: "常见问题",
+    relatedTitle: "相关功能",
+    allFeatures: "所有功能",
+    steps: [
+      { title: "检测面部特征点", description: "AI在每一帧中映射说话人的面部，以亚像素精度识别嘴部、下颌和面部肌肉。" },
+      { title: "分析配音音频的音素", description: "翻译后的语音被分解为单个音素。每个音素映射到模型知道如何渲染的特定嘴型。" },
+      { title: "重新渲染嘴部动作", description: "视频逐帧重建，将嘴部区域调整为新音频。皮肤纹理、光照和阴影被保留。" },
+    ],
+    reasons: [
+      { title: "观众信任度", description: "不同步的唇部动作立即被察觉，让观众质疑质量。口型同步保持观众参与。" },
+      { title: "更高留存率", description: "嘴部动作同步的视频保持观众注意力更久。口型同步配音视频的完成率提高35%。" },
+      { title: "平台表现", description: "YouTube、TikTok和Instagram偏好高观看时长的视频。口型同步配音减少流失并提高覆盖范围。" },
+    ],
+    contentTypes: [
+      { title: "正面说话视频", description: "YouTube Vlog、讲座和播客片段，说话人的脸是焦点。口型同步在这里至关重要。" },
+      { title: "演示和网络研讨会", description: "带说话人和幻灯片的内容。DubSync检测说话人何时在屏幕上，仅对这些片段应用口型同步。" },
+      { title: "短视频内容", description: "TikTok、Reels和Shorts，注意力转瞬即逝。即使一帧不同步的嘴部动作也可能导致滑走。" },
+      { title: "采访和多机位", description: "多说话人和多角度的内容。DubSync跟踪每个说话人，对正在说话的人应用口型同步。" },
+    ],
+    faqs: [
+      { question: "口型同步支持所有视频分辨率吗？", answer: "是的。DubSync支持从360p到4K的分辨率。AI会根据可用像素密度调整面部特征点检测。" },
+      { question: "我可以关闭某些片段的口型同步吗？", answer: "可以。脚本编辑器允许标记应跳过口型同步的片段，例如说话人不在画面中时。" },
+      { question: "口型同步处理需要多长时间？", answer: "时间取决于视频时长和分辨率。10分钟1080p视频启用口型同步通常需要3-5分钟。" },
+      { question: "口型同步会影响视频质量吗？", answer: "不会。DubSync只重新渲染嘴部区域，保留帧的其余部分为原始质量。没有可感知的质量损失。" },
+    ],
+    breadcrumbFeatures: "功能",
+    breadcrumbLipSync: "口型同步",
   },};
 
 type Lang = keyof typeof TRANSLATIONS;

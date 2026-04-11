@@ -246,6 +246,30 @@ const TRANSLATIONS = {
     ctaTitle: "Lleva tu podcast a oyentes de todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
+  },
+  zh: {
+    title: "播客AI配音 — 任何语言 | DubSync",
+    description:
+      "用AI配音将播客转换为任何语言。",
+    h1: "用AI将播客配音为任何语言",
+    subtitle:
+      "用您的克隆声音将播客节目翻译为任何语言。在不失去真实性的情况下扩展您的受众。",
+    ctaText: "配音我的播客",
+    statBadge: "音频优化",
+    steps: ["上传节目", "选择语言", "下载音频"],
+    faqTitle: "常见问题",
+    faqs: [
+      { q: "DubSync仅支持音频吗？", a: "支持。DubSync处理视频和纯音频，非常适合播客。" },
+      { q: "音频质量能保持吗？", a: "能。输出为高质量音频，可直接在播客平台分发。" },
+      { q: "支持多参与者的播客吗？", a: "支持。DubSync检测并分离每个说话人，独立克隆每个声音。" },
+      { q: "支持哪些音频格式？", a: "DubSync支持MP3、WAV、M4A、FLAC和OGG。输出可选MP3和WAV。" },
+    ],
+    alsoWorksWith: "同样适用于",
+    breadcrumbPlatforms: "平台",
+    breadcrumbPodcasts: "播客",
+    ctaTitle: "将您的播客带给全球听众",
+    ctaSubtitle: "5分钟免费开始。无需信用卡。",
+    ctaButton: "免费开始",
   },};
 
 type Lang = keyof typeof TRANSLATIONS;

@@ -11,7 +11,7 @@
  */
 
 export type VsCompetitor = "rask-ai" | "heygen" | "elevenlabs" | "geckodub";
-export type VsLocale = "es" | "pt" | "de" | "fr" | "ja" | "hi" | "ar" | "id" | "tr" | "ko";
+export type VsLocale = "es" | "pt" | "de" | "fr" | "ja" | "hi" | "ar" | "id" | "tr" | "ko" | "zh";
 
 export type VsRow = {
   feature: string;
@@ -324,7 +324,7 @@ export const VS_COPY: Record<VsLocale, Record<VsCompetitor, VsCopy>> = (() => {
     { slug: "elevenlabs", name: "ElevenLabs", vsBreadcrumb: "DubSync vs ElevenLabs" },
     { slug: "geckodub", name: "GeckoDub", vsBreadcrumb: "DubSync vs GeckoDub" },
   ];
-  const locales: VsLocale[] = ["es", "pt", "de", "fr", "ja", "hi", "ar", "id", "tr", "ko"];
+  const locales: VsLocale[] = ["es", "pt", "de", "fr", "ja", "hi", "ar", "id", "tr", "ko", "zh"];
   for (const lang of locales) {
     out[lang] = {} as Record<VsCompetitor, VsCopy>;
     for (const c of competitors) {

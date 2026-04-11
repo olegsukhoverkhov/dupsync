@@ -156,6 +156,17 @@ const COMMON_FEATURE_LABELS = {
     "배경 오디오 보존",
     "무료 플랜",
   ],
+  zh: [
+    "声音克隆",
+    "多说话人检测",
+    "脚本编辑",
+    "API访问",
+    "4K输出",
+    "批量处理",
+    "术语表/术语锁定",
+    "保留背景音频",
+    "免费计划",
+  ],
 } as const;
 
 const COMMON_FOOT_LABELS = {
@@ -169,6 +180,7 @@ const COMMON_FOOT_LABELS = {
   id: { feature: "Fitur", languages: "Bahasa", cost: "Biaya per menit (dengan lip sync)" },
   tr: { feature: "Özellik", languages: "Diller", cost: "Dakika başı maliyet (dudak senkronu dahil)" },
   ko: { feature: "기능", languages: "언어", cost: "분당 비용 (립싱크 포함)" },
+  zh: { feature: "功能", languages: "语言", cost: "每分钟成本（含口型同步）" },
 } as const;
 
 const COMMON_LABELS = {
@@ -342,6 +354,23 @@ const COMMON_LABELS = {
     ctaSecondary: "전체 비교 보기",
     breadcrumbCompare: "비교",
   },
+  zh: {
+    eyebrow: "对比",
+    verdictHeading: "快速结论",
+    lipSyncHeading: "口型同步对比",
+    pricingHeading: "价格对比",
+    featureHeading: "功能对比",
+    dubsyncPricingLabel: "DubSync",
+    dubsyncPricingNote: "1信用额度 = 1分钟。所有计划均含口型同步。",
+    migrationHeading: "如何切换到DubSync",
+    faqHeading: "常见问题",
+    relatedHeading: "相关对比",
+    ctaHeading: "准备好切换到DubSync了吗？",
+    ctaSubtitle: "每月$19.99起享受口型同步配音。免费开始，无需信用卡。",
+    ctaPrimary: "免费试用DubSync",
+    ctaSecondary: "查看完整对比",
+    breadcrumbCompare: "对比",
+  },
 } as const;
 
 const MIGRATION_STEPS = {
@@ -404,6 +433,12 @@ const MIGRATION_STEPS = {
     "무료 DubSync 계정을 만들고 첫 번째 동영상을 업로드하여 품질을 테스트합니다.",
     "대상 언어를 선택하고, AI 생성 스크립트를 검토한 후, 립싱크 더빙을 시작합니다.",
     "품질에 만족하면 유료 플랜으로 업그레이드합니다. 이전 구독은 결제 주기 말에 취소하세요.",
+  ],
+  zh: [
+    "导出或下载你的原始视频。DubSync支持MP4、MOV、AVI、WebM和MKV。",
+    "创建免费DubSync账号，上传你的第一个视频测试质量。",
+    "选择目标语言，审查AI生成的脚本，开始口型同步配音。",
+    "满意质量后升级到付费计划。在计费周期结束时取消之前的订阅。",
   ],
 } as const;
 
@@ -2287,6 +2322,192 @@ const PER_COMPETITOR: Record<VsLocale, Record<VsCompetitor, PerCompetitor>> = {
       ],
     },
   },
+  zh: {
+    "rask-ai": {
+      metaTitle: "DubSync vs Rask AI — $19.99 vs $120/月",
+      metaDescription:
+        "Rask AI口型同步收费$120/月且信用额度翻倍消耗。DubSync每个信用额度含口型同步，$19.99起。对比功能和成本。",
+      h1: "DubSync vs Rask AI",
+      heroSubtitle:
+        "Rask AI口型同步收费$120/月且信用额度翻倍消耗。DubSync每个信用额度含口型同步，$19.99起。",
+      verdictBody:
+        "DubSync是需要实惠口型同步配音的创作者的最佳选择。$19.99/月即可获得20分钟含口型同步的配音——远低于Rask AI的价格。Rask AI要求$120/月的Creator Pro计划才有口型同步，且信用额度翻倍消耗。只有当你需要DubSync 30+语言之外的小众语言时才选择Rask AI。",
+      lipSyncFeatures: [
+        "口型同步分钟数（入门计划）",
+        "口型同步信用额度成本",
+        "有效口型同步容量（Pro）",
+        "10分钟×3语言：口型同步信用额度",
+        "口型同步准入价格",
+      ],
+      competitorPricingLabel: "Rask AI",
+      competitorPricingNote: "无免费计划。口型同步仅在Creator Pro中使用2倍信用额度。",
+      whereCompetitorWinsHeading: "Rask AI的优势",
+      whereDubsyncWinsHeading: "DubSync的优势",
+      whereCompetitorWins: [
+        "130+语言 vs DubSync的30+语言",
+        "更成熟的品牌和更长的历史",
+        "高级SRT/字幕导出功能",
+      ],
+      whereDubsyncWins: [
+        "每个计划含口型同步（无2倍惩罚）",
+        "口型同步$19.99/月起 vs Rask AI的$120/月",
+        "免费计划可先试再买",
+        "更简单的定价：1信用额度 = 1分钟，无乘数",
+      ],
+      faqs: [
+        {
+          q: "DubSync的口型同步比Rask AI便宜吗？",
+          a: "是的。DubSync口型同步$19.99/月起。Rask AI要求Creator Pro $120/月且信用额度翻倍消耗，相同数量的口型同步内容你要多付6倍。",
+        },
+        {
+          q: "Rask AI所有计划都含口型同步吗？",
+          a: "不。Rask AI的Creator计划（$50/月）不含口型同步。口型同步需要Creator Pro计划$120/月，且翻倍消耗信用额度。",
+        },
+        {
+          q: "Rask AI vs DubSync各有多少口型同步分钟数？",
+          a: "DubSync入门版（$19.99/月）给20分钟口型同步。Rask AI Creator Pro（$120/月）在2倍惩罚后约50分钟有效时长。价格是6倍，分钟数只有2.5倍。",
+        },
+      ],
+    },
+    heygen: {
+      metaTitle: "DubSync vs HeyGen — 专属 vs 共享额度",
+      metaDescription:
+        "HeyGen的口型同步信用额度与头像共享。DubSync提供每个信用额度专属口型同步，$19.99/月起。",
+      h1: "DubSync vs HeyGen",
+      heroSubtitle:
+        "HeyGen的口型同步信用额度与头像和生成功能共享。DubSync提供每个信用额度专属口型同步。",
+      verdictBody:
+        "DubSync是可预测口型同步视频配音的更明确选择。HeyGen是一个AI头像平台，口型同步与头像生成共享高级信用额度，难以规划使用量。DubSync专注于配音：每个信用额度就是一分钟含口型同步的完整配音。",
+      lipSyncFeatures: [
+        "专属口型同步分钟数",
+        "信用额度模式",
+        "隐藏附加费",
+        "入门价格",
+        "可预测容量",
+      ],
+      competitorPricingLabel: "HeyGen",
+      competitorPricingNote: "头像平台，口型同步为次要功能。",
+      whereCompetitorWinsHeading: "HeyGen的优势",
+      whereDubsyncWinsHeading: "DubSync的优势",
+      whereCompetitorWins: [
+        "175+语言支持",
+        "AI生成的虚拟头像",
+        "更大的AI视频制作生态系统",
+      ],
+      whereDubsyncWins: [
+        "专属口型同步，无共享信用额度",
+        "可预测容量：1信用额度 = 1分钟口型同步",
+        "免费计划可先试再买",
+        "专注视频配音的更低价格",
+      ],
+      faqs: [
+        {
+          q: "为什么DubSync比HeyGen更可预测？",
+          a: "DubSync使用配音专属信用额度：1信用额度 = 1分钟含口型同步。HeyGen在头像、生成和口型同步之间共享高级信用额度，实际容量取决于你的使用方式。",
+        },
+        {
+          q: "HeyGen更适合创建头像吗？",
+          a: "是的。HeyGen专攻AI头像，该用例有更完整的生态系统。DubSync专注于使用原始克隆声音的配音。",
+        },
+        {
+          q: "DubSync能创建头像吗？",
+          a: "不能。DubSync克隆原始说话人的声音并同步现有视频的口型，但不会从文本生成新的头像。",
+        },
+      ],
+    },
+    elevenlabs: {
+      metaTitle: "DubSync vs ElevenLabs — 视频口型同步 vs 纯音频",
+      metaDescription:
+        "ElevenLabs提供最佳AI音频但无口型同步。DubSync为每个配音视频添加口型同步。视频本地化对比。",
+      h1: "DubSync vs ElevenLabs",
+      heroSubtitle:
+        "ElevenLabs提供卓越的AI音频但仅限音频。DubSync输出带自动口型同步的配音视频。",
+      verdictBody:
+        "如果你需要完整的视频本地化，DubSync是两者中唯一的选择。ElevenLabs是AI语音合成的领导者，但只输出音频——你需要自己同步并重新整合到视频中。DubSync在一个流程中结合声音克隆、翻译和自动口型同步，输出可直接发布的MP4视频。",
+      lipSyncFeatures: [
+        "含口型同步",
+        "视频输出",
+        "自动口型同步",
+        "入门计划价格",
+        "含口型同步的每分钟成本",
+      ],
+      competitorPricingLabel: "ElevenLabs",
+      competitorPricingNote: "基于字符的计划，非视频。仅音频输出。",
+      whereCompetitorWinsHeading: "ElevenLabs的优势",
+      whereDubsyncWinsHeading: "DubSync的优势",
+      whereCompetitorWins: [
+        "市场上最佳AI语音质量",
+        "最大的预制声音库",
+        "AI音效生成",
+      ],
+      whereDubsyncWins: [
+        "完整的配音视频，不仅仅是音频",
+        "自动口型同步包含在内",
+        "一键视频工作流",
+        "基于分钟数的可预测定价",
+      ],
+      faqs: [
+        {
+          q: "ElevenLabs能用来配音视频吗？",
+          a: "你可以用ElevenLabs生成配音音频，但需要手动将音频与视频同步，且没有口型同步。DubSync自动化了整个过程。",
+        },
+        {
+          q: "DubSync使用ElevenLabs的技术吗？",
+          a: "DubSync结合多个顶级AI提供商的声音克隆、翻译和口型同步技术。我们不依赖单一提供商。",
+        },
+        {
+          q: "哪个更适合YouTube创作者？",
+          a: "DubSync。创作者需要带口型同步的成品视频——不仅仅是音轨。DubSync在几分钟内交付可直接上传的MP4。",
+        },
+      ],
+    },
+    geckodub: {
+      metaTitle: "DubSync vs GeckoDub — 20分钟 vs 7分钟",
+      metaDescription:
+        "GeckoDub将视频和口型同步分成不同的池（入门版仅7分钟口型同步）。DubSync全部20分钟都含口型同步。",
+      h1: "DubSync vs GeckoDub",
+      heroSubtitle:
+        "GeckoDub将视频和口型同步分钟数分成不同的池。DubSync每分钟都含口型同步。",
+      verdictBody:
+        "DubSync在口型同步的性价比上明显胜出。GeckoDub的入门计划将视频和口型同步分钟数分开——你获得10分钟视频但只有7分钟口型同步。DubSync入门版以$19.99/月提供完整的20分钟含口型同步配音，实际容量约为3倍。",
+      lipSyncFeatures: [
+        "口型同步分钟数（入门计划）",
+        "信用额度结构",
+        "每信用额度口型同步成本",
+        "入门计划价格",
+        "口型同步附加费",
+      ],
+      competitorPricingLabel: "GeckoDub",
+      competitorPricingNote: "每个计划中视频和口型同步是独立的信用额度池。",
+      whereCompetitorWinsHeading: "GeckoDub的优势",
+      whereDubsyncWinsHeading: "DubSync的优势",
+      whereCompetitorWins: [
+        "60+语言支持",
+        "某些方面更精致的界面",
+        "特定的字幕编辑功能",
+      ],
+      whereDubsyncWins: [
+        "同价3倍口型同步分钟数",
+        "统一信用额度模式（无独立池）",
+        "含口型同步的真正免费计划",
+        "无隐藏口型同步附加费",
+      ],
+      faqs: [
+        {
+          q: "为什么DubSync有更多口型同步分钟数？",
+          a: "DubSync使用单一信用额度池：每个信用额度就是1分钟含口型同步。GeckoDub将视频和口型同步分成不同的池，入门计划10分钟中只有7分钟含口型同步。",
+        },
+        {
+          q: "GeckoDub的语言比DubSync多吗？",
+          a: "是的，GeckoDub支持60+语言 vs DubSync的30+。如果你需要前30名之外的小众语言，GeckoDub可能是选择。",
+        },
+        {
+          q: "付费前能试用DubSync吗？",
+          a: "可以。DubSync的免费计划包含1个最长15秒的视频，含口型同步和声音克隆。无需信用卡。",
+        },
+      ],
+    },
+  },
 };
 
 // Assemble the full LocaleStrings by merging per-competitor strings with
@@ -2296,7 +2517,7 @@ export const VS_LOCALIZED_STRINGS: Record<
   Record<VsCompetitor, LocaleStrings>
 > = (() => {
   const out = {} as Record<VsLocale, Record<VsCompetitor, LocaleStrings>>;
-  const locales: VsLocale[] = ["es", "pt", "de", "fr", "ja", "hi", "ar", "id", "tr", "ko"];
+  const locales: VsLocale[] = ["es", "pt", "de", "fr", "ja", "hi", "ar", "id", "tr", "ko", "zh"];
   const competitors: VsCompetitor[] = ["rask-ai", "heygen", "elevenlabs", "geckodub"];
   for (const lang of locales) {
     out[lang] = {} as Record<VsCompetitor, LocaleStrings>;

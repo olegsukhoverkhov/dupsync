@@ -464,6 +464,51 @@ const TRANSLATIONS = {
     breadcrumbFeatures: "기능",
     breadcrumbVideoTranslation: "Traducci\u00f3n de Video",
     regions: { europe: "Europa", asia: "Asia y Pac\u00edfico", middleEast: "Medio Oriente y \u00c1frica" },
+  },
+  zh: {
+    title: "AI视频翻译 — 将视频翻译为30+种语言 | DubSync",
+    description:
+      "使用AI将视频翻译并配音为30多种语言。支持中文、西班牙语、法语、日语、印地语、阿拉伯语等。几分钟内获得录音棚品质。",
+    badge: "视频翻译",
+    h1: "将视频翻译为30多种语言",
+    h1Highlight: "使用AI",
+    subtitle:
+      "DubSync将你的视频翻译、配音并同步口型，支持30多种语言。无需重新录制一个字即可触达全球受众。",
+    cta: "免费翻译一个视频",
+    languagesTitle: "可用语言",
+    languagesMore: "更多语言持续添加中。",
+    languagesRequest: "请求一种语言",
+    qualityTitle: "翻译质量",
+    qualitySubtitle: "DubSync使用专为口语内容设计的神经翻译模型。它超越逐字翻译，捕捉含义和语调。",
+    qualityPoints: [
+      "保留含义而非仅翻译词语的上下文翻译",
+      "为每种语言和地区适配的惯用表达",
+      "技术和领域专用术语处理",
+      "整个视频一致翻译，确保连贯结果",
+      "内置脚本编辑器，在配音前审查和调整翻译",
+    ],
+    workflowTitle: "翻译工作流",
+    workflowSteps: [
+      { title: "上传或粘贴链接", description: "拖放文件或粘贴YouTube、Vimeo或直接URL。" },
+      { title: "选择语言", description: "选择一个或多个目标语言。支持批量翻译。" },
+      { title: "AI处理", description: "转录、翻译、声音克隆和口型同步并行运行。" },
+      { title: "导出", description: "下载MP4配音视频或直接发送到你连接的平台。" },
+    ],
+    ctaTitle: "用AI视频翻译走向全球",
+    ctaSubtitle: "免费翻译你的第一个视频。含5分钟配音，无需信用卡。",
+    ctaButton: "免费开始",
+    faqTitle: "常见问题",
+    relatedTitle: "相关功能",
+    allFeatures: "所有功能",
+    faqs: [
+      { question: "一个视频可以翻译成多少种语言？", answer: "没有限制。你可以选择你的计划支持的任意多种语言。所有翻译并行运行。" },
+      { question: "翻译是AI还是人工的？", answer: "DubSync使用专为口语内容训练的定制神经翻译模型。你也可以在配音前编辑翻译脚本。" },
+      { question: "我可以添加未列出的语言吗？", answer: "我们持续添加新语言。如果你需要尚未提供的语言，请联系我们，我们将根据需求优先安排。" },
+      { question: "视频翻译包含字幕吗？", answer: "DubSync专注于音频配音。不过，翻译后的转录可以SRT格式下载。" },
+    ],
+    breadcrumbFeatures: "功能",
+    breadcrumbVideoTranslation: "视频翻译",
+    regions: { europe: "欧洲", asia: "亚太地区", middleEast: "中东和非洲" },
   },};
 
 type Lang = keyof typeof TRANSLATIONS;

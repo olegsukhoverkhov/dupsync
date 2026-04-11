@@ -26,7 +26,7 @@ type TranslationDict = {
   faqs: Array<{ q: string; a: string }>;
 };
 
-const TRANSLATIONS: Record<"es" | "pt" | "de" | "fr" | "ja" | "hi" | "ar" | "id" | "tr" | "ko", TranslationDict> = {
+const TRANSLATIONS: Record<"es" | "pt" | "de" | "fr" | "ja" | "hi" | "ar" | "id" | "tr" | "ko" | "zh", TranslationDict> = {
   es: {
     title: "DubSync para Cada Plataforma — YouTube, TikTok, Instagram y Más",
     description:
@@ -307,6 +307,34 @@ const TRANSLATIONS: Record<"es" | "pt" | "de" | "fr" | "ja" | "hi" | "ar" | "id"
         a: "Sí. El plan gratuito incluye 1 video de hasta 15 segundos con lip sync y clonación de voz. Sin tarjeta de crédito.",
       },
     ],
+  },
+  zh: {
+    title: "DubSync适用于所有平台 — YouTube、TikTok、Instagram等",
+    description:
+      "为YouTube、TikTok、Instagram、Facebook、在线教育和播客配音视频。",
+    h1: "适用于所有平台的AI配音",
+    subtitle:
+      "针对每个平台优化的内容。语音克隆、口型同步和自动翻译适配每个渠道的规格。",
+    cta: "免费开始",
+    breadcrumbPlatforms: "平台",
+    faqs: [
+      {
+        q: "DubSync支持哪些平台？",
+        a: "DubSync适用于任何接受MP4的平台：YouTube、TikTok、Instagram、Facebook、LinkedIn、Vimeo、Twitch、在线教育平台和播客托管。同一个配音视频可发布到所有平台。",
+      },
+      {
+        q: "需要为每个平台创建不同的视频吗？",
+        a: "不需要。DubSync生成高质量配音视频，可在多个平台复用。您可以根据每个平台的要求裁剪和调整大小。",
+      },
+      {
+        q: "每个平台支持哪些视频格式？",
+        a: "DubSync接受MP4、MOV、AVI、WebM和MKV。输出为MP4，适用于所有平台。",
+      },
+      {
+        q: "有按平台配音的免费方案吗？",
+        a: "有。免费方案包含1个最长15秒的视频，含口型同步和语音克隆。无需信用卡。",
+      },
+    ],
   },};
 
 type Lang = keyof typeof TRANSLATIONS;
@@ -403,6 +431,14 @@ const PLATFORM_NAMES: Record<Lang, Record<string, { name: string; desc: string }
     facebook: { name: "Facebook", desc: "Facebook 비디오 광고와 콘텐츠 로컬라이즈." },
     elearning: { name: "E-Learning", desc: "전 세계 학습자를 위해 온라인 강좌 번역." },
     podcasts: { name: "Podcasts", desc: "AI로 팟캐스트를 모든 언어로 더빙." },
+  },
+  zh: {
+    youtube: { name: "YouTube", desc: "用语音克隆将YouTube视频配音为30多种语言。" },
+    tiktok: { name: "TikTok", desc: "用AI TikTok配音在全球走红。" },
+    instagram: { name: "Instagram", desc: "为全球受众配音Reels和Stories。" },
+    facebook: { name: "Facebook", desc: "本地化Facebook视频广告和内容。" },
+    elearning: { name: "在线教育", desc: "为全球学习者翻译在线课程。" },
+    podcasts: { name: "播客", desc: "用AI将播客配音为任何语言。" },
   },
 };
 

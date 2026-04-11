@@ -246,6 +246,30 @@ const TRANSLATIONS = {
     ctaTitle: "Lleva tus cursos a estudiantes de todo el mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
+  },
+  zh: {
+    title: "在线教育AI配音 — 在线课程 | DubSync",
+    description:
+      "用AI配音为全球学习者配音在线教育课程。",
+    h1: "用AI为在线教育课程配音",
+    subtitle:
+      "将您的课程和在线教育材料翻译为任何语言。在所有版本中保持讲师声音一致。",
+    ctaText: "配音我的课程",
+    statBadge: "在线教育优化",
+    steps: ["上传课程", "选择语言", "下载结果"],
+    faqTitle: "常见问题",
+    faqs: [
+      { q: "适用于Udemy或Coursera等平台吗？", a: "适用。您可以上传任何课程视频，不限平台。然后将配音版本上传到您首选的平台。" },
+      { q: "讲师的声音能保留吗？", a: "能。DubSync克隆讲师的声音，使其在每种翻译语言中听起来自然。" },
+      { q: "可以配音整个课程吗？", a: "可以。您可以上传多节课程并批量处理。" },
+      { q: "会生成翻译字幕吗？", a: "会。DubSync生成翻译的SRT/VTT字幕，可与视频一起下载。" },
+    ],
+    alsoWorksWith: "同样适用于",
+    breadcrumbPlatforms: "平台",
+    breadcrumbElearning: "在线教育",
+    ctaTitle: "将您的课程带给全球学生",
+    ctaSubtitle: "5分钟免费开始。无需信用卡。",
+    ctaButton: "免费开始",
   },};
 
 type Lang = keyof typeof TRANSLATIONS;

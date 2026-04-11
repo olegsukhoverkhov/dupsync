@@ -23,7 +23,7 @@ const COMPETITORS: readonly VsCompetitor[] = [
   "geckodub",
 ] as const;
 
-const LOCALIZED_LOCALES: readonly VsLocale[] = ["es", "pt", "de", "fr", "ja", "hi", "ar", "id", "tr", "ko"];
+const LOCALIZED_LOCALES: readonly VsLocale[] = ["es", "pt", "de", "fr", "ja", "hi", "ar", "id", "tr", "ko", "zh"];
 
 function isLocalized(lang: string): lang is VsLocale {
   return (LOCALIZED_LOCALES as readonly string[]).includes(lang);

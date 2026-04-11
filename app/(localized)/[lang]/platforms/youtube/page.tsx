@@ -247,6 +247,30 @@ const TRANSLATIONS = {
     ctaTitle: "Lleva tu canal de YouTube al mundo",
     ctaSubtitle: "Comienza con 5 minutos gratis. Sin tarjeta de crédito.",
     ctaButton: "Empezar gratis",
+  },
+  zh: {
+    title: "YouTube AI配音 — 30多种语言 | DubSync",
+    description:
+      "用AI语音克隆和口型同步将YouTube视频翻译并配音为30多种语言。",
+    h1: "将YouTube视频配音为30多种语言",
+    subtitle:
+      "自动翻译YouTube视频，保留您的声音、语调和个性。每种语言都有完美的口型同步。",
+    ctaText: "配音我的YouTube视频",
+    statBadge: "30多种语言可用",
+    steps: ["上传视频", "选择语言", "下载结果"],
+    faqTitle: "常见问题",
+    faqs: [
+      { q: "配音一个YouTube视频需要多长时间？", a: "10分钟的视频大约需要5-8分钟处理。时长取决于所选语言数量。" },
+      { q: "原始音频质量能保持吗？", a: "是的。DubSync以高保真度克隆您的声音并自动同步口型。" },
+      { q: "可以配音多说话人的视频吗？", a: "可以。DubSync自动检测并分离每个说话人，独立克隆每个声音。" },
+      { q: "需要下载软件吗？", a: "不需要。DubSync完全在云端运行。只需上传视频即可接收配音结果。" },
+    ],
+    alsoWorksWith: "同样适用于",
+    breadcrumbPlatforms: "平台",
+    breadcrumbYouTube: "YouTube",
+    ctaTitle: "将您的YouTube频道推向世界",
+    ctaSubtitle: "5分钟免费开始。无需信用卡。",
+    ctaButton: "免费开始",
   },};
 
 type Lang = keyof typeof TRANSLATIONS;

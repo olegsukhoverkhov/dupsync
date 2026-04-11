@@ -432,6 +432,47 @@ const t: Record<
         a: "Aceptamos todas las principales tarjetas de crédito, tarjetas de débito y PayPal a través de nuestro procesador de pagos. Los clientes Enterprise pueden pagar mediante factura y transferencia bancaria.",
       },
     ],
+  },
+  zh: {
+    title: "DubSync价格 — AI配音方案",
+    metaTitle:
+      "DubSync价格 — AI配音方案 从$0起",
+    metaDescription:
+      "比较DubSync AI视频配音方案。免费$0、Starter $19.99、Pro $49.99、Business $149.99。",
+    ogDescription:
+      "选择最适合您的DubSync方案。免费、Starter、Pro和Enterprise方案，均含口型同步。",
+    heading:
+      "简单透明的价格",
+    subheading:
+      "免费开始，按需扩展，无隐藏费用。",
+    faqHeading: "常见问题",
+    breadcrumb: "价格",
+    faqs: [
+      {
+        q: "我可以随时更改方案吗？",
+        a: "可以。您可以随时从控制面板升级或降级方案。升级后可立即使用新功能。降级后，当前方案在计费周期结束前保持有效。",
+      },
+      {
+        q: "超出方案限制怎么办？",
+        a: "当您使用了80%的月度配音分钟数时，您将收到通知。达到限制后，新的配音任务将排队等待下一个计费周期或方案升级。",
+      },
+      {
+        q: "付费方案有免费试用吗？",
+        a: "我们提供每月5分钟配音的免费方案供您试用质量。付费方案没有单独的试用期，但您可以在前7天内取消获得全额退款。",
+      },
+      {
+        q: "年度计费如何运作？",
+        a: "年度方案按年一次性收费，享受折扣价（通常优惠20%）。功能与月付方案相同，但总费用更低。年度订阅可随时取消，在已付期限结束前保留使用权。",
+      },
+      {
+        q: "你们提供退款吗？",
+        a: "我们为新付费订阅提供7天退款政策。7天后费用不予退还。未使用的配音分钟数不会在计费周期间结转。",
+      },
+      {
+        q: "你们接受哪些支付方式？",
+        a: "我们通过支付处理商接受所有主要信用卡、借记卡和PayPal。企业客户可通过发票和银行转账付款。",
+      },
+    ],
   },};
 
 /* ------------------------------------------------------------------ */

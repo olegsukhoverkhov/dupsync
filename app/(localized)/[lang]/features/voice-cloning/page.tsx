@@ -458,6 +458,50 @@ const TRANSLATIONS = {
     ],
     breadcrumbFeatures: "기능",
     breadcrumbVoiceCloning: "Clonaci\u00f3n de Voz",
+  },
+  zh: {
+    title: "AI声音克隆视频配音 — 你的声音，任何语言 | DubSync",
+    description:
+      "用AI克隆你的声音，将视频配音为30多种语言，同时保留你独特的音调、音高和节奏。几分钟内获得录音棚品质效果。",
+    badge: "声音克隆",
+    h1: "AI声音克隆 —",
+    h1Highlight: "你的声音，任何语言",
+    subtitle:
+      "DubSync用AI克隆你的声音，让它流利地说30多种语言。你的音调、节奏、个性——在每个配音版本中都得到保留。",
+    cta: "免费试用声音克隆",
+    howWorksTitle: "声音克隆的工作原理",
+    capabilitiesTitle: "核心能力",
+    useCasesTitle: "声音克隆使用场景",
+    ctaTitle: "克隆你的声音，征服世界",
+    ctaSubtitle: "免费开始5分钟。无需信用卡。",
+    ctaButton: "免费开始",
+    faqTitle: "常见问题",
+    relatedTitle: "相关功能",
+    allFeatures: "所有功能",
+    steps: [
+      { title: "分析原始声音", description: "DubSync的AI听取源音频，从背景噪音和音乐中隔离出音调、音色、语速和情感色调等声音特征。" },
+      { title: "创建声音档案", description: "系统创建一个神经声音模型，捕捉使说话人声音独特的所有特征。这个档案驱动所有后续翻译。" },
+      { title: "合成目标语言", description: "使用声音档案，AI在每种选定语言中生成语音。克隆的声音保留说话人身份，同时具有母语发音。" },
+      { title: "调整时间和情感", description: "输出自动调整，使语音时长与原始视频匹配。情感变化得到保留。" },
+    ],
+    capabilities: [
+      { title: "高保真克隆", description: "我们的模型捕捉每个说话人超过40个声音参数，产出听众始终评价为与原始声音无法区分的结果。" },
+      { title: "可调保真度", description: "在标准和超高保真克隆之间选择。标准模式快速，适合大多数内容。超高保真提供专业制作的最高精度。" },
+      { title: "伦理保障", description: "声音克隆仅限于你拥有或有权使用的内容。所有克隆输出都包含不可听见的数字水印。" },
+    ],
+    useCases: [
+      { title: "YouTube创作者", description: "在不失去个性的情况下触达全球受众。将你的视频配音为西班牙语、葡萄牙语、印地语等，每种语言都听起来像你自己。" },
+      { title: "在线教育和课程", description: "翻译培训材料和在线课程，在所有版本中保持讲师声音的一致性。" },
+      { title: "营销和广告", description: "为国际活动本地化视频广告。在所有市场保持品牌声音一致。" },
+    ],
+    faqs: [
+      { question: "AI需要多少源音频来进行声音克隆？", answer: "DubSync需要至少30秒的清晰语音来创建可靠的声音档案。更长的样本（2-5分钟）产出更高保真度的结果。" },
+      { question: "声音克隆可以处理多个说话人吗？", answer: "可以。DubSync自动检测并分离各个说话人，独立克隆每个声音。" },
+      { question: "我可以对非自己创建的内容使用声音克隆吗？", answer: "声音克隆仅适用于你拥有或有明确配音权利的内容。" },
+      { question: "标准和超高保真克隆有什么区别？", answer: "标准版优化了速度，适合大多数内容。超高保真版使用更大的神经模型和更多声音参数，提供最高的专业级保真度。" },
+    ],
+    breadcrumbFeatures: "功能",
+    breadcrumbVoiceCloning: "声音克隆",
   },};
 
 type Lang = keyof typeof TRANSLATIONS;

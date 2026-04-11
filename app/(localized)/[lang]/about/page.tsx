@@ -30,7 +30,7 @@ type AboutCopy = {
   breadcrumb: string;
 };
 
-type Lang = "es" | "pt" | "de" | "fr" | "ja" | "hi" | "ar" | "id" | "tr" | "ko";
+type Lang = "es" | "pt" | "de" | "fr" | "ja" | "hi" | "ar" | "id" | "tr" | "ko" | "zh";
 
 const TRANSLATIONS: Record<Lang, AboutCopy> = {
   es: {
@@ -403,6 +403,43 @@ const TRANSLATIONS: Record<Lang, AboutCopy> = {
       { value: "96%+", label: "Precisión de lip sync" },
     ],
     breadcrumb: "소개",
+  },
+  zh: {
+    title: "关于DubSync — 面向每位创作者的AI视频配音",
+    description:
+      "DubSync通过AI语音克隆、口型同步和30多种语言翻译，让视频内容触达全球受众。",
+    h1: "关于DubSync",
+    missionHeading: "我们的使命",
+    missionBody:
+      "DubSync的使命是让视频内容对全球每一位观众都触手可及。语言不应成为精彩叙事、教育或娱乐的障碍。我们赋能创作者、教育工作者和企业，在数分钟而非数月内触达全球受众。",
+    technologyHeading: "技术",
+    technologyIntro:
+      "DubSync将三项前沿AI能力融合为一个无缝工作流：",
+    technologyBullets: [
+      {
+        label: "语音克隆",
+        text: "— 我们的AI捕捉说话者独特的音色、音调和节奏，并在目标语言中重建其声音。无需额外语音样本。",
+      },
+      {
+        label: "口型同步",
+        text: "— AI驱动的面部动画将口型动作调整为与配音音频匹配，生成自然逼真、让观众信赖的视频。",
+      },
+      {
+        label: "翻译",
+        text: "— 上下文感知的神经翻译在30多种语言中保留含义、幽默和文化细微差别，达到人类水平的精度。",
+      },
+    ],
+    visionHeading: "我们的愿景",
+    visionBody:
+      "我们展望一个每个视频都可以用任何语言观看的世界。我们的团队是一支小而专注的工程师和研究人员队伍，对多语言AI、计算机视觉和音频合成充满热情。我们正在构建真正全球化的创作者经济基础设施，让最好的内容脱颖而出，不受原始语言的限制。",
+    numbersHeading: "DubSync数据一览",
+    stats: [
+      { value: "2,000+", label: "创作者" },
+      { value: "50M+", label: "配音分钟数" },
+      { value: "30+", label: "语言" },
+      { value: "96%+", label: "口型同步精度" },
+    ],
+    breadcrumb: "关于我们",
   },};
 
 export function generateStaticParams() {
