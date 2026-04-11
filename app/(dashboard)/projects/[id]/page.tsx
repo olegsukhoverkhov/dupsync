@@ -142,7 +142,7 @@ function DubInlinePlayer({ dub }: { dub: Dub }) {
   return (
     <div className="rounded-xl overflow-hidden border border-white/10 bg-black mb-4">
       {isVideo ? (
-        <video controls className="w-full max-h-64 object-contain" src={url} preload="metadata" />
+        <video controls crossOrigin="anonymous" className="w-full max-h-64 object-contain" src={url} preload="auto" />
       ) : (
         <div className="p-4">
           <audio controls className="w-full" src={url} preload="metadata" />
@@ -172,7 +172,7 @@ function OriginalVideoPlayer({ videoPath }: { videoPath: string | null }) {
 
   return (
     <div className="rounded-xl overflow-hidden border border-white/10 bg-black">
-      <video controls className="w-full max-h-64 object-contain" src={url} preload="metadata" />
+      <video controls crossOrigin="anonymous" className="w-full max-h-64 object-contain" src={url} preload="auto" />
     </div>
   );
 }

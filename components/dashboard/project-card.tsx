@@ -28,11 +28,12 @@ function formatDuration(seconds: number | null) {
 /** Video thumbnail — loads a signed URL and shows the first frame */
 function VideoThumbnail({ videoUrl, isDemo }: { videoUrl: string | null; isDemo?: boolean }) {
   const [url, setUrl] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (!videoUrl) return;
     // Demo projects use public URLs
-    if (videoUrl.includes("/storage/v1/object/public/")) {
+    if (videoUrl.includes("/storage/v1/object/public/") || videoUrl.startsWith("http")) {
       setUrl(videoUrl);
       return;
     }
@@ -54,15 +55,23 @@ function VideoThumbnail({ videoUrl, isDemo }: { videoUrl: string | null; isDemo?
     <div className="w-full aspect-video rounded-xl overflow-hidden bg-black mb-3 relative">
       <video
         src={url}
-        preload="metadata"
+        preload="auto"
         muted
-        className="w-full h-full object-cover"
+        playsInline
+        crossOrigin="anonymous"
+        className={`w-full h-full object-cover transition-opacity ${loaded ? "opacity-100" : "opacity-0"}`}
         onLoadedData={(e) => {
-          // Seek to 1s for a better thumbnail than black first frame
           const v = e.currentTarget;
           if (v.duration > 1) v.currentTime = 1;
+          setLoaded(true);
         }}
+        onSeeked={() => setLoaded(true)}
       />
+      {!loaded && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Play className="h-6 w-6 text-slate-600" />
+        </div>
+      )}
       <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity">
         <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
           <Play className="h-5 w-5 text-white ml-0.5" />
