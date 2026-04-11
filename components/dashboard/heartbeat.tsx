@@ -26,6 +26,10 @@ export function Heartbeat() {
     // Send immediately on mount
     beat();
     const interval = setInterval(beat, HEARTBEAT_INTERVAL);
+
+    // Stamp country if missing (fire-and-forget, once)
+    fetch("/api/profile/country", { method: "PATCH" }).catch(() => {});
+
     return () => clearInterval(interval);
   }, []);
 
