@@ -62,6 +62,7 @@ export function UsersTable({ initial }: { initial: AdminUsersPage }) {
             <thead className="bg-white/5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
               <tr>
                 <th className="px-4 py-3">User</th>
+                <th className="px-4 py-3">Country</th>
                 <th className="px-4 py-3">Plan</th>
                 <th className="px-4 py-3 text-right">Credits left</th>
                 <th className="px-4 py-3 text-right">Credits used</th>
@@ -115,6 +116,11 @@ export function UsersTable({ initial }: { initial: AdminUsersPage }) {
                         </span>
                       )}
                     </div>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-slate-400">
+                    {u.country ? (
+                      <span title={u.country}>{countryFlag(u.country)} {u.country}</span>
+                    ) : "—"}
                   </td>
                   <td className="px-4 py-3">
                     <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs font-medium text-slate-200">
@@ -429,6 +435,12 @@ function EditForm({
       </div>
     </div>
   );
+}
+
+function countryFlag(code: string): string {
+  if (!code || code.length !== 2) return "🌍";
+  const offset = 0x1f1e6 - 65;
+  return String.fromCodePoint(code.charCodeAt(0) + offset, code.charCodeAt(1) + offset);
 }
 
 function formatDate(iso: string | null): string {

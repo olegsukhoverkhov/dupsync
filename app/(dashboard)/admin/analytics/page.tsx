@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getVisitStats, getVisitDailyChart, getOnlineCounts, getVisitCountries } from "@/lib/analytics";
+import { getVisitStats, getVisitDailyChart, getOnlineCounts, getVisitCountries, getCountryUserStats } from "@/lib/analytics";
 import { VisitsChart } from "@/components/admin/visits-chart";
 import { resolveRange, type RangePreset } from "@/lib/admin";
 import { RangeFilter } from "@/components/admin/range-filter";
@@ -52,12 +52,19 @@ export default async function AdminAnalyticsPage({
 
   const range = resolveRange(preset, customFrom || null, customTo || null);
 
-  const [stats, dailyData, online, countries] = await Promise.all([
+  const [stats, dailyData, online, countries, countryUsers] = await Promise.all([
     getVisitStats({ from: range.from, to: range.to }),
     getVisitDailyChart({ from: range.from, to: range.to }),
     getOnlineCounts(),
     getVisitCountries({ from: range.from, to: range.to }),
+    getCountryUserStats(),
   ]);
+
+  // Build lookup map for user stats per country
+  const userStatsMap = new Map<string, { registered: number; paid: number }>();
+  for (const cu of countryUsers) {
+    userStatsMap.set(cu.country, { registered: cu.registered, paid: cu.paid });
+  }
 
   return (
     <div>
@@ -183,6 +190,8 @@ export default async function AdminAnalyticsPage({
                   <th className="px-4 py-3">Country</th>
                   <th className="px-4 py-3 text-right">Unique</th>
                   <th className="px-4 py-3 text-right">Visits</th>
+                  <th className="px-4 py-3 text-right">Registered</th>
+                  <th className="px-4 py-3 text-right">Paid</th>
                   <th className="px-4 py-3 text-right">Share</th>
                 </tr>
               </thead>
@@ -204,6 +213,12 @@ export default async function AdminAnalyticsPage({
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums text-slate-400">
                         {c.visits}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-emerald-400">
+                        {userStatsMap.get(c.country)?.registered || 0}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-pink-400">
+                        {userStatsMap.get(c.country)?.paid || 0}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">

@@ -165,6 +165,24 @@ export async function getVisitCountries(range?: {
   }
 }
 
+/**
+ * Registered users and paying users per country.
+ */
+export async function getCountryUserStats(): Promise<Array<{ country: string; registered: number; paid: number }>> {
+  try {
+    const supabase = await createServiceClient();
+    const { data, error } = await supabase.rpc("country_user_stats");
+    if (error || !data) return [];
+    return (data as Array<{ country: string; registered: number; paid: number }>).map((r) => ({
+      country: String(r.country),
+      registered: Number(r.registered),
+      paid: Number(r.paid),
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export async function getOnlineCounts(): Promise<{
   dashboardUsers: number;
   siteVisitors: number;

@@ -109,11 +109,12 @@ export default function AdminPaymentsPage() {
   }
 
   async function handleDelete() {
-    const supabase = createClient();
     const ids = [...selectedIds];
-    for (const id of ids) {
-      await supabase.from("transactions").delete().eq("id", id);
-    }
+    await fetch("/api/admin/transactions", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+    });
     setSelectedIds(new Set());
     setShowDeleteConfirm(false);
     fetchData();

@@ -21,6 +21,7 @@ export type AdminUserRow = {
   is_admin: boolean;
   is_suspended: boolean;
   is_online: boolean;
+  country: string | null;
 };
 
 export type AdminUsersPage = {
@@ -71,6 +72,7 @@ export async function getAdminUsers(
       is_admin: Boolean(r.is_admin),
       is_suspended: Boolean(r.is_suspended),
       is_online: Boolean(r.is_online),
+      country: (r.country as string) || null,
     }));
     const totalCount = Number(
       (data as unknown as RawAdminUserRow[])[0]?.total_count ?? 0
@@ -106,5 +108,6 @@ type RawAdminUserRow = {
   is_admin: boolean;
   is_suspended: boolean;
   is_online: boolean;
+  country: string | null;
   total_count: number | string;
 };

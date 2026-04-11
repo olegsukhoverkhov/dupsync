@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { LOCALES } from "@/lib/i18n/dictionaries";
 import { createDemoProject } from "@/lib/demo-project";
@@ -45,21 +45,27 @@ export async function GET(request: Request) {
             );
           }
 
+          // Resolve country from Cloudflare/Vercel headers
+          const reqHeaders = await headers();
+          const country = reqHeaders.get("cf-ipcountry")
+            || reqHeaders.get("x-vercel-ip-country")
+            || null;
+
           const service = await createServiceClient();
           const { data: existing } = await service
             .from("profiles")
-            .select("locale")
+            .select("locale, country")
             .eq("id", user.id)
             .single();
 
           const updates: Record<string, string> = {
             last_login_at: new Date().toISOString(),
           };
-          // Only stamp locale on FIRST login (when the profile doesn't
-          // have one yet) — don't overwrite a user's deliberate later
-          // choice from the Settings page.
           if (!existing?.locale && resolvedLocale) {
             updates.locale = resolvedLocale;
+          }
+          if (!existing?.country && country) {
+            updates.country = country;
           }
           await service.from("profiles").update(updates).eq("id", user.id);
 
