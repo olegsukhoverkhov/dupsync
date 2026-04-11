@@ -119,6 +119,37 @@ export async function GET(req: Request) {
     const bodyParts = parts.map((p) => typeof p === "string" ? Buffer.from(p, "utf-8") : p);
     const body = Buffer.concat(bodyParts);
     debug.requestSize = body.length;
+    // Check first bytes of sample to verify it's not corrupted
+    debug.sampleFirstBytes = Array.from(sampleBuffer.subarray(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' ');
+    debug.sampleLastBytes = Array.from(sampleBuffer.subarray(sampleBuffer.length - 8)).map(b => b.toString(16).padStart(2, '0')).join(' ');
+
+    // Also try with FormData approach for comparison
+    try {
+      const fd = new FormData();
+      fd.append("clip", new Blob([sampleBuffer], { type: sendMime }), `voice.${sendExt}`);
+      fd.append("name", `debug-fd-${Date.now()}`);
+      fd.append("language", "en");
+      fd.append("mode", "similarity");
+
+      const fdRes = await fetch("https://api.cartesia.ai/voices/clone", {
+        method: "POST",
+        headers: { "X-API-Key": apiKey, "Cartesia-Version": "2024-11-13" },
+        body: fd,
+      });
+      debug.formDataStatus = fdRes.status;
+      const fdText = await fdRes.text();
+      debug.formDataResponse = fdText.slice(0, 200);
+      if (fdRes.ok) {
+        const fdData = JSON.parse(fdText);
+        debug.formDataCloneOk = true;
+        await fetch(`https://api.cartesia.ai/voices/${fdData.id}`, {
+          method: "DELETE",
+          headers: { "X-API-Key": apiKey, "Cartesia-Version": "2024-11-13" },
+        });
+      }
+    } catch (e) {
+      debug.formDataError = e instanceof Error ? e.message : String(e);
+    }
 
     const res = await fetch("https://api.cartesia.ai/voices/clone", {
       method: "POST",
