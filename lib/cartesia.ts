@@ -76,6 +76,32 @@ export async function cloneVoice(
   }
 
   console.log(`[CARTESIA_CLONE] Created voice ${voiceId} (${(audioBuffer.length / 1024).toFixed(0)}KB sample)`);
+
+  // Verify the clone is ready for TTS with a quick test
+  try {
+    const testRes = await fetch(`${CARTESIA_API}/tts/bytes`, {
+      method: "POST",
+      headers: { ...headers(), "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model_id: MODEL_ID,
+        transcript: "test",
+        voice: { mode: "id", id: voiceId },
+        output_format: { container: "wav", encoding: "pcm_s16le", sample_rate: 44100 },
+        language: mapLanguageCode(language),
+      }),
+    });
+    if (!testRes.ok) {
+      const errText = await testRes.text().catch(() => "");
+      console.error(`[CARTESIA_CLONE] Voice ${voiceId} TTS test failed: ${testRes.status} ${errText.slice(0, 200)}`);
+      // Wait and retry once
+      await new Promise((r) => setTimeout(r, 3000));
+    } else {
+      console.log(`[CARTESIA_CLONE] Voice ${voiceId} TTS test OK`);
+    }
+  } catch (err) {
+    console.warn(`[CARTESIA_CLONE] TTS test error:`, err instanceof Error ? err.message : err);
+  }
+
   return voiceId;
 }
 

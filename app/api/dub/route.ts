@@ -140,6 +140,15 @@ export async function POST(request: Request) {
     .update({ status: "dubbing" })
     .eq("id", projectId);
 
+  // Remove any existing error/failed dubs for the same languages
+  // to prevent duplicates when retrying failed dubs.
+  await supabase
+    .from("dubs")
+    .delete()
+    .eq("project_id", projectId)
+    .in("target_language", languages)
+    .in("status", ["error", "pending"]);
+
   // Create dub records. `has_burned_subs` flips on the optional
   // Stage 3 (fal.ai auto-caption burn-in) that fires after lip sync
   // completes. Stored per-dub so the webhook handler can decide
