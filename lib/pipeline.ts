@@ -1,6 +1,7 @@
 import { createServiceClient } from "./supabase/server";
 import * as ai from "./ai";
 import * as fish from "./fish-audio";
+import * as cartesia from "./cartesia";
 import { LANGUAGE_MAP } from "./supabase/constants";
 import { getQualityTier } from "./quality-tiers";
 import { toSrt, toVtt, rechunkSegments } from "./subtitles";
@@ -13,55 +14,87 @@ function log(dubId: string, msg: string) {
 
 // ── Voice clone cache ────────────────────────────────────────
 // Shared across parallel dubs of the same project so we clone once.
-// Key = projectId, value = { fishModelId, voiceId, voiceSource }
 // Cleaned up after all dubs complete in the /api/dub route.
-const voiceCloneCache = new Map<
-  string,
-  { fishModelId: string; voiceId: string; voiceSource: "cloned" | "premade"; promise?: Promise<void> }
->();
+type VoiceCloneEntry = {
+  voiceId: string;
+  voiceSource: "cloned" | "premade";
+  provider: "cartesia" | "fish" | "premade";
+  promise: Promise<void> | undefined;
+};
+const voiceCloneCache = new Map<string, VoiceCloneEntry>();
 
 /**
- * Get or create a voice clone for a project. First caller creates
- * the clone, concurrent callers await the same promise.
+ * Get or create a voice clone for a project. Cascade:
+ *   1. Cartesia (primary — 47 languages, best quality)
+ *   2. Fish Audio (fallback — 13 languages)
+ *   3. ElevenLabs premade voice (last resort)
+ *
+ * First caller creates the clone, concurrent callers await the same promise.
  */
 async function getOrCreateVoiceClone(
   projectId: string,
   sampleBuffer: Buffer | null,
   dubId: string,
   fallbackVoiceId: string,
+  originalLanguage: string,
   supabase: Awaited<ReturnType<typeof createServiceClient>>
-): Promise<{ fishModelId: string; voiceId: string; voiceSource: "cloned" | "premade" }> {
+): Promise<{ voiceId: string; voiceSource: "cloned" | "premade"; provider: "cartesia" | "fish" | "premade" }> {
   // Already cached (or in-progress)
   const cached = voiceCloneCache.get(projectId);
   if (cached) {
     if (cached.promise) await cached.promise;
-    log(dubId, `Voice clone reused from cache: ${cached.fishModelId || "premade"}`);
-    return { fishModelId: cached.fishModelId, voiceId: cached.voiceId, voiceSource: cached.voiceSource };
+    log(dubId, `Voice clone reused from cache: ${cached.provider} (${cached.voiceId.slice(0, 12)})`);
+    return { voiceId: cached.voiceId, voiceSource: cached.voiceSource, provider: cached.provider };
   }
 
   // First caller — create the clone
   let resolve: () => void;
   const promise = new Promise<void>((r) => { resolve = r; });
-  const entry: { fishModelId: string; voiceId: string; voiceSource: "cloned" | "premade"; promise: Promise<void> | undefined } = { fishModelId: "", voiceId: fallbackVoiceId, voiceSource: "premade", promise };
+  const entry: VoiceCloneEntry = {
+    voiceId: fallbackVoiceId,
+    voiceSource: "premade",
+    provider: "premade",
+    promise,
+  };
   voiceCloneCache.set(projectId, entry);
 
-  try {
-    if (sampleBuffer && sampleBuffer.length > 1000) {
-      const modelId = await fish.createVoiceModel(sampleBuffer, dubId);
-      entry.fishModelId = modelId;
-      entry.voiceId = modelId;
-      entry.voiceSource = "cloned";
-      log(dubId, `Voice cloned via Fish Audio (shared): ${modelId}`);
-    } else {
-      log(dubId, `No usable voice sample — using premade (shared)`);
+  if (sampleBuffer && sampleBuffer.length > 1000) {
+    // 1. Try Cartesia first (primary provider)
+    if (process.env.CARTESIA_API_KEY) {
+      try {
+        const voiceId = await cartesia.cloneVoice(sampleBuffer, dubId, originalLanguage);
+        entry.voiceId = voiceId;
+        entry.voiceSource = "cloned";
+        entry.provider = "cartesia";
+        log(dubId, `Voice cloned via Cartesia (shared): ${voiceId}`);
+      } catch (err) {
+        log(dubId, `Cartesia clone failed: ${err instanceof Error ? err.message : "unknown"} — trying Fish Audio`);
+      }
     }
-  } catch (err) {
-    log(dubId, `Fish Audio clone failed: ${err instanceof Error ? err.message : "unknown"} — using premade (shared)`);
+
+    // 2. Fish Audio fallback (if Cartesia failed or not configured)
+    if (entry.provider === "premade" && fish.isFishSupported(originalLanguage)) {
+      try {
+        const modelId = await fish.createVoiceModel(sampleBuffer, dubId);
+        entry.voiceId = modelId;
+        entry.voiceSource = "cloned";
+        entry.provider = "fish";
+        log(dubId, `Voice cloned via Fish Audio (shared): ${modelId}`);
+      } catch (err) {
+        log(dubId, `Fish Audio clone failed: ${err instanceof Error ? err.message : "unknown"} — using premade`);
+      }
+    }
+
+    if (entry.provider === "premade") {
+      log(dubId, `All clone providers failed — using premade voice`);
+    }
+  } else {
+    log(dubId, `No usable voice sample — using premade (shared)`);
   }
 
-  entry.promise = undefined; // mark as ready
+  entry.promise = undefined;
   resolve!();
-  return { fishModelId: entry.fishModelId, voiceId: entry.voiceId, voiceSource: entry.voiceSource };
+  return { voiceId: entry.voiceId, voiceSource: entry.voiceSource, provider: entry.provider };
 }
 
 /**
@@ -69,9 +102,14 @@ async function getOrCreateVoiceClone(
  */
 export async function cleanupVoiceClone(projectId: string): Promise<void> {
   const cached = voiceCloneCache.get(projectId);
-  if (cached?.fishModelId) {
-    await fish.deleteVoiceModel(cached.fishModelId);
-    log(projectId, `Shared voice model deleted: ${cached.fishModelId}`);
+  if (cached && cached.voiceSource === "cloned") {
+    if (cached.provider === "cartesia") {
+      await cartesia.deleteVoice(cached.voiceId);
+      log(projectId, `Cartesia voice deleted: ${cached.voiceId}`);
+    } else if (cached.provider === "fish") {
+      await fish.deleteVoiceModel(cached.voiceId);
+      log(projectId, `Fish Audio model deleted: ${cached.voiceId}`);
+    }
   }
   voiceCloneCache.delete(projectId);
 }
@@ -329,11 +367,14 @@ async function runDubbingAudioOnce(
 
     const fallbackVoiceId = ai.getMultilingualVoice(project.id as string);
     const clone = await getOrCreateVoiceClone(
-      project.id as string, sampleBuffer, dubId, fallbackVoiceId, supabase
+      project.id as string, sampleBuffer, dubId, fallbackVoiceId,
+      project.original_language as string || "en", supabase
     );
     let voiceId = clone.voiceId;
     let voiceSource: "cloned" | "premade" = clone.voiceSource;
-    const fishModelId = clone.fishModelId;
+    const cloneProvider = clone.provider;
+    // For backward compat: fishModelId is set when provider is fish or cartesia
+    const fishModelId = cloneProvider === "fish" ? voiceId : "";
 
     // Per-segment TTS with exact timing matching original video
     const videoDuration = (project.duration_seconds as number) || 0;
@@ -349,20 +390,59 @@ async function runDubbingAudioOnce(
     let audioBuffer: Buffer;
     let newAudioDuration: number;
 
-    if (fishModelId) {
-      // ── Fish Audio TTS path ──────────────────────────────
-      // Generate each segment individually via Fish Audio, then
-      // hand off to ElevenLabs' generateTimedAudio for the
-      // silence-padding + WAV combination logic. We do this by
-      // temporarily wrapping Fish Audio TTS in the same interface
-      // that generateTimedAudio expects.
-      //
-      // Actually, the simplest approach: use ElevenLabs'
-      // generateTimedAudio but pass the Fish Audio model ID.
-      // Problem: generateTimedAudio calls ElevenLabs TTS directly.
-      //
-      // Pragmatic solution: generate all segments via Fish Audio
-      // individually, concatenate with silence padding ourselves.
+    if (cloneProvider === "cartesia") {
+      // ── Cartesia TTS path (primary) ────────────────────────
+      log(dubId, `Using Cartesia TTS (voice=${voiceId.slice(0, 12)})`);
+      const segmentBuffers: Buffer[] = [];
+      for (let i = 0; i < segmentsWithTiming.length; i++) {
+        const seg = segmentsWithTiming[i];
+        if (!seg.text.trim()) continue;
+        try {
+          const buf = await cartesia.textToSpeech(seg.text, voiceId, targetLang);
+          segmentBuffers.push(buf);
+          log(dubId, `  Segment ${i + 1}/${segmentsWithTiming.length}: ${(buf.length / 1024).toFixed(0)}KB`);
+        } catch (err) {
+          log(dubId, `  Segment ${i + 1} Cartesia TTS failed: ${err instanceof Error ? err.message : "unknown"}`);
+          segmentBuffers.push(Buffer.alloc(0));
+        }
+      }
+
+      // Concatenate WAV segments (same logic as Fish Audio path below)
+      const nonEmpty = segmentBuffers.filter((b) => b.length > 44);
+      if (nonEmpty.length === 0) throw new Error("All Cartesia TTS segments failed");
+
+      const firstHeader = nonEmpty[0].subarray(0, 44);
+      const sampleRate = firstHeader.readUInt32LE(24);
+      const channels = firstHeader.readUInt16LE(22);
+      const bitsPerSample = firstHeader.readUInt16LE(34);
+
+      const pcmChunks: Buffer[] = [];
+      for (const buf of nonEmpty) {
+        pcmChunks.push(buf.subarray(44));
+      }
+      const pcmData = Buffer.concat(pcmChunks);
+      const dataSize = pcmData.length;
+      const header = Buffer.alloc(44);
+      header.write("RIFF", 0);
+      header.writeUInt32LE(36 + dataSize, 4);
+      header.write("WAVE", 8);
+      header.write("fmt ", 12);
+      header.writeUInt32LE(16, 16);
+      header.writeUInt16LE(1, 20);
+      header.writeUInt16LE(channels, 22);
+      header.writeUInt32LE(sampleRate, 24);
+      header.writeUInt32LE(sampleRate * channels * (bitsPerSample / 8), 28);
+      header.writeUInt16LE(channels * (bitsPerSample / 8), 32);
+      header.writeUInt16LE(bitsPerSample, 34);
+      header.write("data", 36);
+      header.writeUInt32LE(dataSize, 40);
+
+      audioBuffer = Buffer.concat([header, pcmData]);
+      newAudioDuration = dataSize / (sampleRate * channels * (bitsPerSample / 8));
+      log(dubId, `Cartesia TTS done: ${nonEmpty.length} segments, ${newAudioDuration.toFixed(2)}s`);
+
+    } else if (fishModelId) {
+      // ── Fish Audio TTS path (fallback) ─────────────────────
       log(dubId, `Using Fish Audio TTS (model=${fishModelId.slice(0, 8)})`);
       const segmentBuffers: Buffer[] = [];
       for (let i = 0; i < segmentsWithTiming.length; i++) {

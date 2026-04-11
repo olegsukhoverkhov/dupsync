@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getElevenLabsQuota, getFalAiBalance } from "@/lib/ai";
 import { getFishAudioQuota } from "@/lib/fish-audio";
+import { getCartesiaQuota } from "@/lib/cartesia";
 import { QuotaCard } from "@/components/admin/quota-card";
 import { AdminNav } from "@/components/admin/admin-nav";
 import {
@@ -37,13 +38,14 @@ export default async function AdminUsagePage() {
     .single();
   if (!profile?.is_admin) notFound();
 
-  const [elevenLabsQuota, fishQuota, falBalance, openaiBalance, anthropicBalance, shotstackUsage] = await Promise.all([
+  const [elevenLabsQuota, fishQuota, falBalance, openaiBalance, anthropicBalance, shotstackUsage, cartesiaQuota] = await Promise.all([
     getElevenLabsQuota(),
     getFishAudioQuota(),
     getFalAiBalance(),
     getOpenAiBalance(),
     getAnthropicBalance(),
     getShotstackUsage(),
+    getCartesiaQuota(),
   ]);
 
   // Check which API keys are configured (non-empty, non-placeholder)
@@ -113,37 +115,47 @@ export default async function AdminUsagePage() {
         </div>
       </div>
 
-      {/* ── Voice cloning: Fish Audio (active) ──────────────── */}
+      {/* ── Voice cloning: Cartesia (primary) + Fish (fallback) ── */}
       <div className="mb-4">
         <div className="flex items-center gap-3">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
             Voice cloning
           </h2>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-300">
+            Cartesia — primary
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-slate-500/30 bg-slate-500/10 px-2 py-0.5 text-[10px] font-medium text-slate-400">
             <Fish className="h-3 w-3" />
-            Fish Audio — active
+            Fish — fallback
           </span>
         </div>
         <p className="mt-1 text-xs text-slate-500">
-          Fish Audio: primary (all plans, unlimited clones). ElevenLabs: fallback only.
+          Cartesia Sonic-3: 47 languages, instant clone. Fish Audio: fallback for 13 languages. ElevenLabs: premade voices only.
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
-        <div className="rounded-2xl border border-emerald-500/20 bg-slate-800/50 p-5">
+        <BalanceCard
+          icon={<Mic className="h-5 w-5" />}
+          label="Cartesia credits"
+          value={cartesiaQuota ? `${cartesiaQuota.credits.toLocaleString()}` : "—"}
+          color="emerald"
+          subtitle="15 credits/sec audio · Pro plan 100K/mo"
+        />
+        <div className="rounded-2xl border border-white/10 bg-slate-800/50 p-5">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
               <Fish className="h-5 w-5 text-emerald-400" />
             </div>
             <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
-              API credits
+              Fish Audio credits
             </p>
           </div>
           <p className="mt-3 text-3xl font-bold tabular-nums text-emerald-400">
             {fishQuota ? `$${fishQuota.credit.toFixed(2)}` : "—"}
           </p>
           <p className="mt-1 text-xs text-slate-500">
-            Pay-as-you-go · ~$0.0006/clone · No monthly quota
+            Fallback · Pay-as-you-go
           </p>
         </div>
         <QuotaCard
