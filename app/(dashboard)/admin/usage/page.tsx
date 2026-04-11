@@ -53,7 +53,7 @@ export default async function AdminUsagePage() {
     !!envVar && envVar.length > 10 && !envVar.startsWith("placeholder") && !envVar.startsWith("sk-placeholder");
 
   const shotstackConfigured = keyStatus(process.env.SHOTSTACK_API_KEY);
-  const stripeConfigured = keyStatus(process.env.STRIPE_SECRET_KEY);
+  const dodoConfigured = keyStatus(process.env.DODO_PAYMENTS_API_KEY);
   const supabaseConfigured = keyStatus(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
   return (
@@ -246,6 +246,7 @@ export default async function AdminUsagePage() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <StatusCard name="Supabase" icon={<Database className="h-4 w-4" />} configured={supabaseConfigured} envKey="SUPABASE_SERVICE_ROLE_KEY" />
         <StatusCard name="Shotstack" icon={<Clapperboard className="h-4 w-4" />} configured={shotstackConfigured} envKey="SHOTSTACK_API_KEY" />
+        <StatusCard name="Dodo Payments" icon={<CreditCard className="h-4 w-4" />} configured={dodoConfigured} envKey="DODO_PAYMENTS_API_KEY" />
       </div>
 
       {/* ── Shotstack usage tracking ─────────────────────────── */}
@@ -269,7 +270,6 @@ export default async function AdminUsagePage() {
           color="violet"
           subtitle="Total subtitle burn-in renders"
         />
-        <StatusCard name="Stripe" icon={<CreditCard className="h-4 w-4" />} configured={stripeConfigured} envKey="STRIPE_SECRET_KEY" />
       </div>
     </div>
   );

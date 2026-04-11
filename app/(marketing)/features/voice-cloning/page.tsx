@@ -17,13 +17,17 @@ import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 import { FaqAccordion } from "@/components/ui/faq-accordion";
+import { getPlatformHreflang } from "@/lib/seo/platform-hreflang";
 
 export const metadata: Metadata = {
   title:
     "AI Voice Cloning for Video Dubbing — Keep Your Voice in Any Language | DubSync",
   description:
     "Clone your voice with AI and dub videos into 30+ languages while keeping your unique tone, pitch, and cadence. Studio-quality results in minutes.",
-  alternates: { canonical: "https://dubsync.app/features/voice-cloning" },
+  alternates: {
+    canonical: "https://dubsync.app/features/voice-cloning",
+    languages: getPlatformHreflang("/features/voice-cloning"),
+  },
   openGraph: {
     type: "website",
     title:

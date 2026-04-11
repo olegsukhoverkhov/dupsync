@@ -18,13 +18,17 @@ import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 import { FaqAccordion } from "@/components/ui/faq-accordion";
+import { getPlatformHreflang } from "@/lib/seo/platform-hreflang";
 
 export const metadata: Metadata = {
   title:
     "AI Lip Sync for Dubbed Videos — Natural Mouth Movement in Any Language | DubSync",
   description:
     "DubSync's AI lip sync adjusts mouth movements to match dubbed audio in any language. The result looks completely natural to viewers.",
-  alternates: { canonical: "https://dubsync.app/features/lip-sync" },
+  alternates: {
+    canonical: "https://dubsync.app/features/lip-sync",
+    languages: getPlatformHreflang("/features/lip-sync"),
+  },
   openGraph: {
     type: "website",
     title:

@@ -16,12 +16,16 @@ import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 import { FaqAccordion } from "@/components/ui/faq-accordion";
+import { getPlatformHreflang } from "@/lib/seo/platform-hreflang";
 
 export const metadata: Metadata = {
   title: "Video Dubbing API — Integrate AI Dubbing Into Your Product | DubSync",
   description:
     "Integrate DubSync's AI video dubbing into your product with our REST API. Voice cloning, lip sync, and translation — all programmable.",
-  alternates: { canonical: "https://dubsync.app/features/api" },
+  alternates: {
+    canonical: "https://dubsync.app/features/api",
+    languages: getPlatformHreflang("/features/api"),
+  },
   openGraph: {
     type: "website",
     title: "Video Dubbing API — Integrate AI Dubbing Into Your Product",

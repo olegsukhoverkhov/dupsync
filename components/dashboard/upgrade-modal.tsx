@@ -77,8 +77,6 @@ export function UpgradeModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "checkout",
-          // Enterprise is called "enterprise" in PLAN_LIMITS but STRIPE_PLANS
-          // uses the same key. If the config diverges later, translate here.
           plan,
         }),
       });

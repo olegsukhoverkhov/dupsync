@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DubSync — Onboarding Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+
+  /* ── Sidebar ── */
+  .sidebar { position: fixed; left: 0; top: 0; width: 240px; height: 100vh; background: #1e293b; border-right: 1px solid rgba(255,255,255,0.06); padding: 24px 16px; display: flex; flex-direction: column; }
+  .sidebar .logo { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 32px; }
+  .sidebar .logo span { background: linear-gradient(135deg, #ec4899, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .sidebar nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; color: #94a3b8; text-decoration: none; font-size: 14px; margin-bottom: 2px; transition: all 0.15s; }
+  .sidebar nav a.active { background: rgba(255,255,255,0.08); color: #fff; }
+  .sidebar nav a svg { width: 18px; height: 18px; opacity: 0.7; }
+
+  /* ── Main ── */
+  .main { margin-left: 240px; padding: 32px 40px; }
+  .header-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #ec4899; }
+  .header-title { font-size: 28px; font-weight: 700; color: #fff; margin-top: 4px; }
+
+  /* ── Stat cards ── */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 24px 0; }
+  .stat-card { background: rgba(30,41,59,0.5); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 20px; }
+  .stat-card .label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-card .value { font-size: 20px; font-weight: 700; color: #fff; margin-top: 8px; }
+  .stat-card .sub { font-size: 11px; color: #475569; margin-top: 4px; }
+  .upgrade-btn { display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #ec4899, #8b5cf6); color: #fff; border: none; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+
+  /* ── Projects section ── */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin: 32px 0 16px; }
+  .section-title { font-size: 16px; font-weight: 600; color: #fff; }
+  .create-btn { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #ec4899, #8b5cf6); color: #fff; border: none; padding: 10px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+  /* ── Project cards grid ── */
+  .projects-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .project-card { background: rgba(30,41,59,0.5); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 20px; cursor: pointer; transition: all 0.2s; position: relative; }
+  .project-card:hover { border-color: rgba(255,255,255,0.12); background: rgba(30,41,59,0.7); }
+  .project-card .title { font-size: 15px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 8px; }
+  .project-card .meta { font-size: 12px; color: #64748b; margin-top: 6px; }
+  .project-card .langs { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .project-card .lang-tag { display: inline-flex; align-items: center; gap: 4px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #10b981; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+
+  /* Demo badge */
+  .demo-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); color: #60a5fa; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .status-badge { display: inline-flex; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; }
+  .status-done { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #10b981; }
+
+  /* ── Demo banner on project detail ── */
+  .demo-banner { background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1)); border: 1px solid rgba(59,130,246,0.2); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .demo-banner p { font-size: 13px; color: #94a3b8; }
+  .demo-banner p strong { color: #fff; }
+  .demo-banner .cta { background: linear-gradient(135deg, #ec4899, #8b5cf6); color: #fff; border: none; padding: 8px 18px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+
+  /* ── Onboarding Wizard Modal ── */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 100; display: flex; align-items: center; justify-content: center; }
+  .overlay.hidden { display: none; }
+  .wizard { background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; width: 480px; max-width: 90vw; padding: 40px; position: relative; animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .wizard .close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: #64748b; cursor: pointer; font-size: 20px; }
+  .wizard .icon-circle { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+  .wizard .icon-circle.pink { background: rgba(236,72,153,0.1); border: 1px solid rgba(236,72,153,0.2); }
+  .wizard .icon-circle.violet { background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.2); }
+  .wizard .icon-circle.emerald { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); }
+  .wizard .icon-circle svg { width: 32px; height: 32px; }
+  .wizard h2 { text-align: center; font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+  .wizard p { text-align: center; font-size: 14px; color: #94a3b8; line-height: 1.6; margin-bottom: 28px; }
+  .wizard .dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 24px; }
+  .wizard .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.1); transition: all 0.3s; }
+  .wizard .dot.active { background: #ec4899; width: 24px; border-radius: 4px; }
+  .wizard .actions { display: flex; gap: 12px; }
+  .wizard .btn-skip { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color: #94a3b8; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+  .wizard .btn-skip:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .wizard .btn-next { flex: 1; padding: 12px; border-radius: 12px; border: none; background: linear-gradient(135deg, #ec4899, #8b5cf6); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .wizard .btn-next:hover { opacity: 0.9; }
+
+  /* ── Tabs ── */
+  .view-tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+  .view-tabs button { background: none; border: none; color: #64748b; padding: 6px 12px; font-size: 13px; cursor: pointer; border-radius: 8px; font-weight: 500; }
+  .view-tabs button.active { background: rgba(255,255,255,0.08); color: #fff; }
+
+  /* ── Toggle buttons ── */
+  .toggle-bar { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 200; }
+  .toggle-bar button { padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); background: #1e293b; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .toggle-bar button:hover { background: #334155; }
+  .toggle-bar button.active { background: linear-gradient(135deg, #ec4899, #8b5cf6); border-color: transparent; }
+
+  /* ── Project detail mockup ── */
+  .detail-view { display: none; }
+  .detail-view.active { display: block; }
+  .dashboard-view.hidden { display: none; }
+  .back-btn { display: inline-flex; align-items: center; gap: 6px; color: #94a3b8; font-size: 13px; cursor: pointer; margin-bottom: 20px; background: none; border: none; }
+  .back-btn:hover { color: #fff; }
+  .video-player { background: #000; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); overflow: hidden; margin-bottom: 20px; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; }
+  .video-player .play-icon { width: 64px; height: 64px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .dub-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .dub-tab { padding: 8px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color: #94a3b8; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .dub-tab.active { border-color: rgba(236,72,153,0.4); background: rgba(236,72,153,0.1); color: #fff; }
+  .download-row { display: flex; gap: 8px; }
+  .download-btn { padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+  .download-btn.primary { background: linear-gradient(135deg, #ec4899, #8b5cf6); color: #fff; }
+  .download-btn.secondary { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="logo"><span>DubSync</span></div>
+  <nav>
+    <a href="#" class="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      Settings
+    </a>
+    <a href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      Credits
+    </a>
+  </nav>
+</div>
+
+<!-- Main content -->
+<div class="main">
+  <!-- Dashboard view -->
+  <div class="dashboard-view" id="dashboardView">
+    <p class="header-label">Dashboard</p>
+    <h1 class="header-title">Welcome back</h1>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="label">Plan</div>
+        <div class="value">Free</div>
+        <button class="upgrade-btn">Upgrade</button>
+      </div>
+      <div class="stat-card">
+        <div class="label">Credits Left</div>
+        <div class="value">5 / 5</div>
+        <div class="sub">+ Buy credits</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Credits Used</div>
+        <div class="value">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Usage</div>
+        <div class="value">0%</div>
+        <div style="height:6px;background:rgba(255,255,255,0.05);border-radius:3px;margin-top:8px;"><div style="width:0%;height:100%;background:linear-gradient(90deg,#ec4899,#8b5cf6);border-radius:3px;"></div></div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div>
+        <div class="view-tabs">
+          <button class="active">Active</button>
+          <button>Archived</button>
+        </div>
+      </div>
+      <button class="create-btn" onclick="closeWizard()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create Project
+      </button>
+    </div>
+
+    <!-- Demo project card -->
+    <div class="projects-grid" id="projectsGrid">
+      <div class="project-card" onclick="showDetail()">
+        <div class="title">
+          Welcome Demo
+          <span class="demo-badge">Demo</span>
+          <span class="status-badge status-done">Done</span>
+        </div>
+        <div class="meta">Polish · 0:24 · 3/3 languages</div>
+        <div class="langs">
+          <span class="lang-tag">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            Spanish
+          </span>
+          <span class="lang-tag">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            French
+          </span>
+          <span class="lang-tag">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            Japanese
+          </span>
+        </div>
+      </div>
+
+      <!-- Empty slots -->
+      <div class="project-card" style="border-style:dashed;opacity:0.4;display:flex;align-items:center;justify-content:center;min-height:140px;">
+        <div style="text-align:center;color:#475569;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 8px;opacity:0.5;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <div style="font-size:12px;">Your first project</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project detail view -->
+  <div class="detail-view" id="detailView">
+    <button class="back-btn" onclick="hideDetail()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to Dashboard
+    </button>
+
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <h1 style="font-size:24px;font-weight:700;color:#fff;">Welcome Demo</h1>
+      <span class="demo-badge">Demo</span>
+    </div>
+
+    <!-- Demo banner -->
+    <div class="demo-banner">
+      <p><strong>This is a demo project.</strong> See how DubSync transforms videos. Ready to try with your own?</p>
+      <button class="cta">Create your own dub</button>
+    </div>
+
+    <div class="dub-tabs">
+      <button class="dub-tab active">Original (Polish)</button>
+      <button class="dub-tab" onclick="this.parentElement.querySelector('.active').classList.remove('active');this.classList.add('active')">Spanish</button>
+      <button class="dub-tab" onclick="this.parentElement.querySelector('.active').classList.remove('active');this.classList.add('active')">French</button>
+      <button class="dub-tab" onclick="this.parentElement.querySelector('.active').classList.remove('active');this.classList.add('active')">Japanese</button>
+    </div>
+
+    <div class="video-player">
+      <div class="play-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </div>
+    </div>
+
+    <div class="download-row">
+      <button class="download-btn primary">Download video</button>
+      <button class="download-btn secondary">Download with subs</button>
+      <button class="download-btn secondary">SRT</button>
+      <button class="download-btn secondary">VTT</button>
+    </div>
+  </div>
+</div>
+
+<!-- Onboarding Wizard Overlay -->
+<div class="overlay" id="wizardOverlay">
+  <div class="wizard" id="wizard">
+    <button class="close" onclick="closeWizard()">&times;</button>
+
+    <!-- Step content (replaced by JS) -->
+    <div id="wizardContent"></div>
+
+    <div class="dots" id="wizardDots">
+      <div class="dot active"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-skip" onclick="closeWizard()">Skip</button>
+      <button class="btn-next" id="nextBtn" onclick="nextStep()">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toggle bar -->
+<div class="toggle-bar">
+  <button class="active" id="toggleWizard" onclick="toggleWizard()">Onboarding Wizard</button>
+  <button id="toggleDemo" onclick="toggleDemo()">Demo Project</button>
+</div>
+
+<script>
+const steps = [
+  {
+    icon: `<div class="icon-circle pink"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>`,
+    title: 'Upload your video',
+    desc: 'Drop any video up to 60 seconds. We auto-detect the language of your speaker — just upload and we handle the rest.'
+  },
+  {
+    icon: `<div class="icon-circle violet"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div>`,
+    title: 'Choose target languages',
+    desc: 'Pick from 30+ languages. Your video will be dubbed with AI voice cloning and perfectly synced lip movements.'
+  },
+  {
+    icon: `<div class="icon-circle emerald"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`,
+    title: 'Get your dubbed video',
+    desc: 'Download or preview the result in minutes. Your first video is completely free — no credit card required.'
+  }
+];
+
+let currentStep = 0;
+
+function renderStep() {
+  const step = steps[currentStep];
+  document.getElementById('wizardContent').innerHTML = `
+    ${step.icon}
+    <h2>${step.title}</h2>
+    <p>${step.desc}</p>
+  `;
+  // Update dots
+  document.querySelectorAll('#wizardDots .dot').forEach((d, i) => {
+    d.className = 'dot' + (i === currentStep ? ' active' : '');
+  });
+  // Update button text
+  document.getElementById('nextBtn').textContent = currentStep === 2 ? 'Start dubbing' : 'Next';
+}
+
+function nextStep() {
+  if (currentStep < 2) {
+    currentStep++;
+    renderStep();
+  } else {
+    closeWizard();
+  }
+}
+
+function closeWizard() {
+  document.getElementById('wizardOverlay').classList.add('hidden');
+}
+
+function toggleWizard() {
+  currentStep = 0;
+  renderStep();
+  document.getElementById('wizardOverlay').classList.remove('hidden');
+}
+
+function toggleDemo() {
+  hideDetail();
+  showDetail();
+}
+
+function showDetail() {
+  document.getElementById('dashboardView').classList.add('hidden');
+  document.getElementById('detailView').classList.add('active');
+}
+
+function hideDetail() {
+  document.getElementById('dashboardView').classList.remove('hidden');
+  document.getElementById('detailView').classList.remove('active');
+}
+
+// Init
+renderStep();
+</script>
+</body>
+</html>

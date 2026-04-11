@@ -2,12 +2,16 @@ import { Metadata } from "next";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
+import { getPlatformHreflang } from "@/lib/seo/platform-hreflang";
 
 export const metadata: Metadata = {
   title: "About DubSync — AI Video Dubbing for Every Creator",
   description:
     "DubSync makes video content accessible globally with AI voice cloning, lip sync, and translation in 30+ languages.",
-  alternates: { canonical: "https://dubsync.app/about" },
+  alternates: {
+    canonical: "https://dubsync.app/about",
+    languages: getPlatformHreflang("/about"),
+  },
   openGraph: {
     type: "website",
     title: "About DubSync — AI Video Dubbing for Every Creator",

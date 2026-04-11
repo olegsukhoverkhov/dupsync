@@ -6,6 +6,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Languages, ArrowRight, Loader2, Mail, Lock, User, AlertCircle, CheckCircle, MailOpen } from "lucide-react";
 
+/** Small DOM helper to read a cookie value from document.cookie by name. */
+function readCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith(`${name}=`));
+  return match ? decodeURIComponent(match.slice(name.length + 1)) : null;
+}
+
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -41,11 +50,20 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
     try {
       if (mode === "signup") {
+        // Carry the current locale choice (set by the proxy geo redirect
+        // or a manual visit to a /es /fr etc. page) into user_metadata.
+        // The callback route reads it back and stamps profiles.locale on
+        // first login — so a Spanish visitor who confirms their email
+        // from a different browser still ends up on the Spanish UI.
+        const localeFromCookie = readCookie("dubsync_locale");
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            data: { full_name: fullName },
+            data: {
+              full_name: fullName,
+              ...(localeFromCookie ? { locale: localeFromCookie } : {}),
+            },
             emailRedirectTo: `${window.location.origin}/callback`,
           },
         });
@@ -59,6 +77,11 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         });
 
         if (error) throw error;
+        // Fire-and-forget: track last login. Cosmetic field, so we don't
+        // await it — redirect happens immediately either way.
+        fetch("/api/auth/track-login", { method: "POST" }).catch((e) => {
+          console.warn("[AUTH] track-login failed:", e);
+        });
         router.push("/dashboard");
       }
     } catch (err) {

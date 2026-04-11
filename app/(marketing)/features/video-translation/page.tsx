@@ -16,6 +16,7 @@ import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 import { FaqAccordion } from "@/components/ui/faq-accordion";
+import { getPlatformHreflang } from "@/lib/seo/platform-hreflang";
 
 export const metadata: Metadata = {
   title:
@@ -24,6 +25,7 @@ export const metadata: Metadata = {
     "Translate and dub videos into 30+ languages with AI. Support for Spanish, French, Japanese, Hindi, Arabic, and more. Studio-quality output in minutes.",
   alternates: {
     canonical: "https://dubsync.app/features/video-translation",
+    languages: getPlatformHreflang("/features/video-translation"),
   },
   openGraph: {
     type: "website",

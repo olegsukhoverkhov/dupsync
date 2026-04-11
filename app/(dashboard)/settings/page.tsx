@@ -17,12 +17,15 @@ import { createClient } from "@/lib/supabase/client";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { Profile } from "@/lib/supabase/types";
 import { Loader2, ExternalLink } from "lucide-react";
+import { LanguageSwitcher } from "@/components/dashboard/language-switcher";
+import { useDashboardT } from "@/components/dashboard/locale-provider";
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [billingLoading, setBillingLoading] = useState(false);
   const [alertModal, setAlertModal] = useState<{ title: string; message: string; type: "error" | "info" } | null>(null);
+  const t = useDashboardT();
 
   useEffect(() => {
     async function loadProfile() {
@@ -57,7 +60,11 @@ export default function SettingsPage() {
         window.location.href = data.url;
       }
     } catch {
-      setAlertModal({ title: "Error", message: "Failed to open billing portal. Please try again.", type: "error" });
+      setAlertModal({
+        title: t("dashboard.settingsPage.errorTitle", "Error"),
+        message: t("dashboard.settingsPage.billingPortalError", "Failed to open billing portal. Please try again."),
+        type: "error",
+      });
     } finally {
       setBillingLoading(false);
     }
@@ -77,13 +84,13 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold mb-8">Settings</h1>
+      <h1 className="text-2xl font-bold mb-8">{t("dashboard.settingsPage.title", "Settings")}</h1>
 
       {/* Profile Card */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Profile</CardTitle>
-          <CardDescription>Your account information</CardDescription>
+          <CardTitle>{t("dashboard.settingsPage.profile", "Profile")}</CardTitle>
+          <CardDescription>{t("dashboard.settingsPage.profileDescription", "Your account information")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
@@ -95,10 +102,29 @@ export default function SettingsPage() {
             </Avatar>
             <div>
               <p className="font-medium">
-                {profile.full_name || "No name set"}
+                {profile.full_name || t("dashboard.settingsPage.noNameSet", "No name set")}
               </p>
               <p className="text-sm text-muted-foreground">{profile.email}</p>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Language Card — mobile users primarily discover the language
+          switcher here (the sidebar switcher is desktop-only). Picking
+          a locale calls PATCH /api/profile/locale which stamps the DB
+          and refreshes the server layout so the whole dashboard
+          re-renders in the chosen language without a full reload. */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>{t("dashboard.settingsPage.language", "Language")}</CardTitle>
+          <CardDescription>
+            {t("dashboard.settingsPage.languageDescription", "Interface language for the dashboard and emails.")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="max-w-xs">
+            <LanguageSwitcher placement="bottom" />
           </div>
         </CardContent>
       </Card>
@@ -108,9 +134,9 @@ export default function SettingsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Subscription Plan</CardTitle>
+              <CardTitle>{t("dashboard.settingsPage.subscriptionPlan", "Subscription Plan")}</CardTitle>
               <CardDescription>
-                Manage your subscription and billing
+                {t("dashboard.settingsPage.subscriptionDescription", "Manage your subscription and billing")}
               </CardDescription>
             </div>
             <Badge variant="secondary" className="text-sm">
@@ -121,27 +147,35 @@ export default function SettingsPage() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="text-muted-foreground">Price</p>
+              <p className="text-muted-foreground">{t("dashboard.settingsPage.price", "Price")}</p>
               <p className="font-medium">
                 {currentPlan.price === 0
-                  ? "Free"
-                  : `$${currentPlan.price / 100}/month`}
+                  ? t("dashboard.settingsPage.free", "Free")
+                  : t("dashboard.settingsPage.perMonth", "${price}/month", { price: String(currentPlan.price / 100) })}
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground">Credits</p>
+              <p className="text-muted-foreground">{t("dashboard.settingsPage.credits", "Credits")}</p>
               <p className="font-medium">
                 {currentPlan.credits === -1
-                  ? "Unlimited"
-                  : `${Math.floor(Math.min(Number(profile.credits_remaining), currentPlan.credits))} / ${currentPlan.credits} credits`}
+                  ? t("dashboard.settingsPage.unlimited", "Unlimited")
+                  : t("dashboard.settingsPage.creditsOfTotal", "{used} / {total} credits", {
+                      used: String(Math.floor(Math.min(Number(profile.credits_remaining), currentPlan.credits))),
+                      total: String(currentPlan.credits),
+                    })}
               </p>
+              {Number(profile.topup_credits ?? 0) > 0 && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {t("dashboard.settingsPage.topupExtra", "+ {n} top-up credits", { n: String(Math.floor(Number(profile.topup_credits))) })}
+                </p>
+              )}
             </div>
             <div>
-              <p className="text-muted-foreground">Max File Size</p>
+              <p className="text-muted-foreground">{t("dashboard.settingsPage.maxFileSize", "Max File Size")}</p>
               <p className="font-medium">{currentPlan.maxFileSize}MB</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Max Languages</p>
+              <p className="text-muted-foreground">{t("dashboard.settingsPage.maxLanguages", "Max Languages")}</p>
               <p className="font-medium">{currentPlan.maxLanguages}</p>
             </div>
           </div>
@@ -158,14 +192,14 @@ export default function SettingsPage() {
                   {billingLoading && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  Upgrade to Starter
+                  {t("dashboard.settingsPage.upgradeToStarter", "Upgrade to Starter")}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => handleBillingAction("checkout", "pro")}
                   disabled={billingLoading}
                 >
-                  Upgrade to Pro
+                  {t("dashboard.settingsPage.upgradeToPro", "Upgrade to Pro")}
                 </Button>
               </>
             ) : (
@@ -177,7 +211,7 @@ export default function SettingsPage() {
                 {billingLoading && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Manage Subscription
+                {t("dashboard.settingsPage.manageSubscription", "Manage Subscription")}
                 <ExternalLink className="ml-2 h-4 w-4" />
               </Button>
             )}

@@ -42,6 +42,31 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Attach total credits spent per project. Done as a separate query
+  // (instead of a nested Supabase select) because a nested join would
+  // return an array per parent row that still needs summing in JS; a
+  // single indexed query on credit_usage.project_id is cheaper.
+  if (projects && projects.length > 0) {
+    const projectIds = projects.map((p) => p.id);
+    const { data: usageRows } = await supabase
+      .from("credit_usage")
+      .select("project_id, credits_used")
+      .eq("user_id", user.id)
+      .in("project_id", projectIds);
+
+    const creditsByProject = new Map<string, number>();
+    for (const row of usageRows || []) {
+      const id = row.project_id as string;
+      const used = Number(row.credits_used) || 0;
+      creditsByProject.set(id, (creditsByProject.get(id) || 0) + used);
+    }
+
+    for (const project of projects) {
+      (project as Record<string, unknown>).credits_used =
+        creditsByProject.get(project.id) || 0;
+    }
+  }
+
   return NextResponse.json(projects);
 }
 
@@ -105,19 +130,45 @@ export async function POST(request: Request) {
     // will catch most cases anyway.
   }
 
-  // Check for duplicate project name
+  // Check for duplicate project name.
+  //
+  // If an existing project with the same title is in `error` state, it's
+  // a leftover from a previous failed upload (e.g. a video with no audio
+  // track). Silently delete it + its storage file and let the user retry
+  // under the same name — that matches what they click through in the
+  // error modal ("Upload new video"). Only genuine conflicts (existing
+  // project still transcribing, ready, dubbing, or done) return 409.
   const { data: existing } = await supabase
     .from("projects")
-    .select("id")
+    .select("id, status, original_video_url")
     .eq("user_id", user.id)
     .eq("title", title)
     .limit(1);
 
   if (existing && existing.length > 0) {
-    return NextResponse.json(
-      { error: `A project named "${title}" already exists. Please choose a different name.` },
-      { status: 409 }
-    );
+    const prior = existing[0];
+    if (prior.status === "error") {
+      // Best-effort storage cleanup — ignore failures, the row delete
+      // below is what really matters for the retry to succeed.
+      if (prior.original_video_url) {
+        try {
+          await supabase.storage
+            .from("videos")
+            .remove([prior.original_video_url]);
+        } catch (e) {
+          console.warn("[PROJECTS] Failed to remove stale upload:", e);
+        }
+      }
+      // Dubs cascade-delete on projects (per FK), but be explicit so a
+      // stray constraint doesn't block the insert that follows.
+      await supabase.from("dubs").delete().eq("project_id", prior.id);
+      await supabase.from("projects").delete().eq("id", prior.id);
+    } else {
+      return NextResponse.json(
+        { error: `A project named "${title}" already exists. Please choose a different name.` },
+        { status: 409 }
+      );
+    }
   }
 
   // Create project
