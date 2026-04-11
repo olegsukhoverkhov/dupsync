@@ -392,14 +392,14 @@ async function runDubbingAudioOnce(
 
     if (cloneProvider === "cartesia") {
       // ── Cartesia TTS path (primary) ────────────────────────
-      log(dubId, `Using Cartesia TTS (voice=${voiceId}, lang=${targetLang}, segments=${segmentsWithTiming.length})`);
+      log(dubId, `Using Cartesia TTS (voice=${voiceId}, lang=${targetLanguageCode}, segments=${segmentsWithTiming.length})`);
       let firstError = "";
       const segmentBuffers: Buffer[] = [];
       for (let i = 0; i < segmentsWithTiming.length; i++) {
         const seg = segmentsWithTiming[i];
         if (!seg.text.trim()) continue;
         try {
-          const buf = await cartesia.textToSpeech(seg.text, voiceId, targetLang);
+          const buf = await cartesia.textToSpeech(seg.text, voiceId, targetLanguageCode);
           segmentBuffers.push(buf);
           log(dubId, `  Segment ${i + 1}/${segmentsWithTiming.length}: ${(buf.length / 1024).toFixed(0)}KB`);
         } catch (err) {
