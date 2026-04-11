@@ -49,35 +49,39 @@ export async function cloneVoice(
 
   console.log(`[CARTESIA_CLONE] Sample: ${(audioBuffer.length / 1024).toFixed(0)}KB, mime=${mimeType}→${sendMime}, lang=${language}`);
 
-  // Write buffer to temp file, then pass as ReadStream to Cartesia SDK.
-  // Node.js File/Blob on Vercel serverless corrupts binary data in multipart
-  // uploads. ReadStream sends raw bytes correctly.
+  // Vercel serverless runtime has a broken FormData/File/Blob that corrupts
+  // binary data in multipart uploads. Use child_process to exec curl which
+  // sends raw bytes correctly from disk.
   const fs = await import("fs");
   const os = await import("os");
   const path = await import("path");
+  const { execSync } = await import("child_process");
+
   const tempFile = path.join(os.tmpdir(), `cartesia-clone-${Date.now()}.${ext}`);
   fs.writeFileSync(tempFile, audioBuffer);
 
   try {
-    const Cartesia = (await import("@cartesia/cartesia-js")).default;
-    const client = new Cartesia({ apiKey: getApiKey() });
-    const stream = fs.createReadStream(tempFile);
+    const cloneName = `dubsync-${name.slice(0, 8)}-${Date.now()}`;
+    const cmd = `curl -s -X POST "https://api.cartesia.ai/voices/clone" ` +
+      `-H "X-API-Key: ${getApiKey()}" ` +
+      `-H "Cartesia-Version: ${CARTESIA_VERSION}" ` +
+      `-F "clip=@${tempFile};type=${sendMime}" ` +
+      `-F "name=${cloneName}" ` +
+      `-F "language=${mapLanguageCode(language)}" ` +
+      `-F "mode=similarity"`;
 
-    const result = await client.voices.clone({
-      clip: stream,
-      name: `dubsync-${name.slice(0, 8)}-${Date.now()}`,
-      language: mapLanguageCode(language) as Parameters<typeof client.voices.clone>[0]["language"],
-    });
+    const result = execSync(cmd, { timeout: 30000 }).toString();
+    console.log(`[CARTESIA_CLONE] Response: ${result.slice(0, 200)}`);
 
-    const voiceId = result.id;
+    const data = JSON.parse(result);
+    const voiceId = data.id;
     if (!voiceId) {
-      throw new Error(`Cartesia clone: no voice ID in response`);
+      throw new Error(`Cartesia clone failed: ${result.slice(0, 300)}`);
     }
 
     console.log(`[CARTESIA_CLONE] Created voice ${voiceId}`);
     return voiceId;
   } finally {
-    // Cleanup temp file
     try { fs.unlinkSync(tempFile); } catch {}
   }
 }
