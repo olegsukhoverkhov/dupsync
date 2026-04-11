@@ -335,6 +335,9 @@ function EditForm({
   const [credits, setCredits] = useState<string>(
     String(Math.floor(user.credits_remaining))
   );
+  const [topup, setTopup] = useState<string>(
+    String(Math.floor(user.topup_credits))
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -343,15 +346,21 @@ function EditForm({
     setError(null);
     try {
       const creditsNumber = Number(credits);
+      const topupNumber = Number(topup);
       if (!Number.isFinite(creditsNumber) || creditsNumber < 0) {
         setError("Credits must be a non-negative number");
+        setSaving(false);
+        return;
+      }
+      if (!Number.isFinite(topupNumber) || topupNumber < 0) {
+        setError("Top-up credits must be a non-negative number");
         setSaving(false);
         return;
       }
       const res = await fetch(`/api/admin/users/${user.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan, credits_remaining: creditsNumber }),
+        body: JSON.stringify({ plan, credits_remaining: creditsNumber, topup_credits: topupNumber }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -401,11 +410,20 @@ function EditForm({
             onChange={(e) => setCredits(e.target.value)}
             className="w-full rounded-lg border border-white/10 bg-slate-900/50 px-3 py-2.5 text-sm text-white focus:border-pink-500/50 focus:outline-none"
           />
-          {user.topup_credits > 0 && (
-            <p className="mt-1 text-[11px] text-slate-500">
-              + {Math.floor(user.topup_credits)} top-up credits (not editable from here)
-            </p>
-          )}
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium uppercase tracking-wider text-slate-500 mb-1.5">
+            Top-up credits
+          </label>
+          <input
+            type="number"
+            min={0}
+            step={1}
+            value={topup}
+            onChange={(e) => setTopup(e.target.value)}
+            className="w-full rounded-lg border border-white/10 bg-slate-900/50 px-3 py-2.5 text-sm text-white focus:border-pink-500/50 focus:outline-none"
+          />
         </div>
       </div>
 

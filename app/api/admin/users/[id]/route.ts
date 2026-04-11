@@ -37,7 +37,7 @@ export async function PATCH(
   const auth = await requireAdmin();
   if (auth.error) return auth.error;
 
-  let body: { plan?: string; credits_remaining?: number; is_suspended?: boolean };
+  let body: { plan?: string; credits_remaining?: number; topup_credits?: number; is_suspended?: boolean };
   try {
     body = await request.json();
   } catch {
@@ -63,6 +63,16 @@ export async function PATCH(
       );
     }
     updates.credits_remaining = n;
+  }
+  if (body.topup_credits !== undefined) {
+    const n = Number(body.topup_credits);
+    if (!Number.isFinite(n) || n < 0) {
+      return NextResponse.json(
+        { error: "topup_credits must be a non-negative number" },
+        { status: 400 }
+      );
+    }
+    updates.topup_credits = n;
   }
   if (typeof body.is_suspended === "boolean") {
     updates.is_suspended = body.is_suspended;
