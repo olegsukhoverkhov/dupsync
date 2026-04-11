@@ -12,6 +12,79 @@ function log(dubId: string, msg: string) {
   console.log(`[DUB:${dubId.slice(0, 8)}] ${msg}`);
 }
 
+/**
+ * Extract audio from a video file server-side using fal.ai ffmpeg.
+ * Saves the extracted WAV to Supabase storage alongside the video.
+ * Called during transcription so audio is always ready for voice cloning.
+ */
+async function ensureExtractedAudio(
+  supabase: Awaited<ReturnType<typeof createServiceClient>>,
+  videoPath: string
+): Promise<void> {
+  const videoDir = videoPath.split("/").slice(0, -1).join("/");
+  const audioPath = `${videoDir}/extracted-audio.wav`;
+
+  // Check if already exists
+  const { data: existing } = await supabase.storage.from("videos").list(videoDir, { search: "extracted-audio" });
+  if (existing && existing.length > 0) return;
+
+  const falKey = process.env.FAL_KEY;
+  if (!falKey) {
+    console.warn("[EXTRACT_AUDIO] FAL_KEY not set, skipping audio extraction");
+    return;
+  }
+
+  try {
+    // Get signed URL for the video
+    const { data: signed } = await supabase.storage.from("videos").createSignedUrl(videoPath, 600);
+    if (!signed?.signedUrl) return;
+
+    // Submit ffmpeg job to fal.ai (synchronous run)
+    const res = await fetch("https://fal.run/fal-ai/ffmpeg-api/compose", {
+      method: "POST",
+      headers: {
+        Authorization: `Key ${falKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tracks: [{
+          type: "audio",
+          url: signed.signedUrl,
+        }],
+        output_format: "wav",
+        duration: 30, // Max 30s for voice sample
+      }),
+    });
+
+    if (!res.ok) {
+      console.warn(`[EXTRACT_AUDIO] fal.ai ffmpeg failed: ${res.status}`);
+      return;
+    }
+
+    const result = (await res.json()) as { audio_url?: string; url?: string; output_url?: string };
+    const audioUrl = result.audio_url || result.url || result.output_url;
+    if (!audioUrl) {
+      console.warn("[EXTRACT_AUDIO] No audio URL in response");
+      return;
+    }
+
+    // Download extracted audio
+    const audioRes = await fetch(audioUrl);
+    if (!audioRes.ok) return;
+    const audioBuffer = Buffer.from(await audioRes.arrayBuffer());
+
+    // Upload to storage
+    await supabase.storage.from("videos").upload(audioPath, audioBuffer, {
+      contentType: "audio/wav",
+      upsert: true,
+    });
+
+    console.log(`[EXTRACT_AUDIO] Saved ${(audioBuffer.length / 1024).toFixed(0)}KB to ${audioPath}`);
+  } catch (err) {
+    console.warn(`[EXTRACT_AUDIO] Failed: ${err instanceof Error ? err.message : err}`);
+  }
+}
+
 // ── Voice clone cache ────────────────────────────────────────
 // Shared across parallel dubs of the same project so we clone once.
 // Cleaned up after all dubs complete in the /api/dub route.
@@ -134,6 +207,11 @@ export async function runTranscription(projectId: string) {
     if (!project?.original_video_url) {
       throw new Error("No video URL found");
     }
+
+    // Extract audio server-side for voice cloning (non-blocking)
+    ensureExtractedAudio(supabase, project.original_video_url).catch((e) =>
+      console.warn(`[TRANSCRIBE:${projectId.slice(0, 8)}] Audio extraction failed:`, e)
+    );
 
     const ext = (project.original_video_url.split(".").pop() || "mp4").toLowerCase();
     const languageHint = project.original_language !== "auto" ? project.original_language : undefined;
@@ -342,7 +420,7 @@ async function runDubbingAudioOnce(
 
     // Voice cloning: use shared cache so parallel dubs reuse the same clone
     const videoDir = (project.original_video_url as string).split("/").slice(0, -1).join("/");
-    const audioCandidates = ["extracted-audio.webm", "extracted-audio.mp4", "voice-sample.wav"];
+    const audioCandidates = ["extracted-audio.wav", "extracted-audio.webm", "extracted-audio.mp4", "voice-sample.wav"];
     let sampleBuffer: Buffer | null = null;
 
     for (const candidate of audioCandidates) {
