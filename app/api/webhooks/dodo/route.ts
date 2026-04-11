@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
   const eventType = event.type || "";
   const data = event.data || event.payload || {};
   const metadata = (data.metadata || {}) as Record<string, string>;
+  const isTest = process.env.DODO_PAYMENTS_ENV !== "production";
 
   console.log(`[DODO_WEBHOOK] ${eventType}`, JSON.stringify(data).slice(0, 500));
 
@@ -69,12 +70,14 @@ export async function POST(req: NextRequest) {
       }
 
       // Record transaction
+      const topupAmount = Number(data.total_amount || data.recurring_pre_tax_amount || data.total || data.amount || 0);
       await supabase.from("transactions").insert({
         user_id: userId,
         type: "topup",
-        amount: Number(data.total || data.amount || 0),
+        amount: topupAmount,
         credits,
-        description: `Top-up: ${credits} credits via Dodo Payments`,
+        description: `Top-up: ${credits} credits via Dodo Payments${isTest ? " [TEST]" : ""}`,
+        is_test: isTest,
       });
       break;
     }
@@ -104,12 +107,14 @@ export async function POST(req: NextRequest) {
         })
         .eq("id", userId);
 
+      const subAmount = Number(data.recurring_pre_tax_amount || data.total_amount || data.total || data.amount || 0);
       await supabase.from("transactions").insert({
         user_id: userId,
         type: "subscription",
-        amount: Number(data.total || data.amount || 0),
+        amount: subAmount,
         credits: planConfig.credits,
-        description: `Subscribed to ${planConfig.name} plan`,
+        description: `Subscribed to ${planConfig.name} plan${isTest ? " [TEST]" : ""}`,
+        is_test: isTest,
       });
 
       console.log(`[DODO_WEBHOOK] User ${userId} subscribed to ${plan}`);

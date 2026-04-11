@@ -143,6 +143,11 @@ export default async function AdminPaymentsPage({
                         <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${typeBadge}`}>
                           {tx.type}
                         </span>
+                        {tx.is_test && (
+                          <span className="ml-1 inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-400">
+                            TEST
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums text-white font-medium">
                         ${(Number(tx.amount || 0) / 100).toFixed(2)}
