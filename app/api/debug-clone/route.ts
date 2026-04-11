@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
-import { extractAudioViaFal } from "@/lib/ai";
 
 export const maxDuration = 120;
 
@@ -32,36 +31,53 @@ export async function GET(req: Request) {
   const fileList = (files || []).map(f => `${f.name} (${f.metadata?.size || '?'} bytes)`);
   steps.push(`Files in dir: ${fileList.join(", ") || "NONE"}`);
 
-  // Step 2: Try audio extraction via fal.ai synchronous endpoint
+  // Step 2: Check ffmpeg-static and try extraction
   const hasExtracted = (files || []).some(f => f.name.startsWith("extracted-audio"));
   steps.push(`Has extracted audio: ${hasExtracted}`);
 
   if (!hasExtracted) {
-    steps.push("Extracting audio via fal.ai (synchronous)...");
-
+    steps.push("Extracting audio via ffmpeg-static...");
     try {
-      // Get signed URL for the video
-      const { data: signed } = await service.storage.from("videos").createSignedUrl(videoUrl, 600);
-      steps.push(`Signed URL: ${signed?.signedUrl ? "OK" : "FAILED"}`);
+      const fs = await import("fs");
+      const os = await import("os");
+      const path = await import("path");
+      const { execSync } = await import("child_process");
+      const ffmpegPath = (await import("ffmpeg-static")).default;
 
-      if (signed?.signedUrl) {
-        const audioUrl = await extractAudioViaFal(signed.signedUrl);
-        steps.push(`fal.ai audio URL: ${audioUrl.slice(0, 100)}`);
+      steps.push(`ffmpeg path: ${ffmpegPath}`);
+      const exists = fs.existsSync(ffmpegPath as string);
+      steps.push(`ffmpeg exists: ${exists}`);
 
-        // Download the extracted audio
-        const audioRes = await fetch(audioUrl);
-        steps.push(`Audio download: HTTP ${audioRes.status}`);
+      if (exists) {
+        const version = execSync(`"${ffmpegPath}" -version`, { timeout: 5000 }).toString().split("\n")[0];
+        steps.push(`ffmpeg version: ${version}`);
 
-        if (audioRes.ok) {
-          const audioBuffer = Buffer.from(await audioRes.arrayBuffer());
-          steps.push(`Audio size: ${audioBuffer.length} bytes (${(audioBuffer.length / 1024).toFixed(0)}KB)`);
+        // Download video
+        const { data: videoData } = await service.storage.from("videos").download(videoUrl);
+        if (videoData) {
+          const videoBuffer = Buffer.from(await videoData.arrayBuffer());
+          steps.push(`Video downloaded: ${(videoBuffer.length / 1024).toFixed(0)}KB`);
 
-          // Upload to storage
+          const tempVideo = path.join(os.tmpdir(), `debug-in-${Date.now()}.mov`);
+          const tempAudio = path.join(os.tmpdir(), `debug-out-${Date.now()}.wav`);
+          fs.writeFileSync(tempVideo, videoBuffer);
+
+          execSync(`"${ffmpegPath}" -i "${tempVideo}" -vn -acodec pcm_s16le -ar 44100 -ac 1 "${tempAudio}" -y`, {
+            timeout: 30000, stdio: "pipe",
+          });
+
+          const audioBuffer = fs.readFileSync(tempAudio);
+          steps.push(`Audio extracted: ${(audioBuffer.length / 1024).toFixed(0)}KB WAV`);
+
+          // Upload
           const audioPath = `${videoDir}/extracted-audio.wav`;
           const { error: upErr } = await service.storage.from("videos").upload(
             audioPath, audioBuffer, { contentType: "audio/wav", upsert: true }
           );
           steps.push(`Upload: ${upErr ? `FAILED ${upErr.message}` : "OK"}`);
+
+          try { fs.unlinkSync(tempVideo); } catch {}
+          try { fs.unlinkSync(tempAudio); } catch {}
         }
       }
     } catch (e) {

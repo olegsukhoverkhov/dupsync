@@ -61,12 +61,29 @@ export async function cloneVoice(
   let cloneMime = sendMime;
   let cloneExt = ext;
 
-  // If video file, audio should have been pre-extracted by ensureExtractedAudio().
-  // If we still receive a video here, warn and try sending as-is (may fail).
+  // If video file, extract audio with ffmpeg-static (Cartesia rejects video files)
   if (mimeType === "video/mp4" || mimeType === "application/octet-stream") {
-    console.warn(`[CARTESIA_CLONE] Received video file (${mimeType}) — audio should have been pre-extracted. Sending as audio/mpeg.`);
-    cloneMime = "audio/mpeg";
-    cloneExt = "mp3";
+    try {
+      const ffmpegPath = (await import("ffmpeg-static")).default;
+      if (ffmpegPath && fs.existsSync(ffmpegPath as string)) {
+        const tempIn = path.join(os.tmpdir(), `clone-in-${Date.now()}.mov`);
+        const tempOut = path.join(os.tmpdir(), `clone-out-${Date.now()}.wav`);
+        fs.writeFileSync(tempIn, audioBuffer);
+        execSync(`"${ffmpegPath}" -i "${tempIn}" -vn -acodec pcm_s16le -ar 44100 -ac 1 "${tempOut}" -y`, {
+          timeout: 30000, stdio: "pipe",
+        });
+        cloneBuffer = fs.readFileSync(tempOut);
+        cloneMime = "audio/wav";
+        cloneExt = "wav";
+        console.log(`[CARTESIA_CLONE] Extracted audio via ffmpeg: ${(cloneBuffer.length / 1024).toFixed(0)}KB WAV`);
+        try { fs.unlinkSync(tempIn); } catch {}
+        try { fs.unlinkSync(tempOut); } catch {}
+      } else {
+        console.warn(`[CARTESIA_CLONE] ffmpeg binary not found at ${ffmpegPath} — sending video as-is`);
+      }
+    } catch (err) {
+      console.warn(`[CARTESIA_CLONE] ffmpeg extraction failed: ${err instanceof Error ? err.message : err}`);
+    }
   }
 
   // Upload via curl (Vercel Node.js FormData corrupts binary data)

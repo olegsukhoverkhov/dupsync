@@ -13,9 +13,12 @@ function log(dubId: string, msg: string) {
 }
 
 /**
- * Extract audio from a video file server-side using fal.ai ffmpeg-api.
+ * Extract audio from a video file server-side using ffmpeg-static.
  * Saves the extracted WAV to Supabase storage alongside the video.
  * Called during transcription so audio is always ready for voice cloning.
+ *
+ * Requires `outputFileTracingIncludes` in next.config.ts to bundle the
+ * ffmpeg-static binary into Vercel serverless functions.
  */
 async function ensureExtractedAudio(
   supabase: Awaited<ReturnType<typeof createServiceClient>>,
@@ -29,24 +32,41 @@ async function ensureExtractedAudio(
   if (existing && existing.length > 0) return;
 
   try {
-    // Get a signed URL for the video so fal.ai can access it
-    const { data: signed } = await supabase.storage.from("videos").createSignedUrl(videoPath, 600);
-    if (!signed?.signedUrl) {
-      console.warn("[EXTRACT_AUDIO] Could not create signed URL for video");
+    const fs = await import("fs");
+    const os = await import("os");
+    const path = await import("path");
+    const { execSync } = await import("child_process");
+    const ffmpegPath = (await import("ffmpeg-static")).default;
+
+    if (!ffmpegPath) {
+      console.warn("[EXTRACT_AUDIO] ffmpeg-static path not available");
       return;
     }
 
-    // Extract audio via fal.ai cloud ffmpeg (works on Vercel — no local binary needed)
-    const audioUrl = await ai.extractAudioViaFal(signed.signedUrl);
-
-    // Download the extracted audio from fal.ai CDN
-    const audioRes = await fetch(audioUrl);
-    if (!audioRes.ok) {
-      console.warn(`[EXTRACT_AUDIO] Failed to download from fal.ai: ${audioRes.status}`);
+    const exists = fs.existsSync(ffmpegPath as string);
+    console.log(`[EXTRACT_AUDIO] ffmpeg path=${ffmpegPath}, exists=${exists}`);
+    if (!exists) {
+      console.warn("[EXTRACT_AUDIO] ffmpeg binary not found on disk");
       return;
     }
-    const audioBuffer = Buffer.from(await audioRes.arrayBuffer());
-    console.log(`[EXTRACT_AUDIO] Downloaded ${(audioBuffer.length / 1024).toFixed(0)}KB WAV from fal.ai`);
+
+    // Download video to temp file
+    const { data: videoData } = await supabase.storage.from("videos").download(videoPath);
+    if (!videoData) return;
+    const videoBuffer = Buffer.from(await videoData.arrayBuffer());
+
+    const tempVideo = path.join(os.tmpdir(), `extract-input-${Date.now()}.mov`);
+    const tempAudio = path.join(os.tmpdir(), `extract-output-${Date.now()}.wav`);
+    fs.writeFileSync(tempVideo, videoBuffer);
+
+    // Extract audio with ffmpeg
+    execSync(`"${ffmpegPath}" -i "${tempVideo}" -vn -acodec pcm_s16le -ar 44100 -ac 1 "${tempAudio}" -y`, {
+      timeout: 30000,
+      stdio: "pipe",
+    });
+
+    const audioBuffer = fs.readFileSync(tempAudio);
+    console.log(`[EXTRACT_AUDIO] Extracted ${(audioBuffer.length / 1024).toFixed(0)}KB WAV`);
 
     // Upload to storage
     await supabase.storage.from("videos").upload(audioStoragePath, audioBuffer, {
@@ -55,6 +75,10 @@ async function ensureExtractedAudio(
     });
 
     console.log(`[EXTRACT_AUDIO] Saved to ${audioStoragePath}`);
+
+    // Cleanup
+    try { fs.unlinkSync(tempVideo); } catch {}
+    try { fs.unlinkSync(tempAudio); } catch {}
   } catch (err) {
     console.warn(`[EXTRACT_AUDIO] Failed: ${err instanceof Error ? err.message : err}`);
   }
