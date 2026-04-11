@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getVisitStats, getVisitDailyChart, getOnlineCounts } from "@/lib/analytics";
+import { getVisitStats, getVisitDailyChart, getOnlineCounts, getVisitCountries } from "@/lib/analytics";
 import { VisitsChart } from "@/components/admin/visits-chart";
 import { resolveRange, type RangePreset } from "@/lib/admin";
 import { RangeFilter } from "@/components/admin/range-filter";
@@ -52,10 +52,11 @@ export default async function AdminAnalyticsPage({
 
   const range = resolveRange(preset, customFrom || null, customTo || null);
 
-  const [stats, dailyData, online] = await Promise.all([
+  const [stats, dailyData, online, countries] = await Promise.all([
     getVisitStats({ from: range.from, to: range.to }),
     getVisitDailyChart({ from: range.from, to: range.to }),
     getOnlineCounts(),
+    getVisitCountries({ from: range.from, to: range.to }),
   ]);
 
   return (
@@ -165,6 +166,66 @@ export default async function AdminAnalyticsPage({
       <div className="mt-6">
         <VisitsChart data={dailyData} label={range.label} />
       </div>
+
+      {/* ── Country breakdown ─────────────────────────────── */}
+      {countries.length > 0 && (
+        <div className="mt-8">
+          <div className="mb-2 flex items-baseline justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+              Countries
+            </h2>
+            <p className="text-xs text-slate-500">{range.label}</p>
+          </div>
+          <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-800/30">
+            <table className="w-full text-sm">
+              <thead className="bg-white/5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                <tr>
+                  <th className="px-4 py-3">Country</th>
+                  <th className="px-4 py-3 text-right">Unique</th>
+                  <th className="px-4 py-3 text-right">Visits</th>
+                  <th className="px-4 py-3 text-right">Share</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {countries.map((c, i) => {
+                  const share = stats.unique > 0
+                    ? Math.round((c.unique_visitors / stats.unique) * 100)
+                    : 0;
+                  return (
+                    <tr key={c.country} className="hover:bg-white/[0.02]">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">{countryFlag(c.country)}</span>
+                          <span className="text-white font-medium">{c.country}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-white">
+                        {c.unique_visitors}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-slate-400">
+                        {c.visits}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <div className="w-16 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                            <div
+                              className="h-full bg-pink-500/70 rounded-full"
+                              style={{ width: `${share}%` }}
+                            />
+                          </div>
+                          <span className="text-xs tabular-nums text-slate-500 w-8 text-right">
+                            {share}%
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -195,5 +256,15 @@ function StatCard({
       </p>
       <p className="mt-1 text-xs text-slate-500">{subtitle}</p>
     </div>
+  );
+}
+
+/** Convert "US" → 🇺🇸 using regional indicator symbols */
+function countryFlag(code: string): string {
+  if (!code || code.length !== 2) return "🌍";
+  const offset = 0x1f1e6 - 65; // 'A' = 65
+  return String.fromCodePoint(
+    code.charCodeAt(0) + offset,
+    code.charCodeAt(1) + offset
   );
 }

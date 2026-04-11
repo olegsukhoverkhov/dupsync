@@ -141,6 +141,30 @@ export async function getVisitStats(range?: {
  * - dashboardUsers: users with a heartbeat in the last 2 minutes
  * - siteVisitors: distinct IPs seen on marketing pages in the last 2 minutes
  */
+/**
+ * Country breakdown for the admin analytics page.
+ */
+export async function getVisitCountries(range?: {
+  from?: string | null;
+  to?: string | null;
+}): Promise<Array<{ country: string; visits: number; unique_visitors: number }>> {
+  try {
+    const supabase = await createServiceClient();
+    const { data, error } = await supabase.rpc("site_visit_countries", {
+      p_from: range?.from ?? null,
+      p_to: range?.to ?? null,
+    });
+    if (error || !data) return [];
+    return (data as Array<{ country: string; visits: number; unique_visitors: number }>).map((r) => ({
+      country: String(r.country),
+      visits: Number(r.visits),
+      unique_visitors: Number(r.unique_visitors),
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export async function getOnlineCounts(): Promise<{
   dashboardUsers: number;
   siteVisitors: number;
