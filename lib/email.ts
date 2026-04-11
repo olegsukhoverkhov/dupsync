@@ -10,7 +10,7 @@
  */
 import { Resend } from "resend";
 
-const FROM = "DubSync <noreply@dubsync.app>";
+const FROM = "DubSync <team@dubsync.app>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://dubsync.app";
 
 function getResend(): Resend {
