@@ -57,14 +57,30 @@ export async function GET(req: Request) {
   }
 
   if (!sampleBuffer) {
+    // Try signed URL download instead of Supabase .download()
     try {
-      const { data } = await service.storage.from("videos").download(project.original_video_url as string);
-      if (data) {
-        sampleBuffer = Buffer.from(await data.arrayBuffer());
-        source = "original video";
+      const { data: signed } = await service.storage.from("videos").createSignedUrl(project.original_video_url as string, 600);
+      if (signed?.signedUrl) {
+        const dlRes = await fetch(signed.signedUrl);
+        if (dlRes.ok) {
+          sampleBuffer = Buffer.from(await dlRes.arrayBuffer());
+          source = "signed URL download";
+        }
       }
     } catch (e) {
       debug.downloadError = e instanceof Error ? e.message : String(e);
+    }
+    // Fallback to .download()
+    if (!sampleBuffer) {
+      try {
+        const { data } = await service.storage.from("videos").download(project.original_video_url as string);
+        if (data) {
+          sampleBuffer = Buffer.from(await data.arrayBuffer());
+          source = "supabase download";
+        }
+      } catch (e) {
+        debug.downloadError2 = e instanceof Error ? e.message : String(e);
+      }
     }
   }
 
@@ -123,32 +139,42 @@ export async function GET(req: Request) {
     debug.sampleFirstBytes = Array.from(sampleBuffer.subarray(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' ');
     debug.sampleLastBytes = Array.from(sampleBuffer.subarray(sampleBuffer.length - 8)).map(b => b.toString(16).padStart(2, '0')).join(' ');
 
-    // Also try with FormData approach for comparison
+    // Try approach 2: download file via signed URL and send fresh
     try {
-      const fd = new FormData();
-      fd.append("clip", new Blob([new Uint8Array(sampleBuffer) as BlobPart], { type: sendMime }), `voice.${sendExt}`);
-      fd.append("name", `debug-fd-${Date.now()}`);
-      fd.append("language", "en");
-      fd.append("mode", "similarity");
+      const { data: signed2 } = await service.storage.from("videos").createSignedUrl(project.original_video_url as string, 600);
+      if (signed2?.signedUrl) {
+        const freshDl = await fetch(signed2.signedUrl);
+        const freshBuf = Buffer.from(await freshDl.arrayBuffer());
+        debug.freshDownloadSize = freshBuf.length;
+        debug.freshFirstBytes = Array.from(freshBuf.subarray(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(' ');
+        debug.bytesMatch = freshBuf.equals(sampleBuffer);
 
-      const fdRes = await fetch("https://api.cartesia.ai/voices/clone", {
-        method: "POST",
-        headers: { "X-API-Key": apiKey, "Cartesia-Version": "2024-11-13" },
-        body: fd,
-      });
-      debug.formDataStatus = fdRes.status;
-      const fdText = await fdRes.text();
-      debug.formDataResponse = fdText.slice(0, 200);
-      if (fdRes.ok) {
-        const fdData = JSON.parse(fdText);
-        debug.formDataCloneOk = true;
-        await fetch(`https://api.cartesia.ai/voices/${fdData.id}`, {
-          method: "DELETE",
+        // Try clone with fresh download
+        const fd = new FormData();
+        fd.append("clip", new Blob([new Uint8Array(freshBuf) as BlobPart], { type: sendMime }), `voice.${sendExt}`);
+        fd.append("name", `debug-fresh-${Date.now()}`);
+        fd.append("language", "en");
+        fd.append("mode", "similarity");
+
+        const fdRes = await fetch("https://api.cartesia.ai/voices/clone", {
+          method: "POST",
           headers: { "X-API-Key": apiKey, "Cartesia-Version": "2024-11-13" },
+          body: fd,
         });
+        debug.freshCloneStatus = fdRes.status;
+        const fdText = await fdRes.text();
+        debug.freshCloneResponse = fdText.slice(0, 200);
+        if (fdRes.ok) {
+          const fdData = JSON.parse(fdText);
+          debug.freshCloneOk = true;
+          await fetch(`https://api.cartesia.ai/voices/${fdData.id}`, {
+            method: "DELETE",
+            headers: { "X-API-Key": apiKey, "Cartesia-Version": "2024-11-13" },
+          });
+        }
       }
     } catch (e) {
-      debug.formDataError = e instanceof Error ? e.message : String(e);
+      debug.freshCloneError = e instanceof Error ? e.message : String(e);
     }
 
     const res = await fetch("https://api.cartesia.ai/voices/clone", {
