@@ -34,6 +34,7 @@ export default function DashboardPage() {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [topupOpen, setTopupOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [totalCreditsUsed, setTotalCreditsUsed] = useState(0);
   const t = useDashboardT();
 
   // Tab + selection state
@@ -53,6 +54,15 @@ export default function DashboardPage() {
       if (user) {
         const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
         if (data) setProfile(data as Profile);
+        // Fetch actual credits used from credit_usage table
+        const { data: usageData } = await supabase
+          .from("credit_usage")
+          .select("credits_used")
+          .eq("user_id", user.id);
+        if (usageData) {
+          const total = usageData.reduce((sum: number, r: { credits_used: number }) => sum + Number(r.credits_used || 0), 0);
+          setTotalCreditsUsed(total);
+        }
       }
     } finally {
       setLoading(false);
@@ -152,12 +162,13 @@ export default function DashboardPage() {
     creditsTotal === Infinity
       ? Infinity
       : creditsRemaining + topupCredits;
-  const creditsUsed =
-    creditsTotal === Infinity ? 0 : Math.max(0, creditsTotal - creditsRemaining);
+  const creditsUsed = totalCreditsUsed;
   const usagePercent =
     creditsTotal === Infinity || creditsTotal === 0
       ? 0
-      : Math.round((Math.max(0, creditsUsed) / creditsTotal) * 100);
+      : creditsRemaining > creditsTotal
+        ? 0 // Admin-granted credits exceed plan — no meaningful usage %
+        : Math.round((Math.max(0, creditsTotal - creditsRemaining) / creditsTotal) * 100);
 
   return (
     <div>

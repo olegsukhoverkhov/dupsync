@@ -97,12 +97,6 @@ export function ProjectCard({
             burned instead of the timestamp — users care far more about cost
             than when they hit "Done". Timestamp is still available via the
             project detail page. */}
-        {project.status === "done" && (
-          <span className="flex items-center gap-1 text-pink-400">
-            <Coins className="h-3 w-3" />
-            {Math.round(Number(project.credits_used) || 0)} {t("dashboard.projectCard.credits", "credits")}
-          </span>
-        )}
       </div>
 
       {totalDubs > 0 && (
