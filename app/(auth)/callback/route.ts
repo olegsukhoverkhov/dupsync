@@ -45,9 +45,12 @@ export async function GET(request: Request) {
             );
           }
 
-          // Resolve country from Cloudflare/Vercel headers
+          // Country: prefer cookie (set by marketing layout, same source
+          // as site_visit_events) over geo headers to avoid mismatches.
+          const cookieStore = await cookies();
           const reqHeaders = await headers();
-          const country = reqHeaders.get("cf-ipcountry")
+          const country = cookieStore.get("dubsync_country")?.value
+            || reqHeaders.get("cf-ipcountry")
             || reqHeaders.get("x-vercel-ip-country")
             || null;
 
