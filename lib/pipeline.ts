@@ -489,7 +489,10 @@ async function runDubbingAudioOnce(
 
     // Never use premade voice — if clone failed, throw error so user can retry
     if (cloneProvider === "premade") {
-      throw new Error("Voice cloning failed. Please try again — if the issue persists, try uploading a longer video (10+ seconds) with clear speech.");
+      throw new Error(
+        "Voice cloning failed. Please try again — if the issue persists, " +
+        "try uploading an MP4 video (not MOV) with at least 10 seconds of clear speech."
+      );
     }
 
     // For backward compat: fishModelId is set when provider is fish
