@@ -141,6 +141,20 @@ Jika ada pertanyaan atau butuh bantuan, cukup balas di sini — saya akan segera
 
 Selamat dubbing!`,
   },
+  zh: {
+    subject: "欢迎使用DubSync！🎬",
+    message: `你好！感谢注册DubSync。
+
+我来帮你快速上手。一些小贴士：
+
+• 你的第一个视频配音完全免费——上传视频并选择语言即可
+• 我们会自动检测说话者的语言，无需任何设置
+• 查看控制面板中的演示项目以了解效果
+
+如有任何问题或需要帮助，直接在这里回复即可——我会尽快回复你。
+
+祝配音愉快！`,
+  },
   tr: {
     subject: "DubSync'e hoş geldiniz! 🎬",
     message: `Merhaba! DubSync'e kaydolduğunuz için teşekkürler.

@@ -232,6 +232,11 @@ a, button, [role="button"] {
   cursor: pointer;
 }
 
+/* Chinese font stack */
+[lang="zh-Hans"], [lang="zh"] {
+  font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", -apple-system, sans-serif;
+}
+
 /* Blog prose styling */
 .prose-blog h1 {
   font-size: 2.25rem;

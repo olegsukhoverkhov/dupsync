@@ -37,6 +37,7 @@ const translationLoaders: Record<string, () => Promise<TranslationModule>> = {
   id: () => import("./id.json") as unknown as Promise<TranslationModule>,
   tr: () => import("./tr.json") as unknown as Promise<TranslationModule>,
   ko: () => import("./ko.json") as unknown as Promise<TranslationModule>,
+  zh: () => import("./zh.json") as unknown as Promise<TranslationModule>,
 };
 
 export async function getArticleTranslation(

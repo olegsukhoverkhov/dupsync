@@ -13,6 +13,7 @@ export const LOCALES = [
   "id",
   "tr",
   "ko",
+  "zh",
 ] as const;
 export type Locale = (typeof LOCALES)[number];
 
@@ -35,6 +36,7 @@ export const LOCALE_INFO: Record<Locale, { name: string; flag: string; nativeNam
   id: { name: "Indonesian", flag: "🇮🇩", nativeName: "Bahasa Indonesia" },
   tr: { name: "Turkish", flag: "🇹🇷", nativeName: "Türkçe" },
   ko: { name: "Korean", flag: "🇰🇷", nativeName: "한국어" },
+  zh: { name: "Chinese", flag: "🇨🇳", nativeName: "简体中文" },
 };
 
 export type Dictionary = typeof import("./en.json");
@@ -51,6 +53,7 @@ const dictionaries: Record<Locale, () => Promise<Dictionary>> = {
   id: () => import("./id.json").then((m) => m.default),
   tr: () => import("./tr.json").then((m) => m.default),
   ko: () => import("./ko.json").then((m) => m.default),
+  zh: () => import("./zh.json").then((m) => m.default),
 };
 
 export async function getDictionary(locale: Locale): Promise<Dictionary> {

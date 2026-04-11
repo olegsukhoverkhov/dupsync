@@ -115,6 +115,11 @@ const COUNTRY_LOCALE_MAP: Record<string, Locale> = {
   // Korean (ko)
   KR: "ko", // South Korea
   KP: "ko", // North Korea — tiny traffic but correct mapping
+
+  // Chinese Simplified (zh)
+  CN: "zh", // China
+  SG: "zh", // Singapore (large Chinese-speaking population)
+  MY: "zh", // Malaysia (significant Chinese community)
 };
 
 /**
