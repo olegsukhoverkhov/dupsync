@@ -1210,6 +1210,56 @@ async function checkProjectComplete(supabase: Awaited<ReturnType<typeof createSe
     const anyDone = allDubs?.some((d) => d.status === "done");
     await supabase.from("projects").update({ status: anyDone ? "done" : "error" }).eq("id", projectId);
     log(dubId, `All dubs finished — project: ${anyDone ? "done" : "error"}`);
+
+    // Send "dub complete" email notification (non-blocking)
+    if (anyDone) {
+      sendProjectCompleteEmail(supabase, projectId).catch((e) =>
+        console.warn(`[EMAIL] dub complete notification failed:`, e)
+      );
+    }
+  }
+}
+
+/** Send email when all dubs in a project are done. */
+async function sendProjectCompleteEmail(
+  supabase: Awaited<ReturnType<typeof createServiceClient>>,
+  projectId: string
+) {
+  const { data: project } = await supabase
+    .from("projects")
+    .select("title, user_id, is_demo")
+    .eq("id", projectId)
+    .single();
+  if (!project || project.is_demo) return; // Don't email for demo projects
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("email, locale, credits_remaining, plan")
+    .eq("id", project.user_id)
+    .single();
+  if (!profile?.email) return;
+
+  const { sendDubCompleteEmail, sendCreditsLowEmail } = await import("./email");
+
+  await sendDubCompleteEmail({
+    to: profile.email,
+    projectId,
+    projectTitle: project.title,
+    locale: profile.locale,
+  });
+
+  // Also check if credits are low (< 20% of plan)
+  const { PLAN_LIMITS } = await import("./supabase/constants");
+  const planCredits = PLAN_LIMITS[profile.plan as keyof typeof PLAN_LIMITS]?.credits || 0;
+  if (planCredits > 0) {
+    const remaining = Number(profile.credits_remaining);
+    if (remaining <= planCredits * 0.2 && remaining > 0) {
+      await sendCreditsLowEmail({
+        to: profile.email,
+        creditsRemaining: remaining,
+        locale: profile.locale,
+      });
+    }
   }
 }
 
