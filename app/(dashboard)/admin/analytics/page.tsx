@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { getVisitStats, getVisitDailyChart, getOnlineCounts, getVisitCountries, getCountryUserStats } from "@/lib/analytics";
 import { VisitsChart } from "@/components/admin/visits-chart";
 import { LiveCountryTable } from "@/components/admin/live-country-table";
@@ -53,13 +53,16 @@ export default async function AdminAnalyticsPage({
 
   const range = resolveRange(preset, customFrom || null, customTo || null);
 
-  const [stats, dailyData, online, countries, countryUsers] = await Promise.all([
+  const service = await createServiceClient();
+  const [stats, dailyData, online, countries, countryUsers, snapshotRow] = await Promise.all([
     getVisitStats({ from: range.from, to: range.to }),
     getVisitDailyChart({ from: range.from, to: range.to }),
     getOnlineCounts(),
     getVisitCountries({ from: range.from, to: range.to }),
     getCountryUserStats(),
+    service.from("admin_analytics_snapshot").select("country_data").eq("id", "default").single(),
   ]);
+  const snapshot = (snapshotRow.data?.country_data || {}) as Record<string, { visits: number; registered: number; paid: number }>;
 
   // Merge traffic countries + profile countries into one list
   const userStatsMap = new Map<string, { registered: number; paid: number }>();
@@ -192,6 +195,7 @@ export default async function AdminAnalyticsPage({
           registered: userStatsMap.get(c.country)?.registered || 0,
           paid: userStatsMap.get(c.country)?.paid || 0,
         }))}
+        initialSnapshot={snapshot}
         totalUnique={stats.unique}
       />
     </div>

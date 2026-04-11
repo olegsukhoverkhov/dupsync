@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 type CountryRow = {
   country: string;
@@ -10,31 +10,24 @@ type CountryRow = {
   paid: number;
 };
 
+type Snapshot = Record<string, { visits: number; registered: number; paid: number }>;
+
 /**
- * Country table with live "new visits" counter.
- * On mount, snapshots current visit counts. Polls every 30s and shows
- * the delta as "+N new". Resets when the user leaves the page.
+ * Country table with persistent "new" counters.
+ * Deltas are calculated from a DB-stored snapshot (last time admin
+ * viewed this page). Snapshot is saved when the page is closed/left.
  */
 export function LiveCountryTable({
   initialData,
+  initialSnapshot,
   totalUnique,
 }: {
   initialData: CountryRow[];
+  initialSnapshot: Snapshot;
   totalUnique: number;
 }) {
   const [data, setData] = useState<CountryRow[]>(initialData);
-  type Snapshot = { visits: number; registered: number; paid: number };
-  const snapshotRef = useRef<Map<string, Snapshot>>(new Map());
-  const [deltas, setDeltas] = useState<Map<string, Snapshot>>(new Map());
-
-  // Snapshot on mount
-  useEffect(() => {
-    const snap = new Map<string, Snapshot>();
-    for (const row of initialData) {
-      snap.set(row.country, { visits: row.visits, registered: row.registered, paid: row.paid });
-    }
-    snapshotRef.current = snap;
-  }, []); // Only on mount
+  const [snapshot] = useState<Snapshot>(initialSnapshot);
 
   // Poll every 30s
   useEffect(() => {
@@ -42,33 +35,52 @@ export function LiveCountryTable({
       try {
         const res = await fetch("/api/admin/country-visits");
         if (!res.ok) return;
-        const fresh: CountryRow[] = await res.json();
-        setData(fresh);
-
-        const newDeltas = new Map<string, Snapshot>();
-        for (const row of fresh) {
-          const base = snapshotRef.current.get(row.country) || { visits: 0, registered: 0, paid: 0 };
-          const dv = row.visits - base.visits;
-          const dr = row.registered - base.registered;
-          const dp = row.paid - base.paid;
-          if (dv > 0 || dr > 0 || dp > 0) {
-            newDeltas.set(row.country, {
-              visits: Math.max(0, dv),
-              registered: Math.max(0, dr),
-              paid: Math.max(0, dp),
-            });
-          }
-        }
-        setDeltas(newDeltas);
+        const json = await res.json();
+        setData(json.data || []);
       } catch {}
     }, 30_000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const totalNewVisits = Array.from(deltas.values()).reduce((s, d) => s + d.visits, 0);
-  const totalNewReg = Array.from(deltas.values()).reduce((s, d) => s + d.registered, 0);
-  const totalNewPaid = Array.from(deltas.values()).reduce((s, d) => s + d.paid, 0);
+  // Save snapshot when leaving the page
+  useEffect(() => {
+    function saveSnapshot() {
+      // Use keepalive so it survives page unload
+      fetch("/api/admin/country-visits", { method: "POST", keepalive: true }).catch(() => {});
+    }
+
+    window.addEventListener("beforeunload", saveSnapshot);
+    // Also listen for visibility change (tab switch on mobile)
+    function onVisibilityChange() {
+      if (document.visibilityState === "hidden") saveSnapshot();
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      window.removeEventListener("beforeunload", saveSnapshot);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      // Also save when component unmounts (SPA navigation)
+      saveSnapshot();
+    };
+  }, []);
+
+  // Calculate deltas from DB snapshot
+  function getDelta(country: string) {
+    const row = data.find((r) => r.country === country);
+    const base = snapshot[country];
+    if (!row) return { visits: 0, registered: 0, paid: 0 };
+    if (!base) return { visits: row.visits, registered: row.registered, paid: row.paid }; // New country
+    return {
+      visits: Math.max(0, row.visits - base.visits),
+      registered: Math.max(0, row.registered - base.registered),
+      paid: Math.max(0, row.paid - base.paid),
+    };
+  }
+
+  const totalNewVisits = data.reduce((s, r) => s + getDelta(r.country).visits, 0);
+  const totalNewReg = data.reduce((s, r) => s + getDelta(r.country).registered, 0);
+  const totalNewPaid = data.reduce((s, r) => s + getDelta(r.country).paid, 0);
   const totalNew = totalNewVisits + totalNewReg + totalNewPaid;
 
   return (
@@ -79,8 +91,10 @@ export function LiveCountryTable({
             Countries
           </h2>
           {totalNew > 0 && (
-            <span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 animate-pulse">
-              +{totalNew} new
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-400">
+              +{totalNewVisits > 0 ? `${totalNewVisits} visits` : ""}
+              {totalNewReg > 0 ? `${totalNewVisits > 0 ? ", " : ""}${totalNewReg} reg` : ""}
+              {totalNewPaid > 0 ? `${(totalNewVisits > 0 || totalNewReg > 0) ? ", " : ""}${totalNewPaid} paid` : ""}
             </span>
           )}
         </div>
@@ -102,7 +116,7 @@ export function LiveCountryTable({
               const share = totalUnique > 0
                 ? Math.round((c.unique_visitors / totalUnique) * 100)
                 : 0;
-              const d = deltas.get(c.country);
+              const d = getDelta(c.country);
               return (
                 <tr key={c.country} className="hover:bg-white/[0.02]">
                   <td className="px-4 py-3">
@@ -116,19 +130,19 @@ export function LiveCountryTable({
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums text-slate-400">
                     {c.visits}
-                    {d && d.visits > 0 && (
+                    {d.visits > 0 && (
                       <span className="ml-1 text-emerald-400 text-[10px] font-semibold">+{d.visits}</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums text-emerald-400">
                     {c.registered}
-                    {d && d.registered > 0 && (
+                    {d.registered > 0 && (
                       <span className="ml-1 text-emerald-300 text-[10px] font-semibold">+{d.registered}</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums text-pink-400">
                     {c.paid}
-                    {d && d.paid > 0 && (
+                    {d.paid > 0 && (
                       <span className="ml-1 text-pink-300 text-[10px] font-semibold">+{d.paid}</span>
                     )}
                   </td>
