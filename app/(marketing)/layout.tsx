@@ -52,20 +52,6 @@ export default async function MarketingLayout({
     h.get("next-url") ||
     "/";
 
-  // Stamp country cookie so callback/dashboard use the same geo source
-  // as the marketing site visit tracking. This prevents mismatches when
-  // Cloudflare and Vercel edge return different countries.
-  if (country) {
-    const cookieStore = await cookies();
-    if (!cookieStore.get("dubsync_country")?.value) {
-      cookieStore.set("dubsync_country", country, {
-        maxAge: 60 * 60 * 24 * 365,
-        path: "/",
-        sameSite: "lax",
-      });
-    }
-  }
-
   // Fire-and-forget — runs AFTER the response is streamed to the
   // browser, so page render is not blocked by the tracking insert.
   after(() => trackVisit({ ip, userAgent, country, path }));
