@@ -275,6 +275,14 @@ export async function runDubbingAudio(dubId: string) {
     .from("dubs")
     .update({ status: "error", error_message: errMsg })
     .eq("id", dubId);
+
+  // Refund credits for this failed dub
+  const project = (dub as Record<string, unknown>)?.projects as Record<string, unknown> | null;
+  const userId = (project?.user_id || (dub as Record<string, unknown>)?.user_id) as string | undefined;
+  if (userId && dub) {
+    await refundDubCredits(supabase, userId, dub.project_id as string, dubId);
+  }
+
   await checkProjectComplete(supabase, dub?.project_id, dubId);
 }
 
