@@ -16,6 +16,7 @@ import {
   LineChart,
   LifeBuoy,
   AlertTriangle,
+  Target,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -106,6 +107,11 @@ export function DashboardSidebar() {
             name: t("dashboard.nav.analytics", "Site Analytics"),
             href: "/admin/analytics",
             icon: LineChart,
+          },
+          {
+            name: t("dashboard.nav.conversion", "Conversion"),
+            href: "/admin/conversion",
+            icon: Target,
           },
           {
             name: t("dashboard.nav.admin", "Users"),
