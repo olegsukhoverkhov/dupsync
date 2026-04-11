@@ -14,7 +14,7 @@ import { useDashboardT } from "./locale-provider";
  * a Pro user sees only Business). Enterprise users never see the button.
  *
  * Clicking a plan's CTA posts to /api/billing and either redirects to
- * the returned Stripe URL or surfaces the stub 501 message inline.
+ * the returned checkout URL or surfaces the stub 501 message inline.
  */
 
 const UPGRADE_ORDER: readonly PlanType[] = ["free", "starter", "pro", "enterprise"] as const;

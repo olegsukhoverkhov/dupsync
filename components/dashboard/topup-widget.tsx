@@ -19,7 +19,7 @@ import { useDashboardT } from "./locale-provider";
  * and anywhere else we want to offer in-place credit purchase.
  *
  * The widget is self-contained: it owns its own state, calls
- * `/api/credits/topup` directly, and either redirects to the Stripe
+ * `/api/credits/topup` directly, and either redirects to the
  * checkout URL on success or surfaces the stub 501 message on failure.
  *
  * Rendering context:
@@ -35,7 +35,7 @@ export function TopupWidget({
   variant?: "inline" | "bare";
   defaultCredits?: number;
   /** Called right before `window.location.href` is changed. Lets the
-   *  caller close a wrapping modal so the user sees Stripe, not a
+   *  caller close a wrapping modal so the user sees checkout, not a
    *  half-closed UI. */
   onCheckoutOpened?: () => void;
 }) {

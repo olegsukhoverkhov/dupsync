@@ -3,7 +3,7 @@
  *
  * Merchant of Record: Dodo handles VAT, taxes, compliance.
  * Pricing: 4% + $0.40 per transaction.
- * No Stripe dependency.
+ * Primary payment provider for DubSync.
  *
  * Supports:
  *   - Subscription plans (Starter, Pro, Enterprise)

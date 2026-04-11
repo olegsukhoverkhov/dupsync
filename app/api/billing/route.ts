@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
  * POST /api/billing
  *
  * Handles subscription checkout and portal redirects.
- * Provider: Dodo Payments (primary), Stripe (legacy fallback).
+ * Provider: Dodo Payments.
  *
  * Request body:
  *   { action: "checkout", plan: "starter"|"pro"|"enterprise" }

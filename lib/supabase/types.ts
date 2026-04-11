@@ -35,6 +35,7 @@ export interface Profile {
   email: string;
   full_name: string | null;
   avatar_url: string | null;
+  /** Payment provider subscription ID (Dodo Payments). Legacy column name. */
   stripe_customer_id: string | null;
   plan: PlanType;
   /**

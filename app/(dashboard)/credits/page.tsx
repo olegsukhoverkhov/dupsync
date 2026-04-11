@@ -92,7 +92,7 @@ export default function CreditsPage() {
     const onFocus = () => loadData();
     window.addEventListener("focus", onFocus);
 
-    // Surface success/cancel from Stripe checkout redirect
+    // Surface success/cancel from checkout redirect
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       if (params.get("topup") === "success") {
