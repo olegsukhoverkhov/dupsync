@@ -45,6 +45,7 @@ export async function POST(request: Request) {
       const url = await createSubscriptionCheckout({
         productId,
         customerEmail: user.email!,
+        customerName: profile.full_name || undefined,
         userId: user.id,
         returnUrl,
       });

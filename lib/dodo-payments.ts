@@ -52,6 +52,7 @@ export function getPlanProductId(plan: string): string | null {
 export async function createSubscriptionCheckout(opts: {
   productId: string;
   customerEmail: string;
+  customerName?: string;
   userId: string;
   returnUrl: string;
 }): Promise<string> {
@@ -60,7 +61,7 @@ export async function createSubscriptionCheckout(opts: {
     headers: headers(),
     body: JSON.stringify({
       billing: { city: "", country: "US", state: "", street: "", zipcode: "" },
-      customer: { email: opts.customerEmail },
+      customer: { email: opts.customerEmail, name: opts.customerName || opts.customerEmail.split("@")[0] },
       product_id: opts.productId,
       quantity: 1,
       payment_link: true,
@@ -71,15 +72,24 @@ export async function createSubscriptionCheckout(opts: {
     }),
   });
 
+  const rawText = await res.text();
   if (!res.ok) {
-    const err = await res.text().catch(() => "");
-    throw new Error(`Dodo checkout failed: ${res.status} ${err.slice(0, 300)}`);
+    throw new Error(`Dodo checkout failed: ${res.status} ${rawText.slice(0, 300)}`);
+  }
+  if (!rawText) {
+    throw new Error("Dodo checkout: empty response");
   }
 
-  const data = (await res.json()) as { payment_link?: string; url?: string };
-  const url = data.payment_link || data.url;
+  let data: Record<string, unknown>;
+  try {
+    data = JSON.parse(rawText);
+  } catch {
+    throw new Error(`Dodo checkout: invalid JSON: ${rawText.slice(0, 200)}`);
+  }
+
+  const url = (data.payment_link as string) || (data.url as string);
   if (!url) {
-    throw new Error(`Dodo checkout: no URL in response: ${JSON.stringify(data).slice(0, 200)}`);
+    throw new Error(`Dodo checkout: no URL in response: ${rawText.slice(0, 200)}`);
   }
 
   return url;
@@ -101,7 +111,7 @@ export async function createTopupCheckout(opts: {
     headers: headers(),
     body: JSON.stringify({
       billing: { city: "", country: "US", state: "", street: "", zipcode: "" },
-      customer: { email: opts.customerEmail },
+      customer: { email: opts.customerEmail, name: opts.customerEmail.split("@")[0] },
       product_cart: [
         {
           product_id: process.env.DODO_PRODUCT_TOPUP || "topup",
@@ -118,15 +128,24 @@ export async function createTopupCheckout(opts: {
     }),
   });
 
+  const rawText = await res.text();
   if (!res.ok) {
-    const err = await res.text().catch(() => "");
-    throw new Error(`Dodo topup checkout failed: ${res.status} ${err.slice(0, 300)}`);
+    throw new Error(`Dodo topup checkout failed: ${res.status} ${rawText.slice(0, 300)}`);
+  }
+  if (!rawText) {
+    throw new Error("Dodo topup: empty response");
   }
 
-  const data = (await res.json()) as { payment_link?: string; url?: string };
-  const url = data.payment_link || data.url;
+  let data: Record<string, unknown>;
+  try {
+    data = JSON.parse(rawText);
+  } catch {
+    throw new Error(`Dodo topup: invalid JSON: ${rawText.slice(0, 200)}`);
+  }
+
+  const url = (data.payment_link as string) || (data.url as string);
   if (!url) {
-    throw new Error(`Dodo topup: no URL in response: ${JSON.stringify(data).slice(0, 200)}`);
+    throw new Error(`Dodo topup: no URL in response: ${rawText.slice(0, 200)}`);
   }
 
   return url;
