@@ -1,6 +1,7 @@
 import { cookies, headers } from "next/headers";
 import { after } from "next/server";
 import { trackVisit } from "@/lib/analytics";
+import { ErrorReporter as MarketingErrorReporter } from "@/components/dashboard/error-reporter";
 
 /**
  * Marketing route group layout.
@@ -56,5 +57,10 @@ export default async function MarketingLayout({
   // browser, so page render is not blocked by the tracking insert.
   after(() => trackVisit({ ip, userAgent, country, path }));
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <MarketingErrorReporter />
+    </>
+  );
 }
