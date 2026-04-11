@@ -49,47 +49,37 @@ export async function cloneVoice(
 
   console.log(`[CARTESIA_CLONE] Sample: ${(audioBuffer.length / 1024).toFixed(0)}KB, mime=${mimeType}→${sendMime}, lang=${language}`);
 
-  // Use Cartesia SDK for reliable file upload (handles multipart correctly)
-  const Cartesia = (await import("@cartesia/cartesia-js")).default;
-  const client = new Cartesia({ apiKey: getApiKey() });
+  // Write buffer to temp file, then pass as ReadStream to Cartesia SDK.
+  // Node.js File/Blob on Vercel serverless corrupts binary data in multipart
+  // uploads. ReadStream sends raw bytes correctly.
+  const fs = await import("fs");
+  const os = await import("os");
+  const path = await import("path");
+  const tempFile = path.join(os.tmpdir(), `cartesia-clone-${Date.now()}.${ext}`);
+  fs.writeFileSync(tempFile, audioBuffer);
 
-  // SDK's Uploadable accepts File
-  const file = new File([new Uint8Array(audioBuffer)], `voice.${ext}`, { type: sendMime });
-
-  const result = await client.voices.clone({
-    clip: file,
-    name: `dubsync-${name.slice(0, 8)}-${Date.now()}`,
-    language: mapLanguageCode(language) as Parameters<typeof client.voices.clone>[0]["language"],
-  });
-
-  const voiceId = result.id;
-  if (!voiceId) {
-    throw new Error(`Cartesia clone: no voice ID in response`);
-  }
-
-  console.log(`[CARTESIA_CLONE] Created voice ${voiceId}`);
-
-  // Verify with a quick TTS test
   try {
-    const testRes = await fetch(`${CARTESIA_API}/tts/bytes`, {
-      method: "POST",
-      headers: { ...headers(), "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model_id: MODEL_ID,
-        transcript: "test",
-        voice: { mode: "id", id: voiceId },
-        output_format: { container: "wav", encoding: "pcm_s16le", sample_rate: 44100 },
-        language: mapLanguageCode(language),
-      }),
-    });
-    if (!testRes.ok) {
-      console.warn(`[CARTESIA_CLONE] TTS verification failed: ${testRes.status}`);
-    } else {
-      console.log(`[CARTESIA_CLONE] TTS verification OK`);
-    }
-  } catch {}
+    const Cartesia = (await import("@cartesia/cartesia-js")).default;
+    const client = new Cartesia({ apiKey: getApiKey() });
+    const stream = fs.createReadStream(tempFile);
 
-  return voiceId;
+    const result = await client.voices.clone({
+      clip: stream,
+      name: `dubsync-${name.slice(0, 8)}-${Date.now()}`,
+      language: mapLanguageCode(language) as Parameters<typeof client.voices.clone>[0]["language"],
+    });
+
+    const voiceId = result.id;
+    if (!voiceId) {
+      throw new Error(`Cartesia clone: no voice ID in response`);
+    }
+
+    console.log(`[CARTESIA_CLONE] Created voice ${voiceId}`);
+    return voiceId;
+  } finally {
+    // Cleanup temp file
+    try { fs.unlinkSync(tempFile); } catch {}
+  }
 }
 
 /**
