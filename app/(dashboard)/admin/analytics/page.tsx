@@ -60,10 +60,18 @@ export default async function AdminAnalyticsPage({
     getCountryUserStats(),
   ]);
 
-  // Build lookup map for user stats per country
+  // Merge traffic countries + profile countries into one list
   const userStatsMap = new Map<string, { registered: number; paid: number }>();
   for (const cu of countryUsers) {
     userStatsMap.set(cu.country, { registered: cu.registered, paid: cu.paid });
+  }
+
+  // Add countries that exist in profiles but not in traffic
+  const trafficCountryCodes = new Set(countries.map((c) => c.country));
+  for (const cu of countryUsers) {
+    if (!trafficCountryCodes.has(cu.country)) {
+      countries.push({ country: cu.country, visits: 0, unique_visitors: 0 });
+    }
   }
 
   return (
@@ -175,7 +183,7 @@ export default async function AdminAnalyticsPage({
       </div>
 
       {/* ── Country breakdown ─────────────────────────────── */}
-      {countries.length > 0 && (
+      {(countries.length > 0 || countryUsers.length > 0) && (
         <div className="mt-8">
           <div className="mb-2 flex items-baseline justify-between">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
