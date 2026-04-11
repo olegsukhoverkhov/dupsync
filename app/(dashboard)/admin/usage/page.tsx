@@ -37,12 +37,13 @@ export default async function AdminUsagePage() {
     .single();
   if (!profile?.is_admin) notFound();
 
-  const [elevenLabsQuota, fishQuota, falBalance, shotstackUsage, cartesiaQuota] = await Promise.all([
+  const [elevenLabsQuota, fishQuota, falBalance, shotstackUsage, cartesiaQuota, emailUsage] = await Promise.all([
     getElevenLabsQuota(),
     getFishAudioQuota(),
     getFalAiBalance(),
     getShotstackUsage(),
     getCartesiaQuota(),
+    getEmailUsage(),
   ]);
 
   // Check which API keys are configured (non-empty, non-placeholder)
@@ -204,6 +205,29 @@ export default async function AdminUsagePage() {
         />
       </div>
 
+      {/* ── Resend — Email ──────────────────────────────────── */}
+      <div className="mt-10 mb-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+          Resend — Email notifications
+        </h2>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-10">
+        <BalanceCard
+          icon={<Mic className="h-5 w-5" />}
+          label="Emails sent this month"
+          value={emailUsage ? String(emailUsage.sentThisMonth) : "—"}
+          color={emailUsage && emailUsage.sentThisMonth > 2500 ? "pink" : "emerald"}
+          subtitle="Free tier: 3,000/month"
+        />
+        <BalanceCard
+          icon={<Mic className="h-5 w-5" />}
+          label="Remaining"
+          value={emailUsage ? String(Math.max(0, 3000 - emailUsage.sentThisMonth)) : "—"}
+          color={emailUsage && emailUsage.sentThisMonth > 2500 ? "pink" : "emerald"}
+          subtitle="Resets monthly"
+        />
+      </div>
+
       {/* ── Other services (status only) ───────────────────── */}
       <div className="mb-4">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
@@ -347,6 +371,29 @@ async function getShotstackUsage(): Promise<{
       remaining,
       burnCount: count || 0,
     };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Count emails sent this month from email_log table.
+ */
+async function getEmailUsage(): Promise<{ sentThisMonth: number } | null> {
+  try {
+    const { createServiceClient } = await import("@/lib/supabase/server");
+    const supabase = await createServiceClient();
+
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const { count } = await supabase
+      .from("email_log")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", startOfMonth.toISOString());
+
+    return { sentThisMonth: count || 0 };
   } catch {
     return null;
   }

@@ -255,6 +255,14 @@ function emailTemplate(opts: {
 /**
  * Send "dub complete" notification.
  */
+async function logEmailSent(type: string, recipient: string) {
+  try {
+    const { createServiceClient } = await import("./supabase/server");
+    const supabase = await createServiceClient();
+    await supabase.from("email_log").insert({ email_type: type, recipient });
+  } catch {}
+}
+
 export async function sendDubCompleteEmail(opts: {
   to: string;
   projectId: string;
@@ -276,6 +284,7 @@ export async function sendDubCompleteEmail(opts: {
         footer: t.footer,
       }),
     });
+    await logEmailSent("dub_complete", opts.to);
   } catch (err) {
     console.error("[EMAIL] dub complete failed:", err);
   }
@@ -304,6 +313,7 @@ export async function sendCreditsLowEmail(opts: {
         footer: t.footer,
       }),
     });
+    await logEmailSent("credits_low", opts.to);
   } catch (err) {
     console.error("[EMAIL] credits low failed:", err);
   }
