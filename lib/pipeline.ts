@@ -1253,7 +1253,7 @@ async function sendProjectCompleteEmail(
   const planCredits = PLAN_LIMITS[profile.plan as keyof typeof PLAN_LIMITS]?.credits || 0;
   if (planCredits > 0) {
     const remaining = Number(profile.credits_remaining);
-    if (remaining <= planCredits * 0.2 && remaining > 0) {
+    if (remaining <= planCredits * 0.2) {
       await sendCreditsLowEmail({
         to: profile.email,
         creditsRemaining: remaining,
