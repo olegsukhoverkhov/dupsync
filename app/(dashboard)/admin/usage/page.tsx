@@ -37,12 +37,13 @@ export default async function AdminUsagePage() {
     .single();
   if (!profile?.is_admin) notFound();
 
-  const [elevenLabsQuota, fishQuota, falBalance, openaiBalance, anthropicBalance] = await Promise.all([
+  const [elevenLabsQuota, fishQuota, falBalance, openaiBalance, anthropicBalance, shotstackUsage] = await Promise.all([
     getElevenLabsQuota(),
     getFishAudioQuota(),
     getFalAiBalance(),
     getOpenAiBalance(),
     getAnthropicBalance(),
+    getShotstackUsage(),
   ]);
 
   // Check which API keys are configured (non-empty, non-placeholder)
@@ -233,6 +234,29 @@ export default async function AdminUsagePage() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <StatusCard name="Supabase" icon={<Database className="h-4 w-4" />} configured={supabaseConfigured} envKey="SUPABASE_SERVICE_ROLE_KEY" />
         <StatusCard name="Shotstack" icon={<Clapperboard className="h-4 w-4" />} configured={shotstackConfigured} envKey="SHOTSTACK_API_KEY" />
+      </div>
+
+      {/* ── Shotstack usage tracking ─────────────────────────── */}
+      <div className="mt-10 mb-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+          Shotstack — Subtitle burn-in
+        </h2>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <BalanceCard
+          icon={<Clapperboard className="h-5 w-5" />}
+          label="Credits remaining"
+          value={shotstackUsage ? `${shotstackUsage.remaining.toFixed(2)}` : null}
+          color={shotstackUsage && shotstackUsage.remaining < 0.5 ? "pink" : "violet"}
+          subtitle={shotstackUsage ? `${shotstackUsage.used.toFixed(2)} used of ${shotstackUsage.total.toFixed(2)} total` : "Set SHOTSTACK_CREDITS in env"}
+        />
+        <BalanceCard
+          icon={<Clapperboard className="h-5 w-5" />}
+          label="Videos burned"
+          value={shotstackUsage ? String(shotstackUsage.burnCount) : null}
+          color="violet"
+          subtitle="Total subtitle burn-in renders"
+        />
         <StatusCard name="Stripe" icon={<CreditCard className="h-4 w-4" />} configured={stripeConfigured} envKey="STRIPE_SECRET_KEY" />
       </div>
     </div>
@@ -344,6 +368,65 @@ async function getAnthropicBalance(): Promise<number | null> {
     if (!res.ok) return null;
     const data = (await res.json()) as { credit_balance?: number; credits_remaining?: number };
     return data.credit_balance ?? data.credits_remaining ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Track Shotstack usage from our own DB. Shotstack has no billing API,
+ * so we count burned-sub renders and subtract from a configured total.
+ * Set SHOTSTACK_CREDITS env var to your plan's credit total.
+ * 1 credit = 1 minute of video.
+ */
+async function getShotstackUsage(): Promise<{
+  used: number;
+  total: number;
+  remaining: number;
+  burnCount: number;
+} | null> {
+  try {
+    const { createServiceClient } = await import("@/lib/supabase/server");
+    const supabase = await createServiceClient();
+
+    // Get all dubs with burned subs that completed successfully
+    const { data: burns } = await supabase
+      .from("dubs")
+      .select("id, project_id")
+      .eq("has_burned_subs", true)
+      .not("dubbed_video_with_subs_url", "is", null);
+
+    if (!burns || burns.length === 0) {
+      const total = Number(process.env.SHOTSTACK_CREDITS || 1.35);
+      return { used: 0, total, remaining: total, burnCount: 0 };
+    }
+
+    // Get project durations for these dubs
+    const projectIds = [...new Set(burns.map((b) => b.project_id))];
+    const { data: projects } = await supabase
+      .from("projects")
+      .select("id, duration_seconds")
+      .in("id", projectIds);
+
+    const durationMap = new Map<string, number>();
+    for (const p of projects || []) {
+      durationMap.set(p.id, Number(p.duration_seconds || 0));
+    }
+
+    // 1 credit = 1 minute of video per burn
+    let usedMinutes = 0;
+    for (const burn of burns) {
+      const durationSec = durationMap.get(burn.project_id) || 0;
+      usedMinutes += durationSec / 60;
+    }
+
+    const total = Number(process.env.SHOTSTACK_CREDITS || 1.35);
+    return {
+      used: Math.round(usedMinutes * 100) / 100,
+      total,
+      remaining: Math.round((total - usedMinutes) * 100) / 100,
+      burnCount: burns.length,
+    };
   } catch {
     return null;
   }
