@@ -15,6 +15,7 @@ import {
   Gauge,
   LineChart,
   LifeBuoy,
+  AlertTriangle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -120,6 +121,11 @@ export function DashboardSidebar() {
             name: t("dashboard.nav.payments", "Payments"),
             href: "/admin/payments",
             icon: CreditCard,
+          },
+          {
+            name: t("dashboard.nav.errors", "Errors"),
+            href: "/admin/errors",
+            icon: AlertTriangle,
           },
           {
             name: t("dashboard.nav.supportAdmin", "Support"),
