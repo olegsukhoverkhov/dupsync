@@ -8,7 +8,7 @@ import { LOCALES, isValidLocale } from "@/lib/i18n/dictionaries";
 /**
  * Localized competitor comparison pages.
  *
- * Covers: 5 locales × 4 competitors = 20 static routes under
+ * Covers: 10 locales × 4 competitors = 40 static routes under
  *   /{lang}/vs/{rask-ai|heygen|elevenlabs|geckodub}
  *
  * All user-visible strings come from `lib/vs/translations.ts`, all layout/
@@ -23,7 +23,7 @@ const COMPETITORS: readonly VsCompetitor[] = [
   "geckodub",
 ] as const;
 
-const LOCALIZED_LOCALES: readonly VsLocale[] = ["es", "pt", "de", "fr", "ja"];
+const LOCALIZED_LOCALES: readonly VsLocale[] = ["es", "pt", "de", "fr", "ja", "hi", "ar", "id", "tr", "ko"];
 
 function isLocalized(lang: string): lang is VsLocale {
   return (LOCALIZED_LOCALES as readonly string[]).includes(lang);

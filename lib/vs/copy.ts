@@ -1,7 +1,7 @@
 /**
  * Competitor-comparison copy, localized.
  *
- * Keys:     4 competitors × 5 non-EN languages = 20 pages
+ * Keys:     4 competitors × 10 non-EN languages = 40 pages
  * Rendered: components/vs/vs-page.tsx
  * Routes:   app/(localized)/[lang]/vs/[competitor]/page.tsx
  *
@@ -11,13 +11,7 @@
  */
 
 export type VsCompetitor = "rask-ai" | "heygen" | "elevenlabs" | "geckodub";
-// VsLocale stays deliberately limited to the 5 original locales. The
-// 2026-04 expansion (hi/ar/id/tr/ko) does not have full VS copy yet —
-// `app/(localized)/[lang]/vs/[competitor]/page.tsx` has its own
-// whitelist that skips those locales, so visiting /{hi,ar,id,tr,ko}/vs/*
-// returns 404 rather than rendering Spanish fallback content. Proper
-// translations for the 20 pages come in Phase 2.
-export type VsLocale = "es" | "pt" | "de" | "fr" | "ja";
+export type VsLocale = "es" | "pt" | "de" | "fr" | "ja" | "hi" | "ar" | "id" | "tr" | "ko";
 
 export type VsRow = {
   feature: string;
@@ -330,7 +324,7 @@ export const VS_COPY: Record<VsLocale, Record<VsCompetitor, VsCopy>> = (() => {
     { slug: "elevenlabs", name: "ElevenLabs", vsBreadcrumb: "DubSync vs ElevenLabs" },
     { slug: "geckodub", name: "GeckoDub", vsBreadcrumb: "DubSync vs GeckoDub" },
   ];
-  const locales: VsLocale[] = ["es", "pt", "de", "fr", "ja"];
+  const locales: VsLocale[] = ["es", "pt", "de", "fr", "ja", "hi", "ar", "id", "tr", "ko"];
   for (const lang of locales) {
     out[lang] = {} as Record<VsCompetitor, VsCopy>;
     for (const c of competitors) {
