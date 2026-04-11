@@ -183,6 +183,108 @@ export async function getCountryUserStats(): Promise<Array<{ country: string; re
   }
 }
 
+// ─── Conversion funnel ──────────────────────────────────────
+
+export type FunnelStats = {
+  visitors: number;
+  signups: number;
+  projectCreators: number;
+  firstDubbers: number;
+  paidUsers: number;
+  avgSignupToDubHours: number | null;
+  avgSignupToPaidHours: number | null;
+};
+
+export async function getConversionFunnel(range?: {
+  from?: string | null;
+  to?: string | null;
+}): Promise<FunnelStats> {
+  try {
+    const supabase = await createServiceClient();
+    const { data, error } = await supabase.rpc("conversion_funnel_stats", {
+      p_from: range?.from ?? null,
+      p_to: range?.to ?? null,
+    });
+    if (error || !data) {
+      return { visitors: 0, signups: 0, projectCreators: 0, firstDubbers: 0, paidUsers: 0, avgSignupToDubHours: null, avgSignupToPaidHours: null };
+    }
+    const row = Array.isArray(data) ? data[0] : data;
+    return {
+      visitors: Number(row?.visitors ?? 0),
+      signups: Number(row?.signups ?? 0),
+      projectCreators: Number(row?.project_creators ?? 0),
+      firstDubbers: Number(row?.first_dubbers ?? 0),
+      paidUsers: Number(row?.paid_users ?? 0),
+      avgSignupToDubHours: row?.avg_signup_to_dub_hours != null ? Number(row.avg_signup_to_dub_hours) : null,
+      avgSignupToPaidHours: row?.avg_signup_to_paid_hours != null ? Number(row.avg_signup_to_paid_hours) : null,
+    };
+  } catch {
+    return { visitors: 0, signups: 0, projectCreators: 0, firstDubbers: 0, paidUsers: 0, avgSignupToDubHours: null, avgSignupToPaidHours: null };
+  }
+}
+
+export type CountryFunnel = {
+  country: string;
+  visitors: number;
+  signups: number;
+  projectCreators: number;
+  firstDubbers: number;
+  paidUsers: number;
+};
+
+export async function getConversionByCountry(range?: {
+  from?: string | null;
+  to?: string | null;
+}): Promise<CountryFunnel[]> {
+  try {
+    const supabase = await createServiceClient();
+    const { data, error } = await supabase.rpc("conversion_funnel_by_country", {
+      p_from: range?.from ?? null,
+      p_to: range?.to ?? null,
+    });
+    if (error || !data) return [];
+    return (data as Array<Record<string, unknown>>).map((r) => ({
+      country: String(r.country ?? ""),
+      visitors: Number(r.visitors ?? 0),
+      signups: Number(r.signups ?? 0),
+      projectCreators: Number(r.project_creators ?? 0),
+      firstDubbers: Number(r.first_dubbers ?? 0),
+      paidUsers: Number(r.paid_users ?? 0),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export type DailyConversion = {
+  day: string;
+  signups: number;
+  firstDubbers: number;
+  paidUsers: number;
+};
+
+export async function getConversionDaily(range?: {
+  from?: string | null;
+  to?: string | null;
+}): Promise<DailyConversion[]> {
+  try {
+    const supabase = await createServiceClient();
+    const { data, error } = await supabase.rpc("conversion_cohort_daily", {
+      p_from: range?.from ?? null,
+      p_to: range?.to ?? null,
+    });
+    if (error || !data) return [];
+    return (data as Array<Record<string, unknown>>).map((r) => ({
+      day: String(r.day ?? ""),
+      signups: Number(r.signups ?? 0),
+      firstDubbers: Number(r.first_dubbers ?? 0),
+      paidUsers: Number(r.paid_users ?? 0),
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export async function getOnlineCounts(): Promise<{
   dashboardUsers: number;
   siteVisitors: number;

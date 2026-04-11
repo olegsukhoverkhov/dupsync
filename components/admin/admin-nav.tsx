@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Gauge, Users, LifeBuoy, CreditCard, AlertTriangle } from "lucide-react";
+import { BarChart3, Gauge, Users, LifeBuoy, CreditCard, AlertTriangle, Target } from "lucide-react";
 
 const TABS = [
   { href: "/admin/analytics", label: "Site Analytics", icon: BarChart3 },
+  { href: "/admin/conversion", label: "Conversion", icon: Target },
   { href: "/admin/stats", label: "Users", icon: Users },
   { href: "/admin/usage", label: "Usage", icon: Gauge },
   { href: "/admin/payments", label: "Payments", icon: CreditCard },
