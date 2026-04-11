@@ -392,7 +392,8 @@ async function runDubbingAudioOnce(
 
     if (cloneProvider === "cartesia") {
       // ── Cartesia TTS path (primary) ────────────────────────
-      log(dubId, `Using Cartesia TTS (voice=${voiceId.slice(0, 12)})`);
+      log(dubId, `Using Cartesia TTS (voice=${voiceId}, lang=${targetLang}, segments=${segmentsWithTiming.length})`);
+      let firstError = "";
       const segmentBuffers: Buffer[] = [];
       for (let i = 0; i < segmentsWithTiming.length; i++) {
         const seg = segmentsWithTiming[i];
@@ -402,14 +403,16 @@ async function runDubbingAudioOnce(
           segmentBuffers.push(buf);
           log(dubId, `  Segment ${i + 1}/${segmentsWithTiming.length}: ${(buf.length / 1024).toFixed(0)}KB`);
         } catch (err) {
-          log(dubId, `  Segment ${i + 1} Cartesia TTS failed: ${err instanceof Error ? err.message : "unknown"}`);
+          const errMsg = err instanceof Error ? err.message : "unknown";
+          log(dubId, `  Segment ${i + 1} Cartesia TTS failed: ${errMsg}`);
+          if (!firstError) firstError = errMsg;
           segmentBuffers.push(Buffer.alloc(0));
         }
       }
 
       // Concatenate WAV segments (same logic as Fish Audio path below)
       const nonEmpty = segmentBuffers.filter((b) => b.length > 44);
-      if (nonEmpty.length === 0) throw new Error("All Cartesia TTS segments failed");
+      if (nonEmpty.length === 0) throw new Error(`All Cartesia TTS segments failed. First error: ${firstError}`);
 
       const firstHeader = nonEmpty[0].subarray(0, 44);
       const sampleRate = firstHeader.readUInt32LE(24);

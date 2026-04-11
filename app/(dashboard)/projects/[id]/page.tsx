@@ -368,34 +368,20 @@ export default function ProjectDetailPage({
     const failedDubs = dubs.filter((d) => d.status === "error");
     if (failedDubs.length === 0) return;
 
-    const languages = failedDubs.map((d) => d.target_language);
-
-    // Delete failed dubs
-    const supabase = createClient();
-    for (const dub of failedDubs) {
-      await supabase.from("dubs").delete().eq("id", dub.id);
-    }
-
-    // Remove failed dubs from local state immediately
-    setDubs((prev) => prev.filter((d) => d.status !== "error"));
-
-    // Re-create dubs with same languages
     try {
-      const res = await fetch("/api/dub", {
+      // Reset failed dubs to pending so the pipeline re-runs them
+      const res = await fetch("/api/dub/retry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId: project.id, languages }),
+        body: JSON.stringify({
+          projectId: project.id,
+          dubIds: failedDubs.map((d) => d.id),
+        }),
       });
 
       if (!res.ok) {
         const data = await res.json();
-        const msg =
-          data.error ||
-          t("dashboard.projectDetail.failedToRestartDubbing", "Failed to restart dubbing");
-        // Detect insufficient credits both by structured code (preferred)
-        // and by the stable English message prefix so this still works
-        // even if an older cached chunk from the API doesn't include the
-        // code field yet.
+        const msg = data.error || t("dashboard.projectDetail.failedToRestartDubbing", "Failed to restart dubbing");
         const isInsufficient =
           data.code === "insufficient_credits" ||
           (typeof msg === "string" && msg.startsWith("Insufficient credits"));
