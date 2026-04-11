@@ -55,17 +55,34 @@ export async function cloneVoice(
 
   const ext = mimeType === "audio/webm" ? "webm" : mimeType === "audio/wav" ? "wav" : "mp3";
 
-  const fd = new FormData();
-  const blob = new Blob([new Uint8Array(audioBuffer) as BlobPart], { type: mimeType });
-  fd.append("clip", blob, `voice.${ext}`);
-  fd.append("name", `dubsync-${name.slice(0, 8)}-${Date.now()}`);
-  fd.append("language", mapLanguageCode(language));
-  fd.append("mode", "similarity");
+  // Build multipart form manually to avoid Blob/FormData issues on Vercel
+  const boundary = `----DubSync${Date.now()}`;
+  const parts: Buffer[] = [];
+
+  function addField(name: string, value: string) {
+    parts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${name}"\r\n\r\n${value}\r\n`));
+  }
+  function addFile(name: string, filename: string, contentType: string, data: Buffer) {
+    parts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${name}"; filename="${filename}"\r\nContent-Type: ${contentType}\r\n\r\n`));
+    parts.push(data);
+    parts.push(Buffer.from("\r\n"));
+  }
+
+  addFile("clip", `voice.${ext}`, mimeType, audioBuffer);
+  addField("name", `dubsync-${name.slice(0, 8)}-${Date.now()}`);
+  addField("language", mapLanguageCode(language));
+  addField("mode", "similarity");
+  parts.push(Buffer.from(`--${boundary}--\r\n`));
+
+  const body = Buffer.concat(parts);
 
   const res = await fetch(`${CARTESIA_API}/voices/clone`, {
     method: "POST",
-    headers: headers(),
-    body: fd,
+    headers: {
+      ...headers(),
+      "Content-Type": `multipart/form-data; boundary=${boundary}`,
+    },
+    body,
   });
 
   if (!res.ok) {
