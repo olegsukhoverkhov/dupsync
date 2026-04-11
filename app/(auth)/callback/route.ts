@@ -3,6 +3,7 @@ import { cookies, headers } from "next/headers";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { LOCALES } from "@/lib/i18n/dictionaries";
 import { createDemoProject } from "@/lib/demo-project";
+import { createWelcomeTicket } from "@/lib/welcome-ticket";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -72,10 +73,14 @@ export async function GET(request: Request) {
           }
           await service.from("profiles").update(updates).eq("id", user.id);
 
-          // Create demo project on first login (non-blocking)
+          // Create demo project + welcome ticket on first login (non-blocking)
           if (!existing?.locale) {
+            const userLocale = resolvedLocale || "en";
             createDemoProject(user.id).catch((e) =>
               console.warn("[CALLBACK] Demo project creation failed:", e)
+            );
+            createWelcomeTicket(user.id, userLocale).catch((e) =>
+              console.warn("[CALLBACK] Welcome ticket creation failed:", e)
             );
           }
         }
