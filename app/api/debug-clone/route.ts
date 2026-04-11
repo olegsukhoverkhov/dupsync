@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
+import { extractAudioViaFal } from "@/lib/ai";
 
 export const maxDuration = 120;
 
@@ -31,97 +32,40 @@ export async function GET(req: Request) {
   const fileList = (files || []).map(f => `${f.name} (${f.metadata?.size || '?'} bytes)`);
   steps.push(`Files in dir: ${fileList.join(", ") || "NONE"}`);
 
-  // Step 2: Try audio extraction if no extracted-audio exists
+  // Step 2: Try audio extraction via fal.ai synchronous endpoint
   const hasExtracted = (files || []).some(f => f.name.startsWith("extracted-audio"));
   steps.push(`Has extracted audio: ${hasExtracted}`);
 
   if (!hasExtracted) {
-    steps.push("Running server-side audio extraction...");
-    const falKey = process.env.FAL_KEY;
-    steps.push(`FAL_KEY: ${falKey ? "set" : "MISSING"}`);
+    steps.push("Extracting audio via fal.ai (synchronous)...");
 
-    if (falKey) {
-      try {
-        // Get signed URL
-        const { data: signed } = await service.storage.from("videos").createSignedUrl(videoUrl, 600);
-        steps.push(`Signed URL: ${signed?.signedUrl ? "OK" : "FAILED"}`);
+    try {
+      // Get signed URL for the video
+      const { data: signed } = await service.storage.from("videos").createSignedUrl(videoUrl, 600);
+      steps.push(`Signed URL: ${signed?.signedUrl ? "OK" : "FAILED"}`);
 
-        if (signed?.signedUrl) {
-          // Submit to fal.ai ffmpeg queue
-          const submitRes = await fetch("https://queue.fal.run/fal-ai/ffmpeg-api", {
-            method: "POST",
-            headers: { Authorization: `Key ${falKey}`, "Content-Type": "application/json" },
-            body: JSON.stringify({
-              input_files: [{ url: signed.signedUrl, filename: "input.mov" }],
-              command: "-i input.mov -vn -acodec pcm_s16le -ar 44100 -ac 1 output.wav",
-              output_files: ["output.wav"],
-            }),
-          });
+      if (signed?.signedUrl) {
+        const audioUrl = await extractAudioViaFal(signed.signedUrl);
+        steps.push(`fal.ai audio URL: ${audioUrl.slice(0, 100)}`);
 
-          const submitText = await submitRes.text();
-          steps.push(`FFmpeg submit: HTTP ${submitRes.status} ${submitText.slice(0, 200)}`);
+        // Download the extracted audio
+        const audioRes = await fetch(audioUrl);
+        steps.push(`Audio download: HTTP ${audioRes.status}`);
 
-          if (submitRes.ok) {
-            const submitData = JSON.parse(submitText);
-            const reqId = submitData.request_id;
-            steps.push(`Request ID: ${reqId}`);
+        if (audioRes.ok) {
+          const audioBuffer = Buffer.from(await audioRes.arrayBuffer());
+          steps.push(`Audio size: ${audioBuffer.length} bytes (${(audioBuffer.length / 1024).toFixed(0)}KB)`);
 
-            // Poll for completion
-            for (let i = 0; i < 15; i++) {
-              await new Promise(r => setTimeout(r, 2000));
-              const statusRes = await fetch(
-                `https://queue.fal.run/fal-ai/ffmpeg-api/requests/${reqId}/status`,
-                { headers: { Authorization: `Key ${falKey}` } }
-              );
-              const statusData = await statusRes.json() as { status?: string };
-              steps.push(`Poll ${i + 1}: ${statusData.status}`);
-
-              if (statusData.status === "COMPLETED") {
-                // Get result
-                const resultRes = await fetch(
-                  `https://queue.fal.run/fal-ai/ffmpeg-api/requests/${reqId}`,
-                  { headers: { Authorization: `Key ${falKey}` } }
-                );
-                const resultText = await resultRes.text();
-                steps.push(`Result: HTTP ${resultRes.status} ${resultText.slice(0, 300)}`);
-
-                if (resultRes.ok) {
-                  try {
-                    const result = JSON.parse(resultText);
-                    const audioFileUrl = result.output_files?.[0]?.url;
-                    steps.push(`Audio URL: ${audioFileUrl ? audioFileUrl.slice(0, 80) : "MISSING"}`);
-
-                    if (audioFileUrl) {
-                      const audioRes = await fetch(audioFileUrl);
-                      steps.push(`Audio download: HTTP ${audioRes.status}`);
-                      if (audioRes.ok) {
-                        const audioBuffer = Buffer.from(await audioRes.arrayBuffer());
-                        steps.push(`Audio size: ${audioBuffer.length} bytes`);
-
-                        // Upload
-                        const audioPath = `${videoDir}/extracted-audio.wav`;
-                        const { error: upErr } = await service.storage.from("videos").upload(
-                          audioPath, audioBuffer, { contentType: "audio/wav", upsert: true }
-                        );
-                        steps.push(`Upload: ${upErr ? `FAILED ${upErr.message}` : "OK"}`);
-                      }
-                    }
-                  } catch (e) {
-                    steps.push(`Parse error: ${e instanceof Error ? e.message : e}`);
-                  }
-                }
-                break;
-              }
-              if (statusData.status === "FAILED") {
-                steps.push("FFmpeg FAILED");
-                break;
-              }
-            }
-          }
+          // Upload to storage
+          const audioPath = `${videoDir}/extracted-audio.wav`;
+          const { error: upErr } = await service.storage.from("videos").upload(
+            audioPath, audioBuffer, { contentType: "audio/wav", upsert: true }
+          );
+          steps.push(`Upload: ${upErr ? `FAILED ${upErr.message}` : "OK"}`);
         }
-      } catch (e) {
-        steps.push(`Extraction error: ${e instanceof Error ? e.message : e}`);
       }
+    } catch (e) {
+      steps.push(`Extraction error: ${e instanceof Error ? e.message : e}`);
     }
 
     // Re-list files
