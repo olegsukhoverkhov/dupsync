@@ -86,25 +86,71 @@ export async function GET(req: Request) {
   debug.isVideo = mime === "video/mp4";
   debug.falKeySet = !!process.env.FAL_KEY;
 
-  debug.buildVersion = "v3-manual-multipart";
+  debug.buildVersion = "v4-inline-clone";
 
-  // Clone using the same cloneVoice function as the pipeline
+  // Clone INLINE — bypass lib/cartesia.ts to debug the exact request
   try {
-    const { cloneVoice, deleteVoice, textToSpeech } = await import("@/lib/cartesia");
-    const voiceId = await cloneVoice(sampleBuffer, "debug", project.original_language as string || "en");
-    debug.cloneOk = true;
-    debug.voiceId = voiceId;
+    const apiKey = process.env.CARTESIA_API_KEY!;
+    const sendMime = mime === "video/mp4" ? "audio/mpeg" : mime;
+    const sendExt = sendMime === "audio/mpeg" ? "mp3" : "wav";
+    debug.sendMime = sendMime;
+    debug.sendExt = sendExt;
 
-    const tts = await textToSpeech("Hello test", voiceId, "en");
-    debug.ttsOk = true;
-    debug.ttsSize = tts.length;
+    const boundary = `----DubSyncDebug${Date.now()}`;
+    const CRLF = "\r\n";
+    const parts: (Buffer | string)[] = [];
 
-    await deleteVoice(voiceId);
-    debug.cleaned = true;
+    parts.push(`--${boundary}${CRLF}`);
+    parts.push(`Content-Disposition: form-data; name="clip"; filename="voice.${sendExt}"${CRLF}`);
+    parts.push(`Content-Type: ${sendMime}${CRLF}`);
+    parts.push(CRLF);
+    parts.push(sampleBuffer);
+    parts.push(CRLF);
+
+    for (const [k, v] of [["name", `debug-${Date.now()}`], ["language", "en"], ["mode", "similarity"]]) {
+      parts.push(`--${boundary}${CRLF}`);
+      parts.push(`Content-Disposition: form-data; name="${k}"${CRLF}`);
+      parts.push(CRLF);
+      parts.push(v);
+      parts.push(CRLF);
+    }
+    parts.push(`--${boundary}--${CRLF}`);
+
+    const bodyParts = parts.map((p) => typeof p === "string" ? Buffer.from(p, "utf-8") : p);
+    const body = Buffer.concat(bodyParts);
+    debug.requestSize = body.length;
+
+    const res = await fetch("https://api.cartesia.ai/voices/clone", {
+      method: "POST",
+      headers: {
+        "X-API-Key": apiKey,
+        "Cartesia-Version": "2024-11-13",
+        "Content-Type": `multipart/form-data; boundary=${boundary}`,
+        "Content-Length": String(body.length),
+      },
+      body: body as unknown as BodyInit,
+    });
+
+    debug.responseStatus = res.status;
+    const resText = await res.text();
+    debug.responseBody = resText.slice(0, 300);
+
+    if (res.ok) {
+      const data = JSON.parse(resText);
+      debug.cloneOk = true;
+      debug.voiceId = data.id;
+      // Cleanup
+      await fetch(`https://api.cartesia.ai/voices/${data.id}`, {
+        method: "DELETE",
+        headers: { "X-API-Key": apiKey, "Cartesia-Version": "2024-11-13" },
+      });
+      debug.cleaned = true;
+    } else {
+      debug.cloneOk = false;
+    }
   } catch (e) {
     debug.cloneOk = false;
     debug.cloneError = e instanceof Error ? e.message : String(e);
-    debug.cloneStack = e instanceof Error ? e.stack?.slice(0, 500) : undefined;
   }
 
   return NextResponse.json(debug);
