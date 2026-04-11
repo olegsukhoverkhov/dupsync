@@ -126,7 +126,7 @@ export async function GET(req: Request) {
     // Also try with FormData approach for comparison
     try {
       const fd = new FormData();
-      fd.append("clip", new Blob([sampleBuffer], { type: sendMime }), `voice.${sendExt}`);
+      fd.append("clip", new Blob([new Uint8Array(sampleBuffer) as BlobPart], { type: sendMime }), `voice.${sendExt}`);
       fd.append("name", `debug-fd-${Date.now()}`);
       fd.append("language", "en");
       fd.append("mode", "similarity");
