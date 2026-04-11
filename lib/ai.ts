@@ -1473,6 +1473,46 @@ export async function slowDownVideo(
 }
 
 /**
+ * Extract audio from a video URL using fal.ai ffmpeg-api (synchronous).
+ * Returns the URL of the extracted WAV file hosted on fal.ai CDN.
+ * Works on Vercel serverless (no local ffmpeg binary needed).
+ */
+export async function extractAudioViaFal(videoUrl: string): Promise<string> {
+  const falKey = process.env.FAL_KEY;
+  if (!falKey) throw new Error("FAL_KEY not set");
+
+  console.log(`[FAL_EXTRACT] Submitting audio extraction for ${videoUrl.slice(0, 80)}`);
+
+  // Use synchronous endpoint (blocks until result is ready, up to ~60s)
+  const res = await fetch("https://fal.run/fal-ai/ffmpeg-api", {
+    method: "POST",
+    headers: {
+      Authorization: `Key ${falKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      input_files: [{ url: videoUrl, filename: "input.mov" }],
+      command: "-i input.mov -vn -acodec pcm_s16le -ar 44100 -ac 1 output.wav",
+      output_files: ["output.wav"],
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text().catch(() => "");
+    throw new Error(`fal.ai ffmpeg failed: ${res.status} ${err.slice(0, 300)}`);
+  }
+
+  const result = await res.json();
+  const audioUrl = result.output_files?.[0]?.url || result.files?.[0]?.url;
+  if (!audioUrl) {
+    throw new Error(`fal.ai ffmpeg: no output file URL in response: ${JSON.stringify(result).slice(0, 300)}`);
+  }
+
+  console.log(`[FAL_EXTRACT] Audio extracted: ${audioUrl.slice(0, 80)}`);
+  return audioUrl;
+}
+
+/**
  * Submit a burn-subtitles render to Shotstack with a webhook
  * callback. Returns the render id so the caller can persist it and
  * correlate the result when the webhook fires.
