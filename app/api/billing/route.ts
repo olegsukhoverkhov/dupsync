@@ -1,22 +1,24 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import {
-  createCheckoutSession,
-  createBillingPortalSession,
-  getOrCreateCustomer,
-  STRIPE_PLANS,
-} from "@/lib/stripe";
 
+export const dynamic = "force-dynamic";
+
+/**
+ * POST /api/billing
+ *
+ * Handles subscription checkout and portal redirects.
+ * Provider: Dodo Payments (primary), Stripe (legacy fallback).
+ *
+ * Request body:
+ *   { action: "checkout", plan: "starter"|"pro"|"enterprise" }
+ *   { action: "portal" }
+ */
 export async function POST(request: Request) {
   const supabase = await createClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
   const { action, plan } = body as { action: string; plan?: string };
@@ -26,51 +28,48 @@ export async function POST(request: Request) {
     .select("*")
     .eq("id", user.id)
     .single();
+  if (!profile) return NextResponse.json({ error: "Profile not found" }, { status: 404 });
 
-  if (!profile) {
-    return NextResponse.json({ error: "Profile not found" }, { status: 404 });
-  }
+  const returnUrl = `${request.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL}/dashboard`;
 
-  // Get or create Stripe customer
-  let customerId = profile.stripe_customer_id;
-  if (!customerId) {
-    const customer = await getOrCreateCustomer({
-      email: user.email!,
-      userId: user.id,
-    });
-    customerId = customer.id;
-    await supabase
-      .from("profiles")
-      .update({ stripe_customer_id: customerId })
-      .eq("id", user.id);
-  }
+  // ── Dodo Payments (primary) ──────────────────────────────
+  const { isConfigured, createSubscriptionCheckout, getPlanProductId } = await import("@/lib/dodo-payments");
 
-  const returnUrl = `${request.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL}/settings`;
+  if (isConfigured()) {
+    if (action === "checkout" && plan) {
+      const productId = getPlanProductId(plan);
+      if (!productId) {
+        return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+      }
 
-  if (action === "checkout" && plan) {
-    const stripePlan = STRIPE_PLANS[plan];
-    if (!stripePlan) {
-      return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+      const url = await createSubscriptionCheckout({
+        productId,
+        customerEmail: user.email!,
+        userId: user.id,
+        returnUrl,
+      });
+
+      return NextResponse.json({ url });
     }
 
-    const session = await createCheckoutSession({
-      customerId,
-      priceId: stripePlan.priceId,
-      userId: user.id,
-      returnUrl,
-    });
+    if (action === "portal") {
+      // Dodo doesn't have a portal URL API — redirect to dashboard
+      // or manage via our own settings page
+      return NextResponse.json({
+        error: "Subscription management is available in Settings. Contact support to cancel.",
+        code: "use_settings",
+      }, { status: 200 });
+    }
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   }
 
-  if (action === "portal") {
-    const session = await createBillingPortalSession({
-      customerId,
-      returnUrl,
-    });
-
-    return NextResponse.json({ url: session.url });
-  }
-
-  return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+  // ── Not configured ───────────────────────────────────────
+  return NextResponse.json(
+    {
+      error: "Plan upgrades are coming soon — we're finalising the payment provider. In the meantime, your current plan stays active.",
+      code: "provider_not_configured",
+    },
+    { status: 501 }
+  );
 }
