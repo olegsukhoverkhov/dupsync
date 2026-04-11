@@ -45,7 +45,7 @@ export async function cloneVoice(
 ): Promise<string> {
   let mimeType = detectAudioMime(audioBuffer);
 
-  console.log(`[CARTESIA_CLONE] Sample: ${(audioBuffer.length / 1024).toFixed(0)}KB, mime=${mimeType}, lang=${language}`);
+  console.log(`[CARTESIA_CLONE_V2] Sample: ${(audioBuffer.length / 1024).toFixed(0)}KB, originalMime=${mimeType}, sendAs=${mimeType === "video/mp4" || mimeType === "application/octet-stream" ? "audio/mpeg" : mimeType}, lang=${language}`);
 
   // Cartesia rejects video/mp4 MIME with 422. Send as audio/mpeg instead —
   // Cartesia extracts the audio track internally from the container.

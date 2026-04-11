@@ -86,8 +86,9 @@ export async function GET(req: Request) {
   debug.isVideo = mime === "video/mp4";
   debug.falKeySet = !!process.env.FAL_KEY;
 
+  debug.buildVersion = "v3-manual-multipart";
+
   // Clone using the same cloneVoice function as the pipeline
-  // (includes automatic video→audio extraction via fal.ai ffmpeg)
   try {
     const { cloneVoice, deleteVoice, textToSpeech } = await import("@/lib/cartesia");
     const voiceId = await cloneVoice(sampleBuffer, "debug", project.original_language as string || "en");
