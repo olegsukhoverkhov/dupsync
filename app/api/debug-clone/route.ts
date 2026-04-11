@@ -83,24 +83,27 @@ export async function GET(req: Request) {
   else if (b[4] === 0x66 && b[5] === 0x74 && b[6] === 0x79 && b[7] === 0x70) mime = "video/mp4";
   else if (b[0] === 0x52 && b[1] === 0x49) mime = "audio/wav";
   debug.mime = mime;
+  debug.isVideo = mime === "video/mp4";
+  debug.falKeySet = !!process.env.FAL_KEY;
 
-  // Clone
+  // Clone using the same cloneVoice function as the pipeline
+  // (includes automatic video→audio extraction via fal.ai ffmpeg)
   try {
-    const cartesia = await import("@/lib/cartesia");
-    const voiceId = await cartesia.cloneVoice(sampleBuffer, "debug", project.original_language as string || "en");
+    const { cloneVoice, deleteVoice, textToSpeech } = await import("@/lib/cartesia");
+    const voiceId = await cloneVoice(sampleBuffer, "debug", project.original_language as string || "en");
     debug.cloneOk = true;
     debug.voiceId = voiceId;
 
-    // TTS test
-    const tts = await cartesia.textToSpeech("Hello test", voiceId, "en");
+    const tts = await textToSpeech("Hello test", voiceId, "en");
     debug.ttsOk = true;
     debug.ttsSize = tts.length;
 
-    await cartesia.deleteVoice(voiceId);
+    await deleteVoice(voiceId);
     debug.cleaned = true;
   } catch (e) {
     debug.cloneOk = false;
     debug.cloneError = e instanceof Error ? e.message : String(e);
+    debug.cloneStack = e instanceof Error ? e.stack?.slice(0, 500) : undefined;
   }
 
   return NextResponse.json(debug);
