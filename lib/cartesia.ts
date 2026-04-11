@@ -57,12 +57,14 @@ export async function cloneVoice(
   const path = await import("path");
   const { execSync } = await import("child_process");
 
-  const tempFile = path.join(os.tmpdir(), `cartesia-clone-${Date.now()}.${ext}`);
+  // Keep original extension for the temp file — Cartesia may inspect it
+  const origExt = mimeType === "video/mp4" ? "mov" : ext;
+  const tempFile = path.join(os.tmpdir(), `cartesia-clone-${Date.now()}.${origExt}`);
   fs.writeFileSync(tempFile, audioBuffer);
 
   try {
     const cloneName = `dubsync-${name.slice(0, 8)}-${Date.now()}`;
-    const cmd = `curl -s -X POST "https://api.cartesia.ai/voices/clone" ` +
+    const cmd = `curl -s -w "\\n%{http_code}" -X POST "https://api.cartesia.ai/voices/clone" ` +
       `-H "X-API-Key: ${getApiKey()}" ` +
       `-H "Cartesia-Version: ${CARTESIA_VERSION}" ` +
       `-F "clip=@${tempFile};type=${sendMime}" ` +
@@ -70,13 +72,25 @@ export async function cloneVoice(
       `-F "language=${mapLanguageCode(language)}" ` +
       `-F "mode=similarity"`;
 
-    const result = execSync(cmd, { timeout: 30000 }).toString();
-    console.log(`[CARTESIA_CLONE] Response: ${result.slice(0, 200)}`);
+    const rawResult = execSync(cmd, { timeout: 30000 }).toString();
+    const lines = rawResult.trim().split("\n");
+    const httpCode = lines[lines.length - 1].trim();
+    const result = lines.slice(0, -1).join("\n");
+    console.log(`[CARTESIA_CLONE] curl HTTP ${httpCode}, response: ${result.slice(0, 300)}`);
+
+    // Check if response is an error (not JSON starting with {)
+    if (!result.trim().startsWith("{")) {
+      throw new Error(`Cartesia clone failed: ${result.slice(0, 300)}`);
+    }
 
     const data = JSON.parse(result);
+    if (data.error || data.detail) {
+      throw new Error(`Cartesia clone failed: ${data.error || data.detail || result.slice(0, 300)}`);
+    }
+
     const voiceId = data.id;
     if (!voiceId) {
-      throw new Error(`Cartesia clone failed: ${result.slice(0, 300)}`);
+      throw new Error(`Cartesia clone: no voice ID in response: ${result.slice(0, 300)}`);
     }
 
     console.log(`[CARTESIA_CLONE] Created voice ${voiceId}`);
