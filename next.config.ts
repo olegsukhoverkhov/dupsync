@@ -4,8 +4,10 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
-  // Include ffmpeg-static binary in serverless function bundles.
-  // Without this, Next.js tree-shaking excludes the native binary.
+  // Prevent Next.js from bundling ffmpeg-static so it can locate its
+  // native binary via __dirname at runtime on Vercel serverless.
+  serverExternalPackages: ["ffmpeg-static"],
+  // Include the ffmpeg binary in serverless function file tracing.
   outputFileTracingIncludes: {
     "/api/**": ["./node_modules/ffmpeg-static/**/*"],
   },
