@@ -56,7 +56,19 @@ export default function AdminSupportPage() {
   async function openTicket(id: string) {
     setSelectedTicket(id);
     const res = await fetch(`/api/support/tickets/${id}`);
-    if (res.ok) setTicketDetail(await res.json());
+    if (res.ok) {
+      const data = await res.json();
+      setTicketDetail(data);
+      // Mark as read if waiting for admin
+      if (data.ticket?.status === "waiting_admin" || data.ticket?.status === "open") {
+        fetch(`/api/support/tickets/${id}/read`, { method: "POST" })
+          .then(() => {
+            fetchTickets();
+            window.dispatchEvent(new Event("support-updated"));
+          })
+          .catch(() => {});
+      }
+    }
   }
 
   async function handleReply(message: string) {
