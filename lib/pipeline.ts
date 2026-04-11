@@ -39,32 +39,59 @@ async function ensureExtractedAudio(
     const { data: signed } = await supabase.storage.from("videos").createSignedUrl(videoPath, 600);
     if (!signed?.signedUrl) return;
 
-    // Submit ffmpeg job to fal.ai (synchronous run)
-    const res = await fetch("https://fal.run/fal-ai/ffmpeg-api/compose", {
+    // Submit ffmpeg job to fal.ai queue
+    const submitRes = await fetch("https://queue.fal.run/fal-ai/ffmpeg-api", {
       method: "POST",
       headers: {
         Authorization: `Key ${falKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        tracks: [{
-          type: "audio",
-          url: signed.signedUrl,
-        }],
-        output_format: "wav",
-        duration: 30, // Max 30s for voice sample
+        input_files: [{ url: signed.signedUrl, filename: "input.mov" }],
+        command: "-i input.mov -vn -acodec pcm_s16le -ar 44100 -ac 1 output.wav",
+        output_files: ["output.wav"],
       }),
     });
 
-    if (!res.ok) {
-      console.warn(`[EXTRACT_AUDIO] fal.ai ffmpeg failed: ${res.status}`);
+    if (!submitRes.ok) {
+      console.warn(`[EXTRACT_AUDIO] fal.ai submit failed: ${submitRes.status}`);
       return;
     }
 
-    const result = (await res.json()) as { audio_url?: string; url?: string; output_url?: string };
-    const audioUrl = result.audio_url || result.url || result.output_url;
+    const submitData = (await submitRes.json()) as { request_id?: string; status_url?: string };
+    if (!submitData.request_id) {
+      console.warn("[EXTRACT_AUDIO] No request_id");
+      return;
+    }
+
+    // Poll for completion (max 30s)
+    let audioUrl: string | null = null;
+    for (let i = 0; i < 15; i++) {
+      await new Promise((r) => setTimeout(r, 2000));
+      const statusRes = await fetch(
+        `https://queue.fal.run/fal-ai/ffmpeg-api/requests/${submitData.request_id}/status`,
+        { headers: { Authorization: `Key ${falKey}` } }
+      );
+      if (!statusRes.ok) continue;
+      const status = (await statusRes.json()) as { status?: string };
+
+      if (status.status === "COMPLETED") {
+        // Get result
+        const resultRes = await fetch(
+          `https://queue.fal.run/fal-ai/ffmpeg-api/requests/${submitData.request_id}`,
+          { headers: { Authorization: `Key ${falKey}` } }
+        );
+        if (resultRes.ok) {
+          const result = (await resultRes.json()) as { output_files?: Array<{ url: string }> };
+          audioUrl = result.output_files?.[0]?.url || null;
+        }
+        break;
+      }
+      if (status.status === "FAILED") break;
+    }
+
     if (!audioUrl) {
-      console.warn("[EXTRACT_AUDIO] No audio URL in response");
+      console.warn("[EXTRACT_AUDIO] No audio URL from ffmpeg result");
       return;
     }
 
