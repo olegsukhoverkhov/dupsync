@@ -410,7 +410,7 @@ async function runDubbingAudioOnce(
         }
       }
 
-      // Concatenate WAV segments (same logic as Fish Audio path below)
+      // Concatenate WAV segments with crossfade to eliminate clicks
       const nonEmpty = segmentBuffers.filter((b) => b.length > 44);
       if (nonEmpty.length === 0) throw new Error(`All Cartesia TTS segments failed. First error: ${firstError}`);
 
@@ -418,10 +418,36 @@ async function runDubbingAudioOnce(
       const sampleRate = firstHeader.readUInt32LE(24);
       const channels = firstHeader.readUInt16LE(22);
       const bitsPerSample = firstHeader.readUInt16LE(34);
+      const bytesPerSample = bitsPerSample / 8;
 
+      // Apply fade-in/fade-out to each segment to prevent clicks at joins
+      const fadeSamples = Math.min(Math.floor(sampleRate * 0.005), 220); // 5ms fade
       const pcmChunks: Buffer[] = [];
       for (const buf of nonEmpty) {
-        pcmChunks.push(buf.subarray(44));
+        const pcm = Buffer.from(buf.subarray(44)); // copy so we can modify
+        const totalSamples = Math.floor(pcm.length / (bytesPerSample * channels));
+        if (totalSamples > fadeSamples * 2 && bytesPerSample === 2) {
+          // Fade-in
+          for (let i = 0; i < fadeSamples; i++) {
+            const gain = i / fadeSamples;
+            for (let ch = 0; ch < channels; ch++) {
+              const offset = (i * channels + ch) * 2;
+              const sample = pcm.readInt16LE(offset);
+              pcm.writeInt16LE(Math.round(sample * gain), offset);
+            }
+          }
+          // Fade-out
+          for (let i = 0; i < fadeSamples; i++) {
+            const gain = i / fadeSamples;
+            const sampleIdx = totalSamples - 1 - i;
+            for (let ch = 0; ch < channels; ch++) {
+              const offset = (sampleIdx * channels + ch) * 2;
+              const sample = pcm.readInt16LE(offset);
+              pcm.writeInt16LE(Math.round(sample * gain), offset);
+            }
+          }
+        }
+        pcmChunks.push(pcm);
       }
       const pcmData = Buffer.concat(pcmChunks);
       const dataSize = pcmData.length;
