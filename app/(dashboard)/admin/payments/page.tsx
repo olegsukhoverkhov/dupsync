@@ -108,16 +108,23 @@ export default function AdminPaymentsPage() {
     }
   }
 
-  async function handleDelete() {
+  function handleDelete() {
     const ids = [...selectedIds];
-    await fetch("/api/admin/transactions", {
+    setShowDeleteConfirm(false);
+    setSelectedIds(new Set());
+    fetch("/api/admin/transactions", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ids }),
+    }).then((res) => {
+      if (res.ok) {
+        // Remove deleted from local state immediately
+        setTransactions((prev) => prev.filter((t) => !ids.includes(t.id)));
+      } else {
+        alert("Failed to delete transactions");
+        fetchData();
+      }
     });
-    setSelectedIds(new Set());
-    setShowDeleteConfirm(false);
-    fetchData();
   }
 
   function buildFilterUrl(key: string, value: string) {
