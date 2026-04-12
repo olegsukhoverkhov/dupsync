@@ -1,6 +1,39 @@
 import { createHash } from "node:crypto";
 import { createServiceClient } from "@/lib/supabase/server";
 
+// ─── Bot detection ─────────────────────────────────────────
+
+const BOT_PATTERNS = [
+  // Search engines
+  "googlebot", "bingbot", "yandexbot", "baiduspider", "duckduckbot",
+  "slurp", "sogou", "exabot", "ia_archiver",
+  // SEO tools
+  "ahrefs", "semrush", "moz", "screaming", "serpstat",
+  "majestic", "dotbot", "rogerbot", "linkdex", "seokicks",
+  // AI bots
+  "gptbot", "claudebot", "ccbot", "chatgpt", "anthropic",
+  "perplexity", "cohere", "bytespider",
+  // Social media preview
+  "facebookexternalhit", "facebot", "twitterbot", "linkedinbot",
+  "whatsapp", "telegrambot", "slackbot", "discordbot",
+  // Monitors & tools
+  "pingdom", "uptimerobot", "statuscake", "site24x7",
+  "python-requests", "python-urllib", "curl/", "wget/",
+  "httpie", "postman", "insomnia",
+  "headlesschrome", "phantomjs", "selenium",
+  "scrapy", "nutch", "archive.org_bot",
+  // Generic patterns
+  "bot/", "crawler", "spider", "scraper",
+  "monitor", "scan", "probe",
+];
+
+/** Check if a User-Agent belongs to a bot/crawler. */
+export function isBot(userAgent: string | null | undefined): boolean {
+  if (!userAgent) return true; // No UA = likely bot
+  const ua = userAgent.toLowerCase();
+  return BOT_PATTERNS.some((p) => ua.includes(p));
+}
+
 /**
  * Request context the caller collects from `headers()` BEFORE
  * scheduling trackVisit via `after()`. Next disallows calling
@@ -41,11 +74,9 @@ export async function trackVisit(ctx: VisitContext): Promise<void> {
     if (!salt) return;
     if (!ctx.ip) return;
 
-    // Skip obvious bots so the counter reflects real humans. Naive UA
-    // filter; anything claiming to be a browser gets through.
-    if (ctx.userAgent && /bot|crawler|spider|slurp|bingpreview/i.test(ctx.userAgent)) {
-      return;
-    }
+    // Comprehensive bot filter — skip crawlers, SEO tools, AI bots,
+    // social preview bots, monitors, headless browsers, CLI tools.
+    if (isBot(ctx.userAgent)) return;
 
     const ipHash = createHash("sha256").update(salt + ctx.ip).digest("hex");
 
