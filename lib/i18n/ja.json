@@ -479,6 +479,10 @@
       "errorTitle": "エラー",
       "billingPortalError": "請求ポータルを開けませんでした。もう一度お試しください。"
     },
+    "expiredBanner": {
+      "message": "{plan}サブスクリプションの有効期限が切れました。プレミアム機能を引き続きご利用いただくには、更新してください。",
+      "renew": "サブスクリプションを更新"
+    },
     "subscriptionModal": {
       "title": "サブスクリプションを管理",
       "plan": "プラン",

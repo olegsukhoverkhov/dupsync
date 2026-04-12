@@ -145,6 +145,7 @@ export async function POST(req: NextRequest) {
           plan,
           credits_remaining: planConfig.credits,
           stripe_customer_id: subscriptionId,
+          subscription_expired: false,
         })
         .eq("id", userId);
 
@@ -177,12 +178,13 @@ export async function POST(req: NextRequest) {
       if (!profile) break;
 
       if (status === "expired") {
-        // Subscription period ended — downgrade to free
+        // Subscription period ended — zero credits and flag as expired.
+        // Keep plan name so UI can show renewal prompt.
         await supabase
           .from("profiles")
-          .update({ plan: "free", credits_remaining: 1 })
+          .update({ credits_remaining: 0, subscription_expired: true })
           .eq("id", profile.id);
-        console.log(`[DODO_WEBHOOK] User ${profile.id} expired → free`);
+        console.log(`[DODO_WEBHOOK] User ${profile.id} subscription expired`);
       } else if (status === "cancelled") {
         // User cancelled but period not over yet — keep current plan,
         // just log it. Downgrade happens when status becomes "expired".
@@ -194,14 +196,14 @@ export async function POST(req: NextRequest) {
           const planConfig = PLAN_LIMITS[newPlan];
           await supabase
             .from("profiles")
-            .update({ plan: newPlan, credits_remaining: planConfig.credits })
+            .update({ plan: newPlan, credits_remaining: planConfig.credits, subscription_expired: false })
             .eq("id", profile.id);
           console.log(`[DODO_WEBHOOK] User ${profile.id} changed plan: ${profile.plan} → ${newPlan}`);
         } else if (newPlan) {
           const planConfig = PLAN_LIMITS[newPlan];
           await supabase
             .from("profiles")
-            .update({ credits_remaining: planConfig.credits })
+            .update({ credits_remaining: planConfig.credits, subscription_expired: false })
             .eq("id", profile.id);
           console.log(`[DODO_WEBHOOK] User ${profile.id} renewed ${newPlan}`);
         }

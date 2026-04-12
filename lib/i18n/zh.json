@@ -479,6 +479,10 @@
       "errorTitle": "错误",
       "billingPortalError": "无法打开账单管理页面。请重试。"
     },
+    "expiredBanner": {
+      "message": "您的 {plan} 订阅已过期。请续订以继续使用高级功能。",
+      "renew": "续订"
+    },
     "subscriptionModal": {
       "title": "管理订阅",
       "plan": "套餐",

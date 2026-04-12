@@ -1,6 +1,7 @@
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardLocaleProvider } from "@/components/dashboard/locale-provider";
 import { SuspendedCheck } from "@/components/dashboard/suspended-check";
+import { ExpiredBanner } from "@/components/dashboard/expired-banner";
 import { Heartbeat } from "@/components/dashboard/heartbeat";
 import { ErrorReporter } from "@/components/dashboard/error-reporter";
 import { resolveDashboardLocale } from "@/lib/i18n/dashboard-locale";
@@ -30,6 +31,7 @@ export default async function DashboardLayout({
       <div className="landing-dark bg-[#0F172A] text-white flex flex-col min-h-screen lg:flex-row lg:h-screen">
         <DashboardSidebar />
         <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
+          <ExpiredBanner />
           <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">{children}</div>
         </main>
         <SuspendedCheck />

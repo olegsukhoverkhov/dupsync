@@ -480,6 +480,10 @@
       "errorTitle": "Hata",
       "billingPortalError": "Faturalama portalı açılamadı. Lütfen tekrar deneyin."
     },
+    "expiredBanner": {
+      "message": "{plan} aboneliğinizin süresi doldu. Premium özellikleri kullanmaya devam etmek için yenileyin.",
+      "renew": "Aboneliği Yenile"
+    },
     "subscriptionModal": {
       "title": "Aboneliği Yönet",
       "plan": "Plan",

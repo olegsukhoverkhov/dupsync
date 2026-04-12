@@ -479,6 +479,10 @@
       "errorTitle": "Fehler",
       "billingPortalError": "Abrechnungsportal konnte nicht geöffnet werden. Bitte versuche es erneut."
     },
+    "expiredBanner": {
+      "message": "Dein {plan}-Abonnement ist abgelaufen. Verlängere es, um die Premium-Funktionen weiterhin zu nutzen.",
+      "renew": "Abonnement verlängern"
+    },
     "subscriptionModal": {
       "title": "Abonnement verwalten",
       "plan": "Tarif",

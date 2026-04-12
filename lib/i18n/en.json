@@ -479,6 +479,10 @@
       "errorTitle": "Error",
       "billingPortalError": "Failed to open billing portal. Please try again."
     },
+    "expiredBanner": {
+      "message": "Your {plan} subscription has expired. Renew to continue using premium features.",
+      "renew": "Renew Subscription"
+    },
     "subscriptionModal": {
       "title": "Manage Subscription",
       "plan": "Plan",

@@ -480,6 +480,10 @@
       "errorTitle": "Kesalahan",
       "billingPortalError": "Gagal membuka portal penagihan. Silakan coba lagi."
     },
+    "expiredBanner": {
+      "message": "Langganan {plan} Anda telah kedaluwarsa. Perpanjang untuk terus menggunakan fitur premium.",
+      "renew": "Perpanjang Langganan"
+    },
     "subscriptionModal": {
       "title": "Kelola Langganan",
       "plan": "Paket",

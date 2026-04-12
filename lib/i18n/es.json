@@ -479,6 +479,10 @@
       "errorTitle": "Error",
       "billingPortalError": "No se pudo abrir el portal de facturación. Inténtalo de nuevo."
     },
+    "expiredBanner": {
+      "message": "Tu suscripción de {plan} ha expirado. Renuévala para seguir usando las funciones premium.",
+      "renew": "Renovar suscripción"
+    },
     "subscriptionModal": {
       "title": "Gestionar suscripción",
       "plan": "Plan",

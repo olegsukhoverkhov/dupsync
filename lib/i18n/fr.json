@@ -479,6 +479,10 @@
       "errorTitle": "Erreur",
       "billingPortalError": "Impossible d'ouvrir le portail de facturation. Veuillez réessayer."
     },
+    "expiredBanner": {
+      "message": "Votre abonnement {plan} a expiré. Renouvelez-le pour continuer à utiliser les fonctionnalités premium.",
+      "renew": "Renouveler l'abonnement"
+    },
     "subscriptionModal": {
       "title": "Gérer l'abonnement",
       "plan": "Forfait",

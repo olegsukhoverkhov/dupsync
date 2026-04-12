@@ -479,6 +479,10 @@
       "errorTitle": "Erro",
       "billingPortalError": "Falha ao abrir o portal de cobrança. Tente novamente."
     },
+    "expiredBanner": {
+      "message": "Sua assinatura {plan} expirou. Renove para continuar usando os recursos premium.",
+      "renew": "Renovar assinatura"
+    },
     "subscriptionModal": {
       "title": "Gerenciar assinatura",
       "plan": "Plano",
