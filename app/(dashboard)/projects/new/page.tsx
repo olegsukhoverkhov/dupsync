@@ -464,15 +464,6 @@ export default function NewProjectPage() {
                     {/* Upload mode toggle */}
                     <div className="flex rounded-xl border border-white/10 bg-white/5 p-1 gap-1">
                       <button
-                        onClick={() => setUploadMode("file")}
-                        className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors cursor-pointer ${
-                          uploadMode === "file" ? "bg-white/10 text-white" : "text-slate-400 hover:text-white"
-                        }`}
-                      >
-                        <Upload className="h-4 w-4" />
-                        {t("dashboard.newProject.uploadFile", "Upload File")}
-                      </button>
-                      <button
                         onClick={() => setUploadMode("url")}
                         className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors cursor-pointer ${
                           uploadMode === "url" ? "bg-white/10 text-white" : "text-slate-400 hover:text-white"
@@ -480,6 +471,15 @@ export default function NewProjectPage() {
                       >
                         <Link2 className="h-4 w-4" />
                         {t("dashboard.newProject.importFromUrl", "Import from URL")}
+                      </button>
+                      <button
+                        onClick={() => setUploadMode("file")}
+                        className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors cursor-pointer ${
+                          uploadMode === "file" ? "bg-white/10 text-white" : "text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        <Upload className="h-4 w-4" />
+                        {t("dashboard.newProject.uploadFile", "Upload File")}
                       </button>
                     </div>
 
