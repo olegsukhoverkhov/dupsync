@@ -1,5 +1,5 @@
 -- Conversion funnel RPCs for /admin/conversion dashboard
--- Excludes UA (admin testing) from all metrics
+-- Excludes admin users from all metrics
 
 -- 1. Overall funnel stats (with date range)
 CREATE OR REPLACE FUNCTION conversion_funnel_stats(
@@ -26,14 +26,12 @@ AS $$
     SELECT COUNT(DISTINCT ip_hash) AS cnt
     FROM site_visits, range_filter rf
     WHERE first_seen_at >= rf.range_from AND first_seen_at < rf.range_to
-      AND (country IS NULL OR country != 'UA')
-  ),
+        ),
   s AS (
     SELECT COUNT(*) AS cnt
     FROM profiles, range_filter rf
     WHERE created_at >= rf.range_from AND created_at < rf.range_to
-      AND (country IS NULL OR country != 'UA')
-      AND is_admin = false
+            AND is_admin = false
   ),
   pc AS (
     SELECT COUNT(DISTINCT pr.user_id) AS cnt
@@ -42,8 +40,7 @@ AS $$
     CROSS JOIN range_filter rf
     WHERE pr.is_demo = false
       AND pr.created_at >= rf.range_from AND pr.created_at < rf.range_to
-      AND (p.country IS NULL OR p.country != 'UA')
-      AND p.is_admin = false
+            AND p.is_admin = false
   ),
   fd AS (
     SELECT COUNT(DISTINCT pr.user_id) AS cnt
@@ -53,8 +50,7 @@ AS $$
     CROSS JOIN range_filter rf
     WHERE d.status = 'done'
       AND d.created_at >= rf.range_from AND d.created_at < rf.range_to
-      AND (p.country IS NULL OR p.country != 'UA')
-      AND p.is_admin = false
+            AND p.is_admin = false
   ),
   pu AS (
     SELECT COUNT(DISTINCT t.user_id) AS cnt
@@ -63,8 +59,7 @@ AS $$
     CROSS JOIN range_filter rf
     WHERE t.type = 'subscription'
       AND t.created_at >= rf.range_from AND t.created_at < rf.range_to
-      AND (p.country IS NULL OR p.country != 'UA')
-      AND p.is_admin = false
+            AND p.is_admin = false
   ),
   timing_dub AS (
     SELECT AVG(EXTRACT(EPOCH FROM (first_dub - p.created_at)) / 3600) AS avg_hours
@@ -77,8 +72,7 @@ AS $$
     ) fd ON fd.first_dub IS NOT NULL
     CROSS JOIN range_filter rf
     WHERE p.created_at >= rf.range_from AND p.created_at < rf.range_to
-      AND (p.country IS NULL OR p.country != 'UA')
-      AND p.is_admin = false
+            AND p.is_admin = false
   ),
   timing_paid AS (
     SELECT AVG(EXTRACT(EPOCH FROM (first_pay - p.created_at)) / 3600) AS avg_hours
@@ -90,8 +84,7 @@ AS $$
     ) fp ON fp.first_pay IS NOT NULL
     CROSS JOIN range_filter rf
     WHERE p.created_at >= rf.range_from AND p.created_at < rf.range_to
-      AND (p.country IS NULL OR p.country != 'UA')
-      AND p.is_admin = false
+            AND p.is_admin = false
   )
   SELECT
     v.cnt,
@@ -104,7 +97,7 @@ AS $$
   FROM v, s, pc, fd, pu, timing_dub, timing_paid;
 $$;
 
--- 2. Funnel breakdown by country (top 20 by visitors, excludes UA)
+-- 2. Funnel breakdown by country (top 20 by visitors)
 CREATE OR REPLACE FUNCTION conversion_funnel_by_country(
   p_from timestamptz DEFAULT NULL,
   p_to   timestamptz DEFAULT NULL
@@ -128,7 +121,6 @@ AS $$
     SELECT sv.country AS c, COUNT(DISTINCT sv.ip_hash) AS vis
     FROM site_visits sv, range_filter rf
     WHERE sv.country IS NOT NULL
-      AND sv.country != 'UA'
       AND sv.first_seen_at >= rf.range_from AND sv.first_seen_at < rf.range_to
     GROUP BY sv.country
     ORDER BY vis DESC
@@ -137,7 +129,7 @@ AS $$
   signups_by AS (
     SELECT p.country AS c, COUNT(*) AS cnt
     FROM profiles p, range_filter rf
-    WHERE p.country IS NOT NULL AND p.country != 'UA'
+    WHERE p.country IS NOT NULL
       AND p.is_admin = false
       AND p.created_at >= rf.range_from AND p.created_at < rf.range_to
     GROUP BY p.country
@@ -149,7 +141,7 @@ AS $$
     CROSS JOIN range_filter rf
     WHERE pr.is_demo = false
       AND pr.created_at >= rf.range_from AND pr.created_at < rf.range_to
-      AND p2.country IS NOT NULL AND p2.country != 'UA'
+      AND p2.country IS NOT NULL
       AND p2.is_admin = false
     GROUP BY p2.country
   ),
@@ -161,7 +153,7 @@ AS $$
     CROSS JOIN range_filter rf
     WHERE d.status = 'done'
       AND d.created_at >= rf.range_from AND d.created_at < rf.range_to
-      AND p2.country IS NOT NULL AND p2.country != 'UA'
+      AND p2.country IS NOT NULL
       AND p2.is_admin = false
     GROUP BY p2.country
   ),
@@ -172,7 +164,7 @@ AS $$
     CROSS JOIN range_filter rf
     WHERE t.type = 'subscription'
       AND t.created_at >= rf.range_from AND t.created_at < rf.range_to
-      AND p2.country IS NOT NULL AND p2.country != 'UA'
+      AND p2.country IS NOT NULL
       AND p2.is_admin = false
     GROUP BY p2.country
   )
@@ -191,7 +183,7 @@ AS $$
   ORDER BY tc.vis DESC;
 $$;
 
--- 3. Daily cohort conversion (for trend chart, excludes UA/admin)
+-- 3. Daily cohort conversion (for trend chart)
 CREATE OR REPLACE FUNCTION conversion_cohort_daily(
   p_from timestamptz DEFAULT NULL,
   p_to   timestamptz DEFAULT NULL
@@ -213,8 +205,7 @@ AS $$
     SELECT DATE(p.created_at) AS d, COUNT(*) AS cnt
     FROM profiles p, range_filter rf
     WHERE p.created_at >= rf.range_from AND p.created_at < rf.range_to
-      AND (p.country IS NULL OR p.country != 'UA')
-      AND p.is_admin = false
+            AND p.is_admin = false
     GROUP BY DATE(p.created_at)
   ),
   daily_dubbers AS (
@@ -225,8 +216,7 @@ AS $$
     CROSS JOIN range_filter rf
     WHERE d.status = 'done'
       AND d.created_at >= rf.range_from AND d.created_at < rf.range_to
-      AND (p.country IS NULL OR p.country != 'UA')
-      AND p.is_admin = false
+            AND p.is_admin = false
     GROUP BY DATE(d.created_at)
   ),
   daily_paid AS (
@@ -236,8 +226,7 @@ AS $$
     CROSS JOIN range_filter rf
     WHERE t.type = 'subscription'
       AND t.created_at >= rf.range_from AND t.created_at < rf.range_to
-      AND (p.country IS NULL OR p.country != 'UA')
-      AND p.is_admin = false
+            AND p.is_admin = false
     GROUP BY DATE(t.created_at)
   ),
   all_days AS (
