@@ -425,6 +425,9 @@ function EditForm({
     String(Math.floor(user.topup_credits))
   );
   const [subExpired, setSubExpired] = useState(user.subscription_expired);
+  const [subExpiresAt, setSubExpiresAt] = useState(
+    user.subscription_expires_at ? user.subscription_expires_at.slice(0, 10) : ""
+  );
   const [saving, setSaving] = useState(false);
   const [togglingRenew, setTogglingRenew] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -448,7 +451,13 @@ function EditForm({
       const res = await fetch(`/api/admin/users/${user.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan, credits_remaining: creditsNumber, topup_credits: topupNumber, subscription_expired: subExpired }),
+        body: JSON.stringify({
+          plan,
+          credits_remaining: creditsNumber,
+          topup_credits: topupNumber,
+          subscription_expired: subExpired,
+          subscription_expires_at: subExpiresAt ? `${subExpiresAt}T23:59:59.000Z` : null,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -524,15 +533,21 @@ function EditForm({
               <span className="text-xs text-slate-300">Subscription ID</span>
               <span className="text-xs text-slate-500 font-mono">{user.stripe_customer_id.slice(0, 16)}...</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-300">Expired</span>
-              <button
-                type="button"
-                onClick={() => setSubExpired(!subExpired)}
-                className={`relative h-5 w-9 rounded-full transition-colors cursor-pointer ${subExpired ? "bg-red-500" : "bg-emerald-500"}`}
-              >
-                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${subExpired ? "left-0.5" : "left-[18px]"}`} />
-              </button>
+            <div>
+              <span className="text-xs text-slate-300">Expires at</span>
+              <input
+                type="date"
+                value={subExpiresAt}
+                onChange={(e) => {
+                  setSubExpiresAt(e.target.value);
+                  if (e.target.value && new Date(e.target.value) < new Date()) {
+                    setSubExpired(true);
+                  } else {
+                    setSubExpired(false);
+                  }
+                }}
+                className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/50 px-3 py-1.5 text-xs text-white focus:border-pink-500/50 focus:outline-none"
+              />
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-300">Auto-renew (Dodo)</span>

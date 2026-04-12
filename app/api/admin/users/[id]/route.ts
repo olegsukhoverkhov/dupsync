@@ -37,7 +37,7 @@ export async function PATCH(
   const auth = await requireAdmin();
   if (auth.error) return auth.error;
 
-  let body: { plan?: string; credits_remaining?: number; topup_credits?: number; is_suspended?: boolean; subscription_expired?: boolean };
+  let body: { plan?: string; credits_remaining?: number; topup_credits?: number; is_suspended?: boolean; subscription_expired?: boolean; subscription_expires_at?: string | null };
   try {
     body = await request.json();
   } catch {
@@ -79,6 +79,9 @@ export async function PATCH(
   }
   if (typeof body.subscription_expired === "boolean") {
     updates.subscription_expired = body.subscription_expired;
+  }
+  if (body.subscription_expires_at !== undefined) {
+    updates.subscription_expires_at = body.subscription_expires_at;
   }
 
   if (Object.keys(updates).length === 0) {

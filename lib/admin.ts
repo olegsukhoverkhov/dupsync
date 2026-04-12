@@ -24,6 +24,7 @@ export type AdminUserRow = {
   country: string | null;
   stripe_customer_id: string | null;
   subscription_expired: boolean;
+  subscription_expires_at: string | null;
 };
 
 export type AdminUsersPage = {
@@ -78,6 +79,7 @@ export async function getAdminUsers(
       country: (r.country as string) || null,
       stripe_customer_id: (r.stripe_customer_id as string) || null,
       subscription_expired: Boolean(r.subscription_expired),
+      subscription_expires_at: (r.subscription_expires_at as string) || null,
     }));
     const totalCount = Number(
       (data as unknown as RawAdminUserRow[])[0]?.total_count ?? 0
@@ -117,5 +119,6 @@ type RawAdminUserRow = {
   country: string | null;
   stripe_customer_id: string | null;
   subscription_expired: boolean;
+  subscription_expires_at: string | null;
   total_count: number | string;
 };
