@@ -53,6 +53,7 @@ export async function getAdminUsers(
       p_offset: (safePage - 1) * safeSize,
     });
     if (error || !data) {
+      console.error("[ADMIN_USERS] RPC error:", error?.message || "no data");
       return {
         rows: [],
         totalCount: 0,
@@ -88,7 +89,8 @@ export async function getAdminUsers(
       pageSize: safeSize,
       totalPages: Math.max(1, Math.ceil(totalCount / safeSize)),
     };
-  } catch {
+  } catch (err) {
+    console.error("[ADMIN_USERS] Exception:", err instanceof Error ? err.message : err);
     return {
       rows: [],
       totalCount: 0,
