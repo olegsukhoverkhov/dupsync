@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Modal } from "@/components/ui/modal";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDashboardT } from "./locale-provider";
-import { CreditCard, Calendar, AlertTriangle, Loader2 } from "lucide-react";
+import { CreditCard, Calendar, AlertTriangle, Loader2, X } from "lucide-react";
 
 type SubscriptionData = {
   status: string;
@@ -87,8 +86,32 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
   const planName = plan.charAt(0).toUpperCase() + plan.slice(1);
   const priceLabel = planPrice > 0 ? `$${(planPrice / 100).toFixed(2)}` : t("dashboard.settingsPage.free", "Free");
 
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    document.body.style.overflow = "hidden";
+    function handleKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    window.addEventListener("keydown", handleKey);
+    return () => { document.body.style.overflow = ""; window.removeEventListener("keydown", handleKey); };
+  }, [open, onClose]);
+
+  if (!open) return null;
+
   return (
-    <Modal open={open} onClose={onClose}>
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
+    >
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-2xl">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors cursor-pointer"
+        >
+          <X className="h-4 w-4" />
+        </button>
         <h2 className="text-lg font-bold text-white mb-5">
           {t("dashboard.subscriptionModal.title", "Manage Subscription")}
         </h2>
@@ -225,6 +248,7 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
             {t("dashboard.subscriptionModal.close", "Close")}
           </button>
         </div>
-    </Modal>
+      </div>
+    </div>
   );
 }
