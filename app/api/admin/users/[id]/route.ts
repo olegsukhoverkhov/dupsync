@@ -90,24 +90,23 @@ export async function PATCH(
 
   const admin = await createServiceClient();
 
-  // If expiry date was moved earlier, cancel in Dodo
+  // Sync expiry date change to Dodo
   if (updates.subscription_expires_at !== undefined) {
     const { data: targetProfile } = await admin
       .from("profiles")
       .select("stripe_customer_id, subscription_expires_at")
       .eq("id", targetId)
       .single();
-    if (targetProfile?.stripe_customer_id) {
-      const oldDate = targetProfile.subscription_expires_at ? new Date(targetProfile.subscription_expires_at).getTime() : Infinity;
-      const newDate = updates.subscription_expires_at ? new Date(updates.subscription_expires_at as string).getTime() : Infinity;
-      if (newDate < oldDate) {
-        try {
-          const { cancelSubscription } = await import("@/lib/dodo-payments");
-          await cancelSubscription(targetProfile.stripe_customer_id);
-          console.log(`[ADMIN] Cancelled Dodo subscription for ${targetId} (expiry moved earlier)`);
-        } catch (err) {
-          console.warn(`[ADMIN] Dodo cancel failed for ${targetId}:`, err instanceof Error ? err.message : err);
-        }
+    if (targetProfile?.stripe_customer_id && updates.subscription_expires_at) {
+      try {
+        const { updateSubscriptionBillingDate } = await import("@/lib/dodo-payments");
+        await updateSubscriptionBillingDate(
+          targetProfile.stripe_customer_id,
+          updates.subscription_expires_at as string
+        );
+        console.log(`[ADMIN] Updated Dodo billing date for ${targetId} → ${updates.subscription_expires_at}`);
+      } catch (err) {
+        console.warn(`[ADMIN] Dodo billing date update failed for ${targetId}:`, err instanceof Error ? err.message : err);
       }
     }
   }

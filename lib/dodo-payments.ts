@@ -211,6 +211,21 @@ export async function cancelSubscription(subscriptionId: string): Promise<void> 
 
 
 /**
+ * Update the next billing date for a subscription.
+ */
+export async function updateSubscriptionBillingDate(subscriptionId: string, nextBillingDate: string): Promise<void> {
+  const res = await fetch(`${DODO_API}/subscriptions/${subscriptionId}`, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify({ next_billing_date: nextBillingDate }),
+  });
+  if (!res.ok) {
+    const err = await res.text().catch(() => "");
+    throw new Error(`Dodo update billing date failed: ${res.status} ${err.slice(0, 300)}`);
+  }
+}
+
+/**
  * Get subscription details.
  */
 export async function getSubscription(subscriptionId: string): Promise<Record<string, unknown>> {
