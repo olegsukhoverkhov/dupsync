@@ -38,7 +38,7 @@ export function SuspendedModal() {
         </p>
 
         <a
-          href="mailto:support@dubsync.app"
+          href="/support"
           className="inline-flex items-center justify-center w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-white hover:bg-white/[0.06] transition-colors"
         >
           {t("dashboard.suspended.contactSupport", "Contact Support")}

@@ -61,30 +61,30 @@ export function UsersTable({ initial }: { initial: AdminUsersPage }) {
 
       <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-800/30">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[1100px] text-sm">
             <thead className="bg-white/5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
               <tr>
-                <th className="px-4 py-3">User</th>
-                <th className="px-4 py-3">Country</th>
-                <th className="px-4 py-3">Plan</th>
-                <th className="px-4 py-3 text-right">Credits left</th>
-                <th className="px-4 py-3 text-right">Credits used</th>
-                <th className="px-4 py-3">Last login</th>
-                <th className="px-4 py-3">Joined</th>
-                <th className="px-4 py-3 text-right">&nbsp;</th>
+                <th className="px-3 py-3">User</th>
+                <th className="px-3 py-3 w-16">Country</th>
+                <th className="px-3 py-3 w-20">Plan</th>
+                <th className="px-3 py-3 text-right w-24">Credits left</th>
+                <th className="px-3 py-3 text-right w-24">Credits used</th>
+                <th className="px-3 py-3 w-24">Last login</th>
+                <th className="px-3 py-3 w-24">Joined</th>
+                <th className="px-3 py-3 text-right">&nbsp;</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {initial.rows.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-sm text-slate-500">
+                  <td colSpan={8} className="px-4 py-8 text-center text-sm text-slate-500">
                     No users.
                   </td>
                 </tr>
               )}
               {initial.rows.map((u) => (
                 <tr key={u.id} className="hover:bg-white/[0.02]">
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3">
                     <div className="flex items-center gap-2">
                       <div
                         className={`h-2 w-2 shrink-0 rounded-full ${
@@ -125,7 +125,7 @@ export function UsersTable({ initial }: { initial: AdminUsersPage }) {
                       <span title={u.country}>{countryFlag(u.country)} {u.country}</span>
                     ) : "—"}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3">
                     <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs font-medium text-slate-200">
                       {u.plan}
                     </span>
