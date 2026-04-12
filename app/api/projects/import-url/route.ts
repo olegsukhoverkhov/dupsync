@@ -8,9 +8,11 @@ import { randomUUID } from "crypto";
 
 export const maxDuration = 300;
 
+const COBALT_API = "https://api.cobalt.tools";
+
 /**
  * POST /api/projects/import-url
- * Download a video from a social media URL and create a project.
+ * Download a video from a social media URL via Cobalt API and create a project.
  */
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -22,7 +24,6 @@ export async function POST(request: Request) {
 
   if (!url) return NextResponse.json({ error: "URL is required" }, { status: 400 });
 
-  // Validate platform
   const { valid, platform, label } = detectPlatform(url);
   if (!valid) {
     return NextResponse.json(
@@ -31,7 +32,6 @@ export async function POST(request: Request) {
     );
   }
 
-  // Get user plan limits
   const { data: profile } = await supabase
     .from("profiles")
     .select("plan")
@@ -41,99 +41,97 @@ export async function POST(request: Request) {
   const planLimits = PLAN_LIMITS[plan];
 
   try {
-    const fs = await import("fs");
-    const os = await import("os");
-    const path = await import("path");
-    const { execSync } = await import("child_process");
+    console.log(`[IMPORT_URL] Requesting download from ${label}: ${url}`);
 
-    // Ensure yt-dlp binary exists
-    const ytdlpPath = await ensureYtDlp();
+    // Step 1: Request download URL from Cobalt
+    const cobaltRes = await fetch(COBALT_API, {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        url,
+        videoQuality: "1080",
+        youtubeVideoCodec: "h264",
+      }),
+    });
 
-    // Step 1: Get video metadata (title, duration)
-    console.log(`[IMPORT_URL] Fetching metadata from ${label}: ${url}`);
-    let title = "Imported video";
-    let duration = 0;
-    try {
-      const metaRaw = execSync(
-        `"${ytdlpPath}" --no-warnings --no-download --print title --print duration ${JSON.stringify(url)}`,
-        { timeout: 30000, stdio: ["pipe", "pipe", "pipe"] }
-      ).toString().trim();
-      const lines = metaRaw.split("\n");
-      if (lines[0]) title = lines[0].slice(0, 100);
-      if (lines[1]) duration = Math.ceil(parseFloat(lines[1]) || 0);
-    } catch (metaErr) {
-      console.warn(`[IMPORT_URL] Metadata fetch failed:`, metaErr instanceof Error ? metaErr.message : metaErr);
+    if (!cobaltRes.ok) {
+      const errText = await cobaltRes.text().catch(() => "");
+      console.error(`[IMPORT_URL] Cobalt error: ${cobaltRes.status} ${errText.slice(0, 300)}`);
+      if (cobaltRes.status === 400) {
+        return NextResponse.json(
+          { error: "This video is private, unavailable, or not supported." },
+          { status: 400 }
+        );
+      }
+      throw new Error(`Cobalt API error: ${cobaltRes.status}`);
     }
 
-    // Step 2: Check duration against plan limits
-    if (planLimits.maxVideoSeconds > 0 && duration > planLimits.maxVideoSeconds) {
+    const cobaltData = await cobaltRes.json() as {
+      status: string;
+      url?: string;
+      filename?: string;
+      error?: { code?: string };
+      picker?: Array<{ url: string; type: string }>;
+    };
+
+    console.log(`[IMPORT_URL] Cobalt response: status=${cobaltData.status}`);
+
+    let downloadUrl: string | null = null;
+    let title = "Imported video";
+
+    if (cobaltData.status === "tunnel" || cobaltData.status === "redirect") {
+      downloadUrl = cobaltData.url || null;
+      if (cobaltData.filename) {
+        title = cobaltData.filename.replace(/\.[^.]+$/, "").slice(0, 100);
+      }
+    } else if (cobaltData.status === "picker" && cobaltData.picker?.length) {
+      // Multiple options — pick first video
+      const videoItem = cobaltData.picker.find(p => p.type === "video") || cobaltData.picker[0];
+      downloadUrl = videoItem?.url || null;
+    } else if (cobaltData.status === "error") {
       return NextResponse.json(
-        { error: `Video is too long (${duration}s). Your ${planLimits.name} plan allows max ${planLimits.maxVideoSeconds}s.` },
+        { error: "This video is private, unavailable, or not supported." },
+        { status: 400 }
+      );
+    }
+
+    if (!downloadUrl) {
+      return NextResponse.json(
+        { error: "Could not get download URL for this video." },
+        { status: 400 }
+      );
+    }
+
+    // Step 2: Download the video file
+    console.log(`[IMPORT_URL] Downloading video...`);
+    const videoRes = await fetch(downloadUrl);
+    if (!videoRes.ok) {
+      throw new Error(`Video download failed: ${videoRes.status}`);
+    }
+
+    const videoBuffer = Buffer.from(await videoRes.arrayBuffer());
+    const sizeMB = videoBuffer.length / (1024 * 1024);
+    console.log(`[IMPORT_URL] Downloaded: ${sizeMB.toFixed(1)}MB`);
+
+    // Step 3: Check file size
+    if (sizeMB > planLimits.maxFileSize) {
+      return NextResponse.json(
+        { error: `Video file is too large (${sizeMB.toFixed(0)}MB). Max ${planLimits.maxFileSize}MB for ${planLimits.name} plan.` },
         { status: 413 }
       );
     }
 
-    // Step 3: Download video
-    const uuid = randomUUID();
-    const tmpFile = path.join(os.tmpdir(), `import-${uuid}.mp4`);
-    console.log(`[IMPORT_URL] Downloading video from ${label}...`);
-
-    try {
-      // Use single format (no merge needed — ffmpeg may not be available)
-      // "b[ext=mp4]" = best single file mp4, "b" = any best single file
-      const ffmpegPath = await getFfmpegPath();
-      const ffmpegArg = ffmpegPath ? `--ffmpeg-location "${ffmpegPath}"` : "";
-      const formatArg = ffmpegPath
-        ? `-f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/b"` // merge if ffmpeg available
-        : `-f "b[ext=mp4]/b"`; // single file only
-      execSync(
-        `"${ytdlpPath}" --no-warnings ${formatArg} ${ffmpegArg} --no-playlist --max-filesize ${planLimits.maxFileSize}M -o ${JSON.stringify(tmpFile)} ${JSON.stringify(url)}`,
-        { timeout: 240000, stdio: ["pipe", "pipe", "pipe"] }
-      );
-    } catch (dlErr) {
-      const errObj = dlErr as { stderr?: Buffer; message?: string };
-      const stderr = errObj.stderr ? errObj.stderr.toString() : "";
-      const msg = stderr || errObj.message || String(dlErr);
-      console.error(`[IMPORT_URL] Download error:`, msg.slice(0, 500));
-      if (msg.includes("Private") || msg.includes("login") || msg.includes("Sign in") || msg.includes("requires authentication")) {
-        return NextResponse.json(
-          { error: "This video is private or requires login. Only public videos can be imported." },
-          { status: 403 }
-        );
-      }
-      if (msg.includes("max-filesize")) {
-        return NextResponse.json(
-          { error: `Video file is too large (max ${planLimits.maxFileSize}MB for ${planLimits.name} plan).` },
-          { status: 413 }
-        );
-      }
-      if (msg.includes("not available") || msg.includes("Video unavailable") || msg.includes("404")) {
-        return NextResponse.json(
-          { error: "Video not found or unavailable." },
-          { status: 404 }
-        );
-      }
-      throw new Error(`Download failed: ${msg.slice(0, 300)}`);
-    }
-
-    if (!fs.existsSync(tmpFile)) {
-      return NextResponse.json({ error: "Failed to download video. The URL may be invalid or the video unavailable." }, { status: 400 });
-    }
-
-    const fileSize = fs.statSync(tmpFile).size;
-    console.log(`[IMPORT_URL] Downloaded: ${(fileSize / 1024 / 1024).toFixed(1)}MB`);
-
     // Step 4: Upload to Supabase storage
+    const uuid = randomUUID();
     const storagePath = `${user.id}/${uuid}/original.mp4`;
-    const videoBuffer = fs.readFileSync(tmpFile);
 
     const service = await createServiceClient();
     const { error: uploadErr } = await service.storage
       .from("videos")
       .upload(storagePath, videoBuffer, { contentType: "video/mp4", upsert: true });
-
-    // Cleanup temp file
-    try { fs.unlinkSync(tmpFile); } catch {}
 
     if (uploadErr) {
       throw new Error(`Storage upload failed: ${uploadErr.message}`);
@@ -176,50 +174,4 @@ export async function POST(request: Request) {
     console.error(`[IMPORT_URL] Error:`, msg);
     return NextResponse.json({ error: msg }, { status: 500 });
   }
-}
-
-/**
- * Get ffmpeg path if available (for merging video+audio streams).
- */
-async function getFfmpegPath(): Promise<string | null> {
-  try {
-    const fs = await import("fs");
-    const ffmpegPath = (await import("ffmpeg-static")).default;
-    if (ffmpegPath && fs.existsSync(ffmpegPath as string)) return ffmpegPath as string;
-  } catch {}
-  return null;
-}
-
-/**
- * Ensure yt-dlp binary is available in /tmp.
- * Downloads from GitHub releases on first call.
- */
-async function ensureYtDlp(): Promise<string> {
-  const fs = await import("fs");
-  const path = await import("path");
-  const os = await import("os");
-
-  const binPath = path.join(os.tmpdir(), "yt-dlp");
-
-  if (fs.existsSync(binPath)) {
-    return binPath;
-  }
-
-  console.log("[IMPORT_URL] Downloading yt-dlp binary...");
-
-  const { execSync } = await import("child_process");
-
-  // Download latest yt-dlp Linux binary from GitHub
-  const dlUrl = process.platform === "darwin"
-    ? "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos"
-    : "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux";
-
-  execSync(`curl -L -o "${binPath}" "${dlUrl}"`, { timeout: 30000, stdio: "pipe" });
-  execSync(`chmod +x "${binPath}"`, { stdio: "pipe" });
-
-  // Verify
-  const version = execSync(`"${binPath}" --version`, { timeout: 5000 }).toString().trim();
-  console.log(`[IMPORT_URL] yt-dlp ${version} ready`);
-
-  return binPath;
 }
