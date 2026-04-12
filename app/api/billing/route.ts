@@ -50,15 +50,17 @@ export async function POST(request: Request) {
         returnUrl,
       });
 
-      // Track checkout initiated
+      // Track checkout initiated with plan price
+      const { PLAN_LIMITS } = await import("@/lib/supabase/constants");
+      const planConfig = PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS];
       const { createServiceClient } = await import("@/lib/supabase/server");
       const service = await createServiceClient();
       await service.from("transactions").insert({
         user_id: user.id,
         type: "checkout_initiated",
-        amount: 0,
-        credits: 0,
-        description: `Checkout started: ${plan} plan`,
+        amount: planConfig?.price || 0,
+        credits: planConfig?.credits || 0,
+        description: `Checkout started: ${planConfig?.name || plan} plan ($${((planConfig?.price || 0) / 100).toFixed(2)}/mo)`,
         is_test: process.env.DODO_PAYMENTS_ENV !== "production",
       });
 
