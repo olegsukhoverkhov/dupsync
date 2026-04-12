@@ -1190,8 +1190,8 @@ export async function handleLipSyncFailureFromWebhook(
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : "Unknown error";
     log(dubId, `Retry ${nextAttempt} submit failed: ${errMsg}`);
-    // Recursively try next attempt
-    await supabase.from("dubs").update({ fal_attempt: nextAttempt }).eq("id", dubId);
+    // Update attempt + model and recursively try next
+    await supabase.from("dubs").update({ fal_attempt: nextAttempt, fal_model: useModel }).eq("id", dubId);
     await handleLipSyncFailureFromWebhook(dubId, errMsg);
   }
 }
