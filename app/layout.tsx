@@ -33,6 +33,7 @@ export const metadata: Metadata = {
       "id": "https://dubsync.app/id/",
       "tr": "https://dubsync.app/tr/",
       "ko": "https://dubsync.app/ko/",
+      "zh": "https://dubsync.app/zh/",
       "x-default": "https://dubsync.app/",
     },
   },
