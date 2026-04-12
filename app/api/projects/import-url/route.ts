@@ -79,8 +79,15 @@ export async function POST(request: Request) {
     console.log(`[IMPORT_URL] Downloading video from ${label}...`);
 
     try {
+      // Use single format (no merge needed — ffmpeg may not be available)
+      // "b[ext=mp4]" = best single file mp4, "b" = any best single file
+      const ffmpegPath = await getFfmpegPath();
+      const ffmpegArg = ffmpegPath ? `--ffmpeg-location "${ffmpegPath}"` : "";
+      const formatArg = ffmpegPath
+        ? `-f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/b"` // merge if ffmpeg available
+        : `-f "b[ext=mp4]/b"`; // single file only
       execSync(
-        `"${ytdlpPath}" --no-warnings -f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/b" --no-playlist --max-filesize ${planLimits.maxFileSize}M -o ${JSON.stringify(tmpFile)} ${JSON.stringify(url)}`,
+        `"${ytdlpPath}" --no-warnings ${formatArg} ${ffmpegArg} --no-playlist --max-filesize ${planLimits.maxFileSize}M -o ${JSON.stringify(tmpFile)} ${JSON.stringify(url)}`,
         { timeout: 240000, stdio: ["pipe", "pipe", "pipe"] }
       );
     } catch (dlErr) {
@@ -169,6 +176,18 @@ export async function POST(request: Request) {
     console.error(`[IMPORT_URL] Error:`, msg);
     return NextResponse.json({ error: msg }, { status: 500 });
   }
+}
+
+/**
+ * Get ffmpeg path if available (for merging video+audio streams).
+ */
+async function getFfmpegPath(): Promise<string | null> {
+  try {
+    const fs = await import("fs");
+    const ffmpegPath = (await import("ffmpeg-static")).default;
+    if (ffmpegPath && fs.existsSync(ffmpegPath as string)) return ffmpegPath as string;
+  } catch {}
+  return null;
 }
 
 /**
