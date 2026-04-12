@@ -15,24 +15,31 @@ function log(dubId: string, msg: string) {
 // ── Video resolution check ──────────────────────────────────
 
 /**
- * Ensure video meets minimum resolution for lip sync.
- * If too small, upscale via ffmpeg and upload as a new file.
- * Returns the storage path to use (original or upscaled).
+ * Normalize video for fal.ai lip sync compatibility.
+ *
+ * Checks and fixes:
+ *   - Resolution: upscale to 720p min (latentsync requirement)
+ *   - Codec: re-encode to H.264 if not already (MOV/WebM/HEVC → MP4)
+ *   - FPS: cap at 30fps (reduce processing time + cost)
+ *   - Container: ensure MP4
+ *
+ * Works for any source: YouTube, Instagram, TikTok, Facebook, manual upload.
+ * Result is cached in storage as normalized.mp4 to avoid re-processing.
+ * Returns the storage path to use for lip sync.
  */
-async function ensureMinResolution(
+async function normalizeVideoForLipSync(
   supabase: Awaited<ReturnType<typeof createServiceClient>>,
   videoPath: string,
-  minHeight: number,
   dubId: string,
 ): Promise<string> {
   const videoDir = videoPath.split("/").slice(0, -1).join("/");
-  const upscaledPath = `${videoDir}/upscaled.mp4`;
+  const normalizedPath = `${videoDir}/normalized.mp4`;
 
-  // Check if already upscaled
-  const { data: existing } = await supabase.storage.from("videos").list(videoDir, { search: "upscaled" });
-  if (existing && existing.some(f => f.name === "upscaled.mp4")) {
-    log(dubId, `[RESOLUTION] Using previously upscaled video`);
-    return upscaledPath;
+  // Check if already normalized
+  const { data: existing } = await supabase.storage.from("videos").list(videoDir, { search: "normalized" });
+  if (existing && existing.some(f => f.name === "normalized.mp4")) {
+    log(dubId, `[NORMALIZE] Using previously normalized video`);
+    return normalizedPath;
   }
 
   const fs = await import("fs");
@@ -40,67 +47,100 @@ async function ensureMinResolution(
   const path = await import("path");
   const { execSync } = await import("child_process");
 
+  let ffmpegPath: string | null = null;
+  try {
+    ffmpegPath = (await import("ffmpeg-static")).default as string;
+    if (!ffmpegPath || !fs.existsSync(ffmpegPath)) return videoPath;
+  } catch { return videoPath; }
+
   // Download video
   const { data: videoData } = await supabase.storage.from("videos").download(videoPath);
   if (!videoData) return videoPath;
   const videoBuffer = Buffer.from(await videoData.arrayBuffer());
 
-  const tmpIn = path.join(os.tmpdir(), `res-check-${Date.now()}.mp4`);
-  const tmpOut = path.join(os.tmpdir(), `res-upscaled-${Date.now()}.mp4`);
+  const tmpIn = path.join(os.tmpdir(), `norm-in-${Date.now()}.mp4`);
+  const tmpOut = path.join(os.tmpdir(), `norm-out-${Date.now()}.mp4`);
   fs.writeFileSync(tmpIn, videoBuffer);
 
-  // Get resolution via ffprobe (ffmpeg-static includes it)
   try {
-    const ffmpegPath = (await import("ffmpeg-static")).default;
-    if (!ffmpegPath || !fs.existsSync(ffmpegPath as string)) return videoPath;
-
-    // Get video dimensions
+    // Probe video: resolution, codec, fps
     const probeOut = execSync(
       `"${ffmpegPath}" -i "${tmpIn}" -hide_banner 2>&1 || true`,
       { timeout: 10000 }
     ).toString();
-    const match = probeOut.match(/(\d{3,4})x(\d{3,4})/);
-    if (!match) { try { fs.unlinkSync(tmpIn); } catch {} return videoPath; }
 
-    const width = parseInt(match[1], 10);
-    const height = parseInt(match[2], 10);
+    const resMatch = probeOut.match(/(\d{3,4})x(\d{3,4})/);
+    const fpsMatch = probeOut.match(/([\d.]+)\s*fps/);
+    const codecMatch = probeOut.match(/Video:\s*(\w+)/);
+
+    const width = resMatch ? parseInt(resMatch[1], 10) : 0;
+    const height = resMatch ? parseInt(resMatch[2], 10) : 0;
+    const fps = fpsMatch ? parseFloat(fpsMatch[1]) : 30;
+    const codec = codecMatch ? codecMatch[1].toLowerCase() : "unknown";
+    const isPortrait = height > width;
     const minDim = Math.min(width, height);
 
-    log(dubId, `[RESOLUTION] Video: ${width}x${height}, min dimension: ${minDim}, required: ${minHeight}`);
+    log(dubId, `[NORMALIZE] Input: ${width}x${height}, ${fps}fps, codec=${codec}`);
 
-    if (minDim >= minHeight) {
+    // Decide what needs fixing
+    const needsUpscale = minDim > 0 && minDim < 720;
+    const needsReencode = !["h264", "avc1", "avc"].includes(codec);
+    const needsFpsCap = fps > 30;
+    const needsNormalization = needsUpscale || needsReencode || needsFpsCap;
+
+    if (!needsNormalization) {
+      log(dubId, `[NORMALIZE] Video already compatible — no changes needed`);
       try { fs.unlinkSync(tmpIn); } catch {}
-      return videoPath; // Already meets requirement
+      return videoPath;
     }
 
-    // Upscale — scale shortest side to minHeight, keep aspect ratio
-    const scale = height < width
-      ? `scale=-2:${minHeight}` // landscape: set height
-      : `scale=${minHeight}:-2`; // portrait: set width
+    // Build ffmpeg filter chain
+    const filters: string[] = [];
 
-    log(dubId, `[RESOLUTION] Upscaling with ${scale}...`);
-    execSync(
-      `"${ffmpegPath}" -i "${tmpIn}" -vf "${scale}" -c:v libx264 -preset fast -crf 23 -c:a copy "${tmpOut}" -y`,
-      { timeout: 60000, stdio: "pipe" }
-    );
+    if (needsUpscale) {
+      // Scale shortest side to 720, keep aspect ratio, ensure even dimensions
+      const scale = isPortrait ? `scale=720:-2` : `scale=-2:720`;
+      filters.push(scale);
+      log(dubId, `[NORMALIZE] Upscaling: ${scale}`);
+    }
 
-    const upscaledBuffer = fs.readFileSync(tmpOut);
-    log(dubId, `[RESOLUTION] Upscaled: ${(upscaledBuffer.length / 1024 / 1024).toFixed(1)}MB`);
+    if (needsFpsCap) {
+      filters.push(`fps=30`);
+      log(dubId, `[NORMALIZE] Capping FPS: ${fps} → 30`);
+    }
 
-    // Upload
-    await supabase.storage.from("videos").upload(upscaledPath, upscaledBuffer, {
+    // Ensure even dimensions (required by H.264)
+    filters.push(`pad=ceil(iw/2)*2:ceil(ih/2)*2`);
+
+    const vf = filters.length > 0 ? `-vf "${filters.join(",")}"` : "";
+    const cmd = `"${ffmpegPath}" -i "${tmpIn}" ${vf} -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -movflags +faststart "${tmpOut}" -y`;
+
+    log(dubId, `[NORMALIZE] Running ffmpeg...`);
+    execSync(cmd, { timeout: 120000, stdio: "pipe" });
+
+    if (!fs.existsSync(tmpOut)) {
+      log(dubId, `[NORMALIZE] ffmpeg produced no output`);
+      try { fs.unlinkSync(tmpIn); } catch {}
+      return videoPath;
+    }
+
+    const normalizedBuffer = fs.readFileSync(tmpOut);
+    log(dubId, `[NORMALIZE] Done: ${(normalizedBuffer.length / 1024 / 1024).toFixed(1)}MB`);
+
+    // Upload normalized version
+    await supabase.storage.from("videos").upload(normalizedPath, normalizedBuffer, {
       contentType: "video/mp4", upsert: true,
     });
 
     try { fs.unlinkSync(tmpIn); } catch {}
     try { fs.unlinkSync(tmpOut); } catch {}
 
-    return upscaledPath;
+    return normalizedPath;
   } catch (err) {
-    log(dubId, `[RESOLUTION] Upscale failed: ${err instanceof Error ? err.message : err}`);
+    log(dubId, `[NORMALIZE] Failed: ${err instanceof Error ? err.message : err}`);
     try { fs.unlinkSync(tmpIn); } catch {}
     try { fs.unlinkSync(tmpOut); } catch {}
-    return videoPath;
+    return videoPath; // Fallback to original
   }
 }
 
@@ -1094,12 +1134,12 @@ export async function runLipSync(dubId: string) {
     log(dubId, "Stage 2: Lip sync (async webhook)");
     await supabase.from("dubs").update({ status: "lip_syncing", progress: 82 }).eq("id", dubId);
 
-    // Ensure video meets minimum resolution for lip sync (720p)
+    // Normalize video for fal.ai (resolution, codec, fps)
     let videoStoragePath = project.original_video_url as string;
     try {
-      videoStoragePath = await ensureMinResolution(supabase, videoStoragePath, 720, dubId);
+      videoStoragePath = await normalizeVideoForLipSync(supabase, videoStoragePath, dubId);
     } catch (e) {
-      log(dubId, `Resolution check failed (non-fatal): ${e instanceof Error ? e.message : e}`);
+      log(dubId, `Video normalization failed (non-fatal): ${e instanceof Error ? e.message : e}`);
     }
 
     const audioPath = dub.dubbed_video_url;
@@ -1343,9 +1383,16 @@ export async function handleLipSyncFailureFromWebhook(
 
   try {
     const audioPath = dub.dubbed_video_url as string;
+
+    // Use normalized video if available (handles low-res, wrong codec, etc.)
+    let retryVideoPath = project.original_video_url as string;
+    try {
+      retryVideoPath = await normalizeVideoForLipSync(supabase, retryVideoPath, dubId);
+    } catch {}
+
     const { data: videoSigned } = await supabase.storage
       .from("videos")
-      .createSignedUrl(project.original_video_url as string, 3600 * 4);
+      .createSignedUrl(retryVideoPath, 3600 * 4);
     const { data: audioSigned } = await supabase.storage
       .from("videos")
       .createSignedUrl(audioPath, 3600 * 4);
