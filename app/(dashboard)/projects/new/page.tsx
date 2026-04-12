@@ -42,7 +42,7 @@ export default function NewProjectPage() {
   const [transcript, setTranscript] = useState<TranscriptSegment[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [sourceLanguage, setSourceLanguage] = useState("");
-  const [uploadMode, setUploadMode] = useState<"file" | "url">("file");
+  const [uploadMode, setUploadMode] = useState<"file" | "url">("url");
   const [importUrl, setImportUrl] = useState("");
   const [importLoading, setImportLoading] = useState(false);
   const [uploadedPath, setUploadedPath] = useState<string | null>(null);

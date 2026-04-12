@@ -18,6 +18,7 @@ import {
   Sparkles,
   Clapperboard,
   CreditCard,
+  Link2,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -55,6 +56,8 @@ export default async function AdminUsagePage() {
   const supabaseConfigured = keyStatus(process.env.SUPABASE_SERVICE_ROLE_KEY);
   const openaiConfigured = keyStatus(process.env.OPENAI_API_KEY);
   const anthropicConfigured = keyStatus(process.env.ANTHROPIC_API_KEY);
+  const cobaltUrl = process.env.COBALT_API_URL || "https://cobalt-production-eda4.up.railway.app";
+  const cobaltConfigured = cobaltUrl.length > 10;
 
   return (
     <div>
@@ -240,6 +243,7 @@ export default async function AdminUsagePage() {
         <StatusCard name="Supabase" icon={<Database className="h-4 w-4" />} configured={supabaseConfigured} envKey="SUPABASE_SERVICE_ROLE_KEY" />
         <StatusCard name="Shotstack" icon={<Clapperboard className="h-4 w-4" />} configured={shotstackConfigured} envKey="SHOTSTACK_API_KEY" />
         <StatusCard name="Dodo Payments" icon={<CreditCard className="h-4 w-4" />} configured={dodoConfigured} envKey="DODO_PAYMENTS_API_KEY" />
+        <StatusCard name="Cobalt (Video Import)" icon={<Link2 className="h-4 w-4" />} configured={cobaltConfigured} envKey={cobaltUrl} />
       </div>
 
       {/* ── Shotstack usage tracking ─────────────────────────── */}
