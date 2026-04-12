@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { BreadcrumbSchema } from "@/components/seo/breadcrumb-schema";
 import { LocalizedHeader } from "@/components/landing/localized-header";
 import { LocalizedFooter } from "@/components/landing/localized-footer";
+import { InteractionTracker } from "@/components/marketing/interaction-tracker";
 
 export async function generateStaticParams() {
   return LOCALES.filter((l) => l !== "en").map((lang) => ({ lang }));
@@ -70,6 +71,7 @@ export default async function LocalizedLayout({
       <LocalizedHeader dict={dict} lang={lang} />
       {children}
       <LocalizedFooter dict={dict} lang={lang} />
+      <InteractionTracker />
     </div>
   );
 }
