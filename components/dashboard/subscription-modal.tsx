@@ -176,13 +176,34 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
                   </p>
                 </div>
                 <button
-                  onClick={() => {
-                    onClose();
-                    window.location.href = "/settings";
+                  onClick={async () => {
+                    setCancelling(true);
+                    try {
+                      const res = await fetch("/api/billing", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ action: "checkout", plan }),
+                      });
+                      const data = await res.json();
+                      if (data.url) {
+                        window.location.href = data.url;
+                      } else {
+                        setError(data.error || "Failed to create checkout");
+                      }
+                    } catch {
+                      setError("Failed to create checkout");
+                    } finally {
+                      setCancelling(false);
+                    }
                   }}
-                  className="w-full rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 px-4 py-3 text-sm font-semibold text-white hover:opacity-90 transition-opacity cursor-pointer"
+                  disabled={cancelling}
+                  className="w-full rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 px-4 py-3 text-sm font-semibold text-white hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
                 >
-                  {t("dashboard.subscriptionModal.renewSubscription", "Renew Subscription")}
+                  {cancelling ? (
+                    <Loader2 className="mx-auto h-4 w-4 animate-spin" />
+                  ) : (
+                    t("dashboard.subscriptionModal.renewSubscription", "Renew Subscription")
+                  )}
                 </button>
               </div>
             ) : !showCancelConfirm ? (
