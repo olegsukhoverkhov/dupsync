@@ -556,7 +556,7 @@ function EditForm({
                 }}
                 className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-medium text-slate-300 hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-50"
               >
-                {togglingRenew ? <Loader2 className="h-3 w-3 animate-spin" /> : "Toggle in Dodo"}
+                {togglingRenew ? <Loader2 className="h-3 w-3 animate-spin" /> : "Cancel in Dodo"}
               </button>
             </div>
           </div>

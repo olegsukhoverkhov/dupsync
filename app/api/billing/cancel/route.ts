@@ -29,15 +29,9 @@ export async function POST(req: Request) {
   const action = body.action || "cancel";
 
   try {
-    if (action === "reactivate") {
-      const { reactivateSubscription } = await import("@/lib/dodo-payments");
-      await reactivateSubscription(profile.stripe_customer_id);
-      console.log(`[BILLING] User ${user.id} reactivated subscription`);
-    } else {
-      const { cancelSubscription } = await import("@/lib/dodo-payments");
-      await cancelSubscription(profile.stripe_customer_id);
-      console.log(`[BILLING] User ${user.id} cancelled subscription`);
-    }
+    const { cancelSubscription } = await import("@/lib/dodo-payments");
+    await cancelSubscription(profile.stripe_customer_id);
+    console.log(`[BILLING] User ${user.id} cancelled subscription`);
     return NextResponse.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";

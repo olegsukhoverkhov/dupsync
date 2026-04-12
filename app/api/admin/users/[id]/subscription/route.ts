@@ -36,25 +36,19 @@ export async function POST(
   try { body = await request.json(); } catch {}
 
   try {
-    const { getSubscription, cancelSubscription, reactivateSubscription } = await import("@/lib/dodo-payments");
+    const { getSubscription, cancelSubscription } = await import("@/lib/dodo-payments");
 
-    let action = body.action || "toggle";
-    if (action === "toggle") {
-      // Check current status and toggle
-      const sub = await getSubscription(profile.stripe_customer_id);
-      const isCancelled = sub.status === "cancelled";
-      action = isCancelled ? "reactivate" : "cancel";
+    // Check current status
+    const sub = await getSubscription(profile.stripe_customer_id);
+    const status = sub.status as string;
+
+    if (status === "cancelled") {
+      return NextResponse.json({ error: "Already cancelled. Dodo does not support reactivation — user must create a new subscription." }, { status: 400 });
     }
 
-    if (action === "reactivate") {
-      await reactivateSubscription(profile.stripe_customer_id);
-      console.log(`[ADMIN] Reactivated subscription for user ${targetId}`);
-    } else {
-      await cancelSubscription(profile.stripe_customer_id);
-      console.log(`[ADMIN] Cancelled subscription for user ${targetId}`);
-    }
-
-    return NextResponse.json({ ok: true, action });
+    await cancelSubscription(profile.stripe_customer_id);
+    console.log(`[ADMIN] Cancelled subscription for user ${targetId}`);
+    return NextResponse.json({ ok: true, action: "cancel", previousStatus: status });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     console.error(`[ADMIN] Subscription toggle failed for ${targetId}:`, msg);
