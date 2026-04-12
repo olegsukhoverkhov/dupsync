@@ -63,7 +63,11 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
     setCancelling(true);
     setError("");
     try {
-      const res = await fetch("/api/billing/cancel", { method: "POST" });
+      const res = await fetch("/api/billing/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cancel" }),
+      });
       if (!res.ok) {
         const data = await res.json();
         setError(data.error || "Failed to cancel");
@@ -73,6 +77,28 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
       setShowCancelConfirm(false);
     } catch {
       setError(t("dashboard.subscriptionModal.cancelError", "Failed to cancel subscription"));
+    } finally {
+      setCancelling(false);
+    }
+  }
+
+  async function handleReactivate() {
+    setCancelling(true);
+    setError("");
+    try {
+      const res = await fetch("/api/billing/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "reactivate" }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Failed to reactivate");
+        return;
+      }
+      setCancelled(false);
+    } catch {
+      setError("Failed to reactivate subscription");
     } finally {
       setCancelling(false);
     }
@@ -176,33 +202,14 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
                   </p>
                 </div>
                 <button
-                  onClick={async () => {
-                    setCancelling(true);
-                    try {
-                      const res = await fetch("/api/billing", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ action: "checkout", plan }),
-                      });
-                      const data = await res.json();
-                      if (data.url) {
-                        window.location.href = data.url;
-                      } else {
-                        setError(data.error || "Failed to create checkout");
-                      }
-                    } catch {
-                      setError("Failed to create checkout");
-                    } finally {
-                      setCancelling(false);
-                    }
-                  }}
+                  onClick={handleReactivate}
                   disabled={cancelling}
                   className="w-full rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 px-4 py-3 text-sm font-semibold text-white hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
                 >
                   {cancelling ? (
                     <Loader2 className="mx-auto h-4 w-4 animate-spin" />
                   ) : (
-                    t("dashboard.subscriptionModal.renewSubscription", "Renew Subscription")
+                    t("dashboard.subscriptionModal.renewSubscription", "Re-enable Auto-renew")
                   )}
                 </button>
               </div>

@@ -5,9 +5,10 @@ export const dynamic = "force-dynamic";
 
 /**
  * POST /api/billing/cancel
- * Cancels the current user's subscription via Dodo Payments.
+ * Toggle auto-renew: cancel or reactivate the subscription.
+ * Body: { action: "cancel" | "reactivate" }
  */
-export async function POST() {
+export async function POST(req: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,15 +24,24 @@ export async function POST() {
     return NextResponse.json({ error: "No active subscription" }, { status: 400 });
   }
 
-  try {
-    const { cancelSubscription } = await import("@/lib/dodo-payments");
-    await cancelSubscription(profile.stripe_customer_id);
+  let body: { action?: string } = {};
+  try { body = await req.json(); } catch {}
+  const action = body.action || "cancel";
 
-    console.log(`[BILLING] User ${user.id} cancelled subscription ${profile.stripe_customer_id}`);
+  try {
+    if (action === "reactivate") {
+      const { reactivateSubscription } = await import("@/lib/dodo-payments");
+      await reactivateSubscription(profile.stripe_customer_id);
+      console.log(`[BILLING] User ${user.id} reactivated subscription`);
+    } else {
+      const { cancelSubscription } = await import("@/lib/dodo-payments");
+      await cancelSubscription(profile.stripe_customer_id);
+      console.log(`[BILLING] User ${user.id} cancelled subscription`);
+    }
     return NextResponse.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
-    console.error("[BILLING] Cancel failed:", msg);
+    console.error(`[BILLING] ${action} failed:`, msg);
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
