@@ -479,6 +479,27 @@
       "errorTitle": "Error",
       "billingPortalError": "No se pudo abrir el portal de facturación. Inténtalo de nuevo."
     },
+    "subscriptionModal": {
+      "title": "Gestionar suscripción",
+      "plan": "Plan",
+      "month": "mes",
+      "active": "Activa",
+      "cancelled": "Cancelada",
+      "nextRenewal": "Próxima renovación",
+      "expiresOn": "Expira el",
+      "autoRenew": "Renovación automática",
+      "autoRenewDescription": "Renovar automáticamente tu suscripción cada mes",
+      "toggleAutoRenew": "Activar/desactivar renovación automática",
+      "cancelConfirmTitle": "¿Cancelar suscripción?",
+      "cancelConfirmMessage": "Perderás el acceso a las funciones premium al final de tu periodo de facturación. Escribe \"cancel\" para confirmar.",
+      "typeCancel": "Escribe \"cancel\" para confirmar",
+      "keepSubscription": "Mantener suscripción",
+      "confirmCancel": "Cancelar suscripción",
+      "cancelledMessage": "Tu suscripción ha sido cancelada. Conservarás el acceso hasta el final de tu periodo de facturación.",
+      "loadError": "Error al cargar los detalles de la suscripción",
+      "cancelError": "Error al cancelar la suscripción",
+      "close": "Cerrar"
+    },
     "newProject": {
       "title": "Nuevo proyecto",
       "drop": "Suelta tu vídeo aquí",

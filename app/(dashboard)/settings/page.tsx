@@ -19,12 +19,14 @@ import type { Profile } from "@/lib/supabase/types";
 import { Loader2, ExternalLink } from "lucide-react";
 import { LanguageSwitcher } from "@/components/dashboard/language-switcher";
 import { useDashboardT } from "@/components/dashboard/locale-provider";
+import { SubscriptionModal } from "@/components/dashboard/subscription-modal";
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [billingLoading, setBillingLoading] = useState(false);
   const [alertModal, setAlertModal] = useState<{ title: string; message: string; type: "error" | "info" } | null>(null);
+  const [showSubModal, setShowSubModal] = useState(false);
   const t = useDashboardT();
 
   useEffect(() => {
@@ -205,14 +207,9 @@ export default function SettingsPage() {
             ) : (
               <Button
                 variant="outline"
-                onClick={() => handleBillingAction("portal")}
-                disabled={billingLoading}
+                onClick={() => setShowSubModal(true)}
               >
-                {billingLoading && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
                 {t("dashboard.settingsPage.manageSubscription", "Manage Subscription")}
-                <ExternalLink className="ml-2 h-4 w-4" />
               </Button>
             )}
           </div>
@@ -226,6 +223,15 @@ export default function SettingsPage() {
           title={alertModal.title}
           message={alertModal.message}
           type={alertModal.type}
+        />
+      )}
+
+      {profile && profile.plan !== "free" && (
+        <SubscriptionModal
+          open={showSubModal}
+          onClose={() => setShowSubModal(false)}
+          plan={profile.plan}
+          planPrice={PLAN_LIMITS[profile.plan]?.price || 0}
         />
       )}
     </div>

@@ -480,6 +480,27 @@
       "errorTitle": "त्रुटि",
       "billingPortalError": "बिलिंग पोर्टल खोलने में विफल। कृपया पुनः प्रयास करें।"
     },
+    "subscriptionModal": {
+      "title": "सदस्यता प्रबंधित करें",
+      "plan": "प्लान",
+      "month": "माह",
+      "active": "सक्रिय",
+      "cancelled": "रद्द",
+      "nextRenewal": "अगला नवीनीकरण",
+      "expiresOn": "समाप्ति तिथि",
+      "autoRenew": "स्वतः नवीनीकरण",
+      "autoRenewDescription": "हर महीने अपनी सदस्यता स्वतः नवीनीकृत करें",
+      "toggleAutoRenew": "स्वतः नवीनीकरण चालू/बंद करें",
+      "cancelConfirmTitle": "सदस्यता रद्द करें?",
+      "cancelConfirmMessage": "आपके बिलिंग अवधि के अंत में प्रीमियम सुविधाओं तक पहुंच समाप्त हो जाएगी। पुष्टि के लिए \"cancel\" टाइप करें।",
+      "typeCancel": "पुष्टि के लिए \"cancel\" टाइप करें",
+      "keepSubscription": "सदस्यता बनाए रखें",
+      "confirmCancel": "सदस्यता रद्द करें",
+      "cancelledMessage": "आपकी सदस्यता रद्द कर दी गई है। आपके बिलिंग अवधि के अंत तक पहुंच बनी रहेगी।",
+      "loadError": "सदस्यता विवरण लोड करने में विफल",
+      "cancelError": "सदस्यता रद्द करने में विफल",
+      "close": "बंद करें"
+    },
     "newProject": {
       "title": "नया प्रोजेक्ट",
       "drop": "अपना वीडियो यहां डालें",

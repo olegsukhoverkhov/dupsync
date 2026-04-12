@@ -479,6 +479,27 @@
       "errorTitle": "错误",
       "billingPortalError": "无法打开账单管理页面。请重试。"
     },
+    "subscriptionModal": {
+      "title": "管理订阅",
+      "plan": "套餐",
+      "month": "月",
+      "active": "有效",
+      "cancelled": "已取消",
+      "nextRenewal": "下次续费",
+      "expiresOn": "到期日",
+      "autoRenew": "自动续费",
+      "autoRenewDescription": "每月自动续费您的订阅",
+      "toggleAutoRenew": "开启/关闭自动续费",
+      "cancelConfirmTitle": "取消订阅？",
+      "cancelConfirmMessage": "您将在计费周期结束时失去高级功能的访问权限。输入 \"cancel\" 以确认。",
+      "typeCancel": "输入 \"cancel\" 以确认",
+      "keepSubscription": "保留订阅",
+      "confirmCancel": "取消订阅",
+      "cancelledMessage": "您的订阅已取消。您将保留访问权限直到计费周期结束。",
+      "loadError": "无法加载订阅详情",
+      "cancelError": "无法取消订阅",
+      "close": "关闭"
+    },
     "newProject": {
       "title": "新建项目",
       "drop": "将视频拖放至此",

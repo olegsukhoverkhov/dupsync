@@ -479,6 +479,27 @@
       "errorTitle": "エラー",
       "billingPortalError": "請求ポータルを開けませんでした。もう一度お試しください。"
     },
+    "subscriptionModal": {
+      "title": "サブスクリプションを管理",
+      "plan": "プラン",
+      "month": "月",
+      "active": "有効",
+      "cancelled": "キャンセル済み",
+      "nextRenewal": "次回更新日",
+      "expiresOn": "有効期限",
+      "autoRenew": "自動更新",
+      "autoRenewDescription": "毎月サブスクリプションを自動的に更新します",
+      "toggleAutoRenew": "自動更新の切り替え",
+      "cancelConfirmTitle": "サブスクリプションをキャンセルしますか？",
+      "cancelConfirmMessage": "請求期間の終了時にプレミアム機能へのアクセスが失われます。確認するには「cancel」と入力してください。",
+      "typeCancel": "確認するには「cancel」と入力",
+      "keepSubscription": "サブスクリプションを維持",
+      "confirmCancel": "サブスクリプションをキャンセル",
+      "cancelledMessage": "サブスクリプションがキャンセルされました。請求期間の終了までアクセスを維持できます。",
+      "loadError": "サブスクリプションの詳細を読み込めませんでした",
+      "cancelError": "サブスクリプションのキャンセルに失敗しました",
+      "close": "閉じる"
+    },
     "newProject": {
       "title": "新規プロジェクト",
       "drop": "動画をここにドロップ",

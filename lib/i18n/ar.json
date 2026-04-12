@@ -480,6 +480,27 @@
       "errorTitle": "خطأ",
       "billingPortalError": "فشل فتح بوابة الفواتير. يرجى المحاولة مرة أخرى."
     },
+    "subscriptionModal": {
+      "title": "إدارة الاشتراك",
+      "plan": "الخطة",
+      "month": "شهر",
+      "active": "نشط",
+      "cancelled": "ملغى",
+      "nextRenewal": "التجديد التالي",
+      "expiresOn": "ينتهي في",
+      "autoRenew": "التجديد التلقائي",
+      "autoRenewDescription": "تجديد اشتراكك تلقائياً كل شهر",
+      "toggleAutoRenew": "تبديل التجديد التلقائي",
+      "cancelConfirmTitle": "إلغاء الاشتراك؟",
+      "cancelConfirmMessage": "ستفقد الوصول إلى الميزات المميزة في نهاية فترة الفوترة. اكتب \"cancel\" للتأكيد.",
+      "typeCancel": "اكتب \"cancel\" للتأكيد",
+      "keepSubscription": "الاحتفاظ بالاشتراك",
+      "confirmCancel": "إلغاء الاشتراك",
+      "cancelledMessage": "تم إلغاء اشتراكك. ستحتفظ بالوصول حتى نهاية فترة الفوترة.",
+      "loadError": "فشل تحميل تفاصيل الاشتراك",
+      "cancelError": "فشل إلغاء الاشتراك",
+      "close": "إغلاق"
+    },
     "newProject": {
       "title": "مشروع جديد",
       "drop": "اسحب فيديوك هنا",

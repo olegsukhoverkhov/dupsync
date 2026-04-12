@@ -479,6 +479,27 @@
       "errorTitle": "Erro",
       "billingPortalError": "Falha ao abrir o portal de cobrança. Tente novamente."
     },
+    "subscriptionModal": {
+      "title": "Gerenciar assinatura",
+      "plan": "Plano",
+      "month": "mês",
+      "active": "Ativa",
+      "cancelled": "Cancelada",
+      "nextRenewal": "Próxima renovação",
+      "expiresOn": "Expira em",
+      "autoRenew": "Renovação automática",
+      "autoRenewDescription": "Renovar automaticamente sua assinatura a cada mês",
+      "toggleAutoRenew": "Ativar/desativar renovação automática",
+      "cancelConfirmTitle": "Cancelar assinatura?",
+      "cancelConfirmMessage": "Você perderá o acesso aos recursos premium no final do seu período de cobrança. Digite \"cancel\" para confirmar.",
+      "typeCancel": "Digite \"cancel\" para confirmar",
+      "keepSubscription": "Manter assinatura",
+      "confirmCancel": "Cancelar assinatura",
+      "cancelledMessage": "Sua assinatura foi cancelada. Você manterá o acesso até o final do seu período de cobrança.",
+      "loadError": "Falha ao carregar os detalhes da assinatura",
+      "cancelError": "Falha ao cancelar a assinatura",
+      "close": "Fechar"
+    },
     "newProject": {
       "title": "Novo projeto",
       "drop": "Solte seu vídeo aqui",

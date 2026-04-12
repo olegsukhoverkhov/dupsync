@@ -480,6 +480,27 @@
       "errorTitle": "오류",
       "billingPortalError": "결제 포털을 열 수 없습니다. 다시 시도해주세요."
     },
+    "subscriptionModal": {
+      "title": "구독 관리",
+      "plan": "플랜",
+      "month": "월",
+      "active": "활성",
+      "cancelled": "취소됨",
+      "nextRenewal": "다음 갱신일",
+      "expiresOn": "만료일",
+      "autoRenew": "자동 갱신",
+      "autoRenewDescription": "매월 구독을 자동으로 갱신합니다",
+      "toggleAutoRenew": "자동 갱신 전환",
+      "cancelConfirmTitle": "구독을 취소하시겠습니까?",
+      "cancelConfirmMessage": "결제 기간이 끝나면 프리미엄 기능에 대한 접근 권한을 잃게 됩니다. 확인하려면 \"cancel\"을 입력하세요.",
+      "typeCancel": "확인하려면 \"cancel\" 입력",
+      "keepSubscription": "구독 유지",
+      "confirmCancel": "구독 취소",
+      "cancelledMessage": "구독이 취소되었습니다. 결제 기간이 끝날 때까지 접근 권한이 유지됩니다.",
+      "loadError": "구독 정보를 불러오지 못했습니다",
+      "cancelError": "구독 취소에 실패했습니다",
+      "close": "닫기"
+    },
     "newProject": {
       "title": "새 프로젝트",
       "drop": "여기에 비디오를 놓으세요",

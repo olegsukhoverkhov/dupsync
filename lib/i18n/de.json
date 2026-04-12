@@ -479,6 +479,27 @@
       "errorTitle": "Fehler",
       "billingPortalError": "Abrechnungsportal konnte nicht geöffnet werden. Bitte versuche es erneut."
     },
+    "subscriptionModal": {
+      "title": "Abonnement verwalten",
+      "plan": "Tarif",
+      "month": "Mo.",
+      "active": "Aktiv",
+      "cancelled": "Gekündigt",
+      "nextRenewal": "Nächste Verlängerung",
+      "expiresOn": "Läuft ab am",
+      "autoRenew": "Automatische Verlängerung",
+      "autoRenewDescription": "Dein Abonnement jeden Monat automatisch verlängern",
+      "toggleAutoRenew": "Automatische Verlängerung umschalten",
+      "cancelConfirmTitle": "Abonnement kündigen?",
+      "cancelConfirmMessage": "Du verlierst den Zugang zu Premium-Funktionen am Ende deines Abrechnungszeitraums. Gib \"cancel\" ein, um zu bestätigen.",
+      "typeCancel": "Gib \"cancel\" ein, um zu bestätigen",
+      "keepSubscription": "Abonnement behalten",
+      "confirmCancel": "Abonnement kündigen",
+      "cancelledMessage": "Dein Abonnement wurde gekündigt. Du behältst den Zugang bis zum Ende deines Abrechnungszeitraums.",
+      "loadError": "Abonnementdetails konnten nicht geladen werden",
+      "cancelError": "Abonnement konnte nicht gekündigt werden",
+      "close": "Schließen"
+    },
     "newProject": {
       "title": "Neues Projekt",
       "drop": "Video hier ablegen",

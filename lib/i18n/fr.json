@@ -479,6 +479,27 @@
       "errorTitle": "Erreur",
       "billingPortalError": "Impossible d'ouvrir le portail de facturation. Veuillez réessayer."
     },
+    "subscriptionModal": {
+      "title": "Gérer l'abonnement",
+      "plan": "Forfait",
+      "month": "mois",
+      "active": "Actif",
+      "cancelled": "Annulé",
+      "nextRenewal": "Prochain renouvellement",
+      "expiresOn": "Expire le",
+      "autoRenew": "Renouvellement automatique",
+      "autoRenewDescription": "Renouveler automatiquement votre abonnement chaque mois",
+      "toggleAutoRenew": "Activer/désactiver le renouvellement automatique",
+      "cancelConfirmTitle": "Annuler l'abonnement ?",
+      "cancelConfirmMessage": "Vous perdrez l'accès aux fonctionnalités premium à la fin de votre période de facturation. Tapez \"cancel\" pour confirmer.",
+      "typeCancel": "Tapez \"cancel\" pour confirmer",
+      "keepSubscription": "Conserver l'abonnement",
+      "confirmCancel": "Annuler l'abonnement",
+      "cancelledMessage": "Votre abonnement a été annulé. Vous conserverez l'accès jusqu'à la fin de votre période de facturation.",
+      "loadError": "Échec du chargement des détails de l'abonnement",
+      "cancelError": "Échec de l'annulation de l'abonnement",
+      "close": "Fermer"
+    },
     "newProject": {
       "title": "Nouveau projet",
       "drop": "Déposez votre vidéo ici",

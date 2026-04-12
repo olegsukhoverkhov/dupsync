@@ -480,6 +480,27 @@
       "errorTitle": "Hata",
       "billingPortalError": "Faturalama portalı açılamadı. Lütfen tekrar deneyin."
     },
+    "subscriptionModal": {
+      "title": "Aboneliği Yönet",
+      "plan": "Plan",
+      "month": "ay",
+      "active": "Aktif",
+      "cancelled": "İptal Edildi",
+      "nextRenewal": "Sonraki yenileme",
+      "expiresOn": "Bitiş tarihi",
+      "autoRenew": "Otomatik yenileme",
+      "autoRenewDescription": "Aboneliğinizi her ay otomatik olarak yenileyin",
+      "toggleAutoRenew": "Otomatik yenilemeyi aç/kapat",
+      "cancelConfirmTitle": "Abonelik iptal edilsin mi?",
+      "cancelConfirmMessage": "Faturalama döneminin sonunda premium özelliklere erişiminizi kaybedersiniz. Onaylamak için \"cancel\" yazın.",
+      "typeCancel": "Onaylamak için \"cancel\" yazın",
+      "keepSubscription": "Aboneliği koru",
+      "confirmCancel": "Aboneliği iptal et",
+      "cancelledMessage": "Aboneliğiniz iptal edildi. Faturalama döneminin sonuna kadar erişiminiz devam edecektir.",
+      "loadError": "Abonelik ayrıntıları yüklenemedi",
+      "cancelError": "Abonelik iptal edilemedi",
+      "close": "Kapat"
+    },
     "newProject": {
       "title": "Yeni Proje",
       "drop": "Videonuzu buraya bırakın",

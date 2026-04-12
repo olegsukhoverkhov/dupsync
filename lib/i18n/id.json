@@ -480,6 +480,27 @@
       "errorTitle": "Kesalahan",
       "billingPortalError": "Gagal membuka portal penagihan. Silakan coba lagi."
     },
+    "subscriptionModal": {
+      "title": "Kelola Langganan",
+      "plan": "Paket",
+      "month": "bln",
+      "active": "Aktif",
+      "cancelled": "Dibatalkan",
+      "nextRenewal": "Perpanjangan berikutnya",
+      "expiresOn": "Berakhir pada",
+      "autoRenew": "Perpanjangan otomatis",
+      "autoRenewDescription": "Perpanjang langganan Anda secara otomatis setiap bulan",
+      "toggleAutoRenew": "Aktifkan/nonaktifkan perpanjangan otomatis",
+      "cancelConfirmTitle": "Batalkan langganan?",
+      "cancelConfirmMessage": "Anda akan kehilangan akses ke fitur premium di akhir periode penagihan. Ketik \"cancel\" untuk mengonfirmasi.",
+      "typeCancel": "Ketik \"cancel\" untuk mengonfirmasi",
+      "keepSubscription": "Pertahankan langganan",
+      "confirmCancel": "Batalkan langganan",
+      "cancelledMessage": "Langganan Anda telah dibatalkan. Anda tetap memiliki akses hingga akhir periode penagihan.",
+      "loadError": "Gagal memuat detail langganan",
+      "cancelError": "Gagal membatalkan langganan",
+      "close": "Tutup"
+    },
     "newProject": {
       "title": "Proyek Baru",
       "drop": "Taruh video Anda di sini",

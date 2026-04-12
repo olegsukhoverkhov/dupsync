@@ -479,6 +479,27 @@
       "errorTitle": "Error",
       "billingPortalError": "Failed to open billing portal. Please try again."
     },
+    "subscriptionModal": {
+      "title": "Manage Subscription",
+      "plan": "Plan",
+      "month": "mo",
+      "active": "Active",
+      "cancelled": "Cancelled",
+      "nextRenewal": "Next renewal",
+      "expiresOn": "Expires on",
+      "autoRenew": "Auto-renew",
+      "autoRenewDescription": "Automatically renew your subscription each month",
+      "toggleAutoRenew": "Toggle auto-renew",
+      "cancelConfirmTitle": "Cancel subscription?",
+      "cancelConfirmMessage": "You'll lose access to premium features at the end of your billing period. Type \"cancel\" to confirm.",
+      "typeCancel": "Type \"cancel\" to confirm",
+      "keepSubscription": "Keep subscription",
+      "confirmCancel": "Cancel subscription",
+      "cancelledMessage": "Your subscription has been cancelled. You'll retain access until the end of your billing period.",
+      "loadError": "Failed to load subscription details",
+      "cancelError": "Failed to cancel subscription",
+      "close": "Close"
+    },
     "newProject": {
       "title": "New Project",
       "drop": "Drop your video here",
