@@ -242,7 +242,7 @@ export async function POST(req: NextRequest) {
         payment_method: methodLabel || undefined,
       });
 
-      console.log(`[DODO_WEBHOOK] Payment failed for ${userId}: ${errorMessage || eventType}`);
+      console.log(`[DODO_WEBHOOK] Payment failed for ${userId}: ${fullError || eventType}`);
       break;
     }
 
