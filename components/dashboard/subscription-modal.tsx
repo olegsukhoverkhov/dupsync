@@ -89,7 +89,6 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
 
   return (
     <Modal open={open} onClose={onClose}>
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-900 p-6">
         <h2 className="text-lg font-bold text-white mb-5">
           {t("dashboard.subscriptionModal.title", "Manage Subscription")}
         </h2>
@@ -226,7 +225,6 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
             {t("dashboard.subscriptionModal.close", "Close")}
           </button>
         </div>
-      </div>
     </Modal>
   );
 }
