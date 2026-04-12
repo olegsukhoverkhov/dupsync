@@ -692,21 +692,9 @@ async function runDubbingAudioOnce(
       header.write("data", 36);
       header.writeUInt32LE(dataSize, 40);
 
-      const concatenatedBuffer = Buffer.concat([header, pcmData]);
+      audioBuffer = Buffer.concat([header, pcmData]);
       newAudioDuration = dataSize / (sampleRate * channels * (bitsPerSample / 8));
       log(dubId, `Cartesia TTS done: ${nonEmpty.length} segments, ${newAudioDuration.toFixed(2)}s`);
-
-      // Mix TTS segments into original audio (keeps background sounds)
-      const videoDir = (project.original_video_url as string).split("/").slice(0, -1).join("/");
-      const mixedBuffer = await mixTtsWithOriginal(
-        supabase, videoDir, segmentBuffers, segmentsWithTiming, videoDuration, dubId
-      );
-      if (mixedBuffer) {
-        audioBuffer = mixedBuffer;
-        newAudioDuration = (mixedBuffer.length - 44) / (sampleRate * channels * (bitsPerSample / 8));
-      } else {
-        audioBuffer = concatenatedBuffer;
-      }
 
     } else if (fishModelId) {
       // ── Fish Audio TTS path (fallback) ─────────────────────
@@ -781,21 +769,9 @@ async function runDubbingAudioOnce(
       wavHeader.write("data", 36);
       wavHeader.writeUInt32LE(dataSize, 40);
 
-      const concatenatedBuffer = Buffer.concat([wavHeader, pcmData]);
+      audioBuffer = Buffer.concat([wavHeader, pcmData]);
       newAudioDuration = dataSize / (sampleRate * channels * (bitsPerSample / 8));
       log(dubId, `Fish Audio TTS done: ${segmentBuffers.length} segments, ${newAudioDuration.toFixed(2)}s`);
-
-      // Mix TTS segments into original audio (keeps background sounds)
-      const videoDir2 = (project.original_video_url as string).split("/").slice(0, -1).join("/");
-      const mixedBuffer2 = await mixTtsWithOriginal(
-        supabase, videoDir2, segmentBuffers, segmentsWithTiming, videoDuration, dubId
-      );
-      if (mixedBuffer2) {
-        audioBuffer = mixedBuffer2;
-        newAudioDuration = (mixedBuffer2.length - 44) / (sampleRate * channels * (bitsPerSample / 8));
-      } else {
-        audioBuffer = concatenatedBuffer;
-      }
 
       // Voice model cleanup is now handled by cleanupVoiceClone()
       // after ALL parallel dubs complete (called from /api/dub route).
