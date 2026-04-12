@@ -200,6 +200,16 @@ export async function POST(req: NextRequest) {
             .from("profiles")
             .update({ plan: newPlan, credits_remaining: planConfig.credits, subscription_expired: false, ...(renewExpiresAt ? { subscription_expires_at: renewExpiresAt } : {}) })
             .eq("id", profile.id);
+          const changeAmount = Number(data.recurring_pre_tax_amount || 0);
+          await upsertTransaction(supabase, profile.id, {
+            type: "subscription",
+            amount: changeAmount,
+            credits: planConfig.credits,
+            description: `Upgraded to ${planConfig.name} plan${isTest ? " [TEST]" : ""}`,
+            is_test: isTest,
+            payment_method: methodLabel || undefined,
+            raw_webhook: data,
+          });
           console.log(`[DODO_WEBHOOK] User ${profile.id} changed plan: ${profile.plan} → ${newPlan}`);
         } else if (newPlan) {
           const planConfig = PLAN_LIMITS[newPlan];
@@ -207,6 +217,17 @@ export async function POST(req: NextRequest) {
             .from("profiles")
             .update({ credits_remaining: planConfig.credits, subscription_expired: false, ...(renewExpiresAt ? { subscription_expires_at: renewExpiresAt } : {}) })
             .eq("id", profile.id);
+          const renewAmount = Number(data.recurring_pre_tax_amount || 0);
+          const periodCount = Number(data.subscription_period_count || 1);
+          await upsertTransaction(supabase, profile.id, {
+            type: "subscription",
+            amount: renewAmount,
+            credits: planConfig.credits,
+            description: `Renewed ${planConfig.name} plan (period ${periodCount})${isTest ? " [TEST]" : ""}`,
+            is_test: isTest,
+            payment_method: methodLabel || undefined,
+            raw_webhook: data,
+          });
           console.log(`[DODO_WEBHOOK] User ${profile.id} renewed ${newPlan}`);
         }
       }
