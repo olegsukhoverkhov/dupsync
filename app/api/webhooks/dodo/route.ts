@@ -7,19 +7,56 @@ import type { PlanType } from "@/lib/supabase/types";
 export const dynamic = "force-dynamic";
 
 /**
+ * Try to find the most recent checkout_initiated transaction for a user
+ * and update it. If none found, insert a new row.
+ */
+async function upsertTransaction(
+  supabase: Awaited<ReturnType<typeof createServiceClient>>,
+  userId: string,
+  update: { type: string; amount: number; credits: number; description: string; is_test: boolean }
+) {
+  // Find the latest checkout_initiated for this user (within last 2 hours)
+  const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+  const { data: pending } = await supabase
+    .from("transactions")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("type", "checkout_initiated")
+    .gte("created_at", twoHoursAgo)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (pending) {
+    // Update existing checkout record
+    await supabase
+      .from("transactions")
+      .update({
+        type: update.type,
+        amount: update.amount,
+        credits: update.credits,
+        description: update.description,
+      })
+      .eq("id", pending.id);
+    console.log(`[DODO_WEBHOOK] Updated checkout ${pending.id} → ${update.type}`);
+  } else {
+    // No pending checkout — insert new
+    await supabase.from("transactions").insert({
+      user_id: userId,
+      ...update,
+    });
+    console.log(`[DODO_WEBHOOK] Inserted new ${update.type} for ${userId}`);
+  }
+}
+
+/**
  * POST /api/webhooks/dodo — Dodo Payments webhook receiver.
- *
- * Handles:
- *   - payment.succeeded → credit top-ups
- *   - subscription.created → plan activation
- *   - subscription.updated → plan changes, cancellation
  */
 export async function POST(req: NextRequest) {
   const rawBody = await req.text();
   const webhookHeaders: Record<string, string> = {};
   req.headers.forEach((v, k) => { webhookHeaders[k] = v; });
 
-  // Verify signature
   const valid = await verifyWebhook(rawBody, webhookHeaders);
   if (!valid) {
     console.error("[DODO_WEBHOOK] Invalid signature");
@@ -69,10 +106,8 @@ export async function POST(req: NextRequest) {
         console.log(`[DODO_WEBHOOK] Granted ${credits} top-up credits to ${userId}`);
       }
 
-      // Record transaction
       const topupAmount = Number(data.total_amount || data.recurring_pre_tax_amount || data.total || data.amount || 0);
-      await supabase.from("transactions").insert({
-        user_id: userId,
+      await upsertTransaction(supabase, userId, {
         type: "topup",
         amount: topupAmount,
         credits,
@@ -103,13 +138,12 @@ export async function POST(req: NextRequest) {
         .update({
           plan,
           credits_remaining: planConfig.credits,
-          stripe_customer_id: subscriptionId, // reuse field for Dodo subscription ID
+          stripe_customer_id: subscriptionId,
         })
         .eq("id", userId);
 
       const subAmount = Number(data.recurring_pre_tax_amount || data.total_amount || data.total || data.amount || 0);
-      await supabase.from("transactions").insert({
-        user_id: userId,
+      await upsertTransaction(supabase, userId, {
         type: "subscription",
         amount: subAmount,
         credits: planConfig.credits,
@@ -128,7 +162,6 @@ export async function POST(req: NextRequest) {
 
       if (!subscriptionId) break;
 
-      // Find user by subscription ID (stored in stripe_customer_id field)
       const { data: profile } = await supabase
         .from("profiles")
         .select("id, plan")
@@ -137,14 +170,12 @@ export async function POST(req: NextRequest) {
       if (!profile) break;
 
       if (status === "cancelled" || status === "expired") {
-        // Downgrade to free
         await supabase
           .from("profiles")
           .update({ plan: "free", credits_remaining: 1 })
           .eq("id", profile.id);
         console.log(`[DODO_WEBHOOK] User ${profile.id} cancelled → free`);
       } else if (status === "active") {
-        // Plan renewal or upgrade
         const productId = data.product_id as string;
         const newPlan = productIdToPlan(productId);
         if (newPlan && newPlan !== profile.plan) {
@@ -155,7 +186,6 @@ export async function POST(req: NextRequest) {
             .eq("id", profile.id);
           console.log(`[DODO_WEBHOOK] User ${profile.id} changed plan: ${profile.plan} → ${newPlan}`);
         } else if (newPlan) {
-          // Same plan renewal — reset credits
           const planConfig = PLAN_LIMITS[newPlan];
           await supabase
             .from("profiles")
@@ -178,8 +208,7 @@ export async function POST(req: NextRequest) {
       const errorMessage = (data.error_message || data.failure_reason || data.status_reason || data.decline_reason || "") as string;
       const paymentType = metadata.type === "topup" ? "top-up" : "subscription";
 
-      await supabase.from("transactions").insert({
-        user_id: userId,
+      await upsertTransaction(supabase, userId, {
         type: "payment_failed",
         amount: failedAmount,
         credits: 0,
@@ -198,9 +227,6 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ ok: true });
 }
 
-/**
- * Map Dodo product ID to plan name.
- */
 function productIdToPlan(productId: string): PlanType | null {
   const map: Record<string, PlanType> = {};
   if (process.env.DODO_PRODUCT_STARTER) map[process.env.DODO_PRODUCT_STARTER] = "starter";

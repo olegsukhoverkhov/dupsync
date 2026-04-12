@@ -113,10 +113,8 @@ export default function AdminPaymentsPage() {
   const subRevenue = transactions.filter((t) => t.type === "subscription").reduce((s, t) => s + Number(t.amount || 0), 0);
   const topupRevenue = transactions.filter((t) => t.type === "topup").reduce((s, t) => s + Number(t.amount || 0), 0);
   const totalCredits = paidTx.reduce((s, t) => s + Number(t.credits || 0), 0);
-  const checkoutsStarted = transactions.filter((t) => t.type === "checkout_initiated").length;
-  const checkoutsCompleted = transactions.filter((t) => t.type === "subscription" || t.type === "topup").length;
+  const abandonedCheckouts = transactions.filter((t) => t.type === "checkout_initiated").length;
   const failedPayments = transactions.filter((t) => t.type === "payment_failed").length;
-  const abandonedCheckouts = Math.max(0, checkoutsStarted - checkoutsCompleted - failedPayments);
 
   const selectedCount = selectedIds.size;
   const selectedHasTest = [...selectedIds].some((id) => transactions.find((t) => t.id === id)?.is_test);
@@ -140,9 +138,8 @@ export default function AdminPaymentsPage() {
         <StatCard label="Top-ups" value={`$${(topupRevenue / 100).toFixed(2)}`} />
         <StatCard label="Credits Granted" value={String(totalCredits)} />
       </div>
-      <div className="grid gap-4 sm:grid-cols-3 mb-6">
-        <StatCard label="Checkouts Started" value={String(checkoutsStarted)} />
-        <StatCard label="Abandoned" value={String(abandonedCheckouts)} />
+      <div className="grid gap-4 sm:grid-cols-2 mb-6">
+        <StatCard label="Abandoned Checkouts" value={String(abandonedCheckouts)} />
         <StatCard label="Failed Payments" value={String(failedPayments)} />
       </div>
 
