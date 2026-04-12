@@ -8,7 +8,7 @@ import { randomUUID } from "crypto";
 
 export const maxDuration = 300;
 
-const COBALT_API = "https://api.cobalt.tools";
+const COBALT_API = process.env.COBALT_API_URL || "https://cobalt-production-eda4.up.railway.app";
 
 /**
  * POST /api/projects/import-url
