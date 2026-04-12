@@ -71,7 +71,7 @@ export function LanguageSelector({
                       onCheckedChange={() => !isDisabled && toggle(lang.code)}
                       disabled={isDisabled}
                     />
-                    <span>{lang.name}</span>
+                    <span>{lang.flag} {lang.name}</span>
                   </label>
                 );
               })}
@@ -88,7 +88,7 @@ export function LanguageSelector({
               className="cursor-pointer"
               onClick={() => toggle(code)}
             >
-              {SUPPORTED_LANGUAGES.find((l) => l.code === code)?.name || code}
+              {SUPPORTED_LANGUAGES.find((l) => l.code === code)?.flag} {SUPPORTED_LANGUAGES.find((l) => l.code === code)?.name || code}
               <span className="ml-1">&times;</span>
             </Badge>
           ))}
