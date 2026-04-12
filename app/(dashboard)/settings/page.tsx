@@ -225,7 +225,7 @@ export default function SettingsPage() {
         />
       )}
 
-      {profile && profile.plan !== "free" && (
+      {profile && profile.plan !== "free" && showSubModal && (
         <SubscriptionModal
           open={showSubModal}
           onClose={() => setShowSubModal(false)}

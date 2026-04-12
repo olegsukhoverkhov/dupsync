@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useDashboardT } from "./locale-provider";
 import { CreditCard, Calendar, AlertTriangle, Loader2, X } from "lucide-react";
 
@@ -28,31 +29,34 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
   const [cancelled, setCancelled] = useState(false);
   const [error, setError] = useState("");
 
-  const fetchSub = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/billing/subscription");
-      const data = await res.json();
-      setSub(data.subscription);
-      if (data.subscription?.cancelAtPeriodEnd || data.subscription?.status === "cancelled") {
-        setCancelled(true);
-      }
-    } catch {
-      setError(t("dashboard.subscriptionModal.loadError", "Failed to load subscription details"));
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
-
   useEffect(() => {
-    if (open) {
-      fetchSub();
-      setCancelInput("");
-      setShowCancelConfirm(false);
-      setCancelled(false);
-      setError("");
-    }
-  }, [open, fetchSub]);
+    if (!open) return;
+    let cancelled = false;
+    setLoading(true);
+    setCancelInput("");
+    setShowCancelConfirm(false);
+    setCancelled(false);
+    setError("");
+
+    fetch("/api/billing/subscription")
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        setSub(data.subscription);
+        if (data.subscription?.cancelAtPeriodEnd || data.subscription?.status === "cancelled") {
+          setCancelled(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setError("Failed to load subscription details");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   async function handleCancel() {
     if (cancelInput.toLowerCase() !== "cancel") return;
@@ -98,7 +102,7 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div
       ref={overlayRef}
       className="fixed inset-0 z-[100] flex items-center justify-center p-4"
@@ -117,8 +121,9 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
         </h2>
 
         {loading ? (
-          <div className="flex items-center justify-center" style={{ minHeight: 200 }}>
+          <div className="flex flex-col items-center justify-center gap-3 py-12">
             <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+            <p className="text-xs text-slate-500">Loading...</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -249,6 +254,7 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
