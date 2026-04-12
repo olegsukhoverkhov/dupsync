@@ -201,11 +201,26 @@ export async function cancelSubscription(subscriptionId: string): Promise<void> 
   const res = await fetch(`${DODO_API}/subscriptions/${subscriptionId}`, {
     method: "PATCH",
     headers: headers(),
-    body: JSON.stringify({ status: "cancelled" }),
+    body: JSON.stringify({ cancel_at_next_billing_date: true }),
   });
   if (!res.ok) {
     const err = await res.text().catch(() => "");
     throw new Error(`Dodo cancel failed: ${res.status} ${err.slice(0, 300)}`);
+  }
+}
+
+/**
+ * Reactivate a cancelled subscription (undo pending cancellation).
+ */
+export async function reactivateSubscription(subscriptionId: string): Promise<void> {
+  const res = await fetch(`${DODO_API}/subscriptions/${subscriptionId}`, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify({ cancel_at_next_billing_date: false }),
+  });
+  if (!res.ok) {
+    const err = await res.text().catch(() => "");
+    throw new Error(`Dodo reactivate failed: ${res.status} ${err.slice(0, 300)}`);
   }
 }
 

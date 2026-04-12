@@ -82,23 +82,23 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
     }
   }
 
-  async function handleRenew() {
+  async function handleReactivate() {
     setCancelling(true);
     setError("");
     try {
-      const res = await fetch("/api/billing", {
+      const res = await fetch("/api/billing/cancel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "checkout", plan }),
+        body: JSON.stringify({ action: "reactivate" }),
       });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        setError(data.error || "Failed to create checkout");
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Failed to reactivate");
+        return;
       }
+      setCancelled(false);
     } catch {
-      setError("Failed to create checkout");
+      setError("Failed to reactivate subscription");
     } finally {
       setCancelling(false);
     }
@@ -202,7 +202,7 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
                   </p>
                 </div>
                 <button
-                  onClick={handleRenew}
+                  onClick={handleReactivate}
                   disabled={cancelling}
                   className="w-full rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 px-4 py-3 text-sm font-semibold text-white hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
                 >
