@@ -18,6 +18,7 @@ type Transaction = {
   description: string | null;
   payment_method: string | null;
   is_test: boolean;
+  is_renewal: boolean;
   created_at: string;
   user_email?: string;
   user_name?: string;
@@ -49,7 +50,9 @@ export default function AdminPaymentsPage() {
 
     // Fetch via server API (service client bypasses RLS)
     const params = new URLSearchParams();
-    if (filterType && filterType !== "all") params.set("type", filterType);
+    if (filterType && filterType !== "all" && filterType !== "first" && filterType !== "renewal") params.set("type", filterType);
+    if (filterType === "first") { params.set("type", "subscription"); params.set("renewal", "false"); }
+    if (filterType === "renewal") { params.set("type", "subscription"); params.set("renewal", "true"); }
     if (range.from) params.set("from", range.from);
     if (range.to) params.set("to", range.to);
 
@@ -151,6 +154,8 @@ export default function AdminPaymentsPage() {
             { value: "", label: "All" },
             { value: "subscription", label: "Subscriptions" },
             { value: "topup", label: "Top-ups" },
+            { value: "first", label: "First-time" },
+            { value: "renewal", label: "Renewals" },
             { value: "checkout_initiated", label: "Checkouts" },
             { value: "payment_failed", label: "Failed" },
           ].map((opt) => (
@@ -245,6 +250,11 @@ export default function AdminPaymentsPage() {
                         <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${typeBadge}`}>
                           {tx.type === "checkout_initiated" ? "checkout" : tx.type === "payment_failed" ? "failed" : tx.type}
                         </span>
+                        {tx.type === "subscription" && tx.is_renewal && (
+                          <span className="ml-1 inline-flex items-center rounded-full border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-blue-400">
+                            renewal
+                          </span>
+                        )}
                         {tx.is_test && (
                           <span className="ml-1 inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-400">
                             TEST

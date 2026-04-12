@@ -36,6 +36,9 @@ export async function GET(req: Request) {
   if (filterType && filterType !== "all") {
     query = query.eq("type", filterType);
   }
+  const renewalFilter = url.searchParams.get("renewal");
+  if (renewalFilter === "true") query = query.eq("is_renewal", true);
+  if (renewalFilter === "false") query = query.eq("is_renewal", false);
   if (from) query = query.gte("created_at", from);
   if (to) query = query.lt("created_at", to);
 

@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 async function upsertTransaction(
   supabase: Awaited<ReturnType<typeof createServiceClient>>,
   userId: string,
-  update: { type: string; amount: number; credits: number; description: string; is_test: boolean; payment_method?: string; raw_webhook?: unknown }
+  update: { type: string; amount: number; credits: number; description: string; is_test: boolean; payment_method?: string; raw_webhook?: unknown; is_renewal?: boolean }
 ) {
   // Find the latest checkout_initiated for this user (within last 2 hours)
   const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
@@ -34,6 +34,7 @@ async function upsertTransaction(
     description: update.description,
     ...(update.payment_method ? { payment_method: update.payment_method } : {}),
     ...(update.raw_webhook ? { raw_webhook: update.raw_webhook } : {}),
+    ...(update.is_renewal !== undefined ? { is_renewal: update.is_renewal } : {}),
   };
 
   if (pending) {
@@ -156,6 +157,7 @@ export async function POST(req: NextRequest) {
         credits: planConfig.credits,
         description: `${isRenewal ? "Renewed" : "Subscribed to"} ${planConfig.name} plan${isRenewal ? ` (period ${periodCount})` : ""}${isTest ? " [TEST]" : ""}`,
         is_test: isTest,
+        is_renewal: isRenewal,
         payment_method: methodLabel || undefined,
         raw_webhook: data,
       });
@@ -247,6 +249,7 @@ export async function POST(req: NextRequest) {
               credits: planConfig.credits,
               description: `Renewed ${planConfig.name} plan (period ${periodNum})${isTest ? " [TEST]" : ""}`,
               is_test: isTest,
+              is_renewal: true,
               payment_method: methodLabel || undefined,
               raw_webhook: data,
             });
