@@ -35,7 +35,7 @@ export async function GET() {
         status: sub.status || "active",
         plan: profile.plan,
         currentPeriodEnd: sub.current_period_end || sub.next_billing_date || sub.ends_at || null,
-        cancelAtPeriodEnd: sub.cancel_at_period_end || sub.status === "cancelled" || false,
+        cancelAtPeriodEnd: sub.cancel_at_next_billing_date || sub.cancel_at_period_end || sub.status === "cancelled" || false,
       },
     });
   } catch (err) {
