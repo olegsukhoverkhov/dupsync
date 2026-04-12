@@ -104,6 +104,14 @@ export async function POST(request: Request) {
       const videoItem = cobaltData.picker.find(p => p.type === "video") || cobaltData.picker[0];
       downloadUrl = videoItem?.url || null;
     } else if (cobaltData.status === "error") {
+      const errorCode = cobaltData.error?.code || "";
+      console.log(`[IMPORT_URL] Cobalt error code: ${errorCode}`);
+      if (platform === "instagram" && errorCode.includes("fetch.empty")) {
+        return NextResponse.json(
+          { error: "Instagram requires authentication. Please download the video manually and upload it as a file." },
+          { status: 400 }
+        );
+      }
       return NextResponse.json(
         { error: "This video is private, unavailable, or not supported." },
         { status: 400 }
