@@ -608,42 +608,48 @@ async function runDubbingAudioOnce(
         let spkSample: Buffer | null = null;
 
         if (origAudioBuffer && origAudioBuffer.length > 44) {
-          // Extract audio from the longest segment of this speaker (up to 10s)
-          const bestSeg = spkSegments.reduce((best, s) => {
-            const dur = (s.end || 0) - (s.start || 0);
-            const bestDur = (best.end || 0) - (best.start || 0);
-            return dur > bestDur ? s : best;
-          }, spkSegments[0]);
+          // Concatenate ALL segments of this speaker (up to 30s) for best clone quality
+          const sampleRate = origAudioBuffer.readUInt32LE(24);
+          const channels = origAudioBuffer.readUInt16LE(22);
+          const bitsPerSample = origAudioBuffer.readUInt16LE(34);
+          const bytesPerFrame = (bitsPerSample / 8) * channels;
+          const maxSampleBytes = Math.floor(30 * sampleRate) * bytesPerFrame; // 30s max
 
-          if (bestSeg) {
-            const sampleRate = origAudioBuffer.readUInt32LE(24);
-            const channels = origAudioBuffer.readUInt16LE(22);
-            const bitsPerSample = origAudioBuffer.readUInt16LE(34);
-            const bytesPerFrame = (bitsPerSample / 8) * channels;
-            const startByte = 44 + Math.floor(bestSeg.start * sampleRate) * bytesPerFrame;
-            const maxDuration = Math.min((bestSeg.end || 0) - (bestSeg.start || 0), 10);
-            const endByte = Math.min(startByte + Math.floor(maxDuration * sampleRate) * bytesPerFrame, origAudioBuffer.length);
-            const pcmSlice = origAudioBuffer.subarray(startByte, endByte);
+          // Sort by duration desc — prioritize longest segments
+          const sorted = [...spkSegments].sort((a, b) => ((b.end || 0) - (b.start || 0)) - ((a.end || 0) - (a.start || 0)));
+          const pcmParts: Buffer[] = [];
+          let totalBytes = 0;
 
-            if (pcmSlice.length > 1000) {
-              // Build WAV from slice
-              const wavHeader = Buffer.alloc(44);
-              wavHeader.write("RIFF", 0);
-              wavHeader.writeUInt32LE(36 + pcmSlice.length, 4);
-              wavHeader.write("WAVE", 8);
-              wavHeader.write("fmt ", 12);
-              wavHeader.writeUInt32LE(16, 16);
-              wavHeader.writeUInt16LE(1, 20);
-              wavHeader.writeUInt16LE(channels, 22);
-              wavHeader.writeUInt32LE(sampleRate, 24);
-              wavHeader.writeUInt32LE(sampleRate * channels * (bitsPerSample / 8), 28);
-              wavHeader.writeUInt16LE(channels * (bitsPerSample / 8), 32);
-              wavHeader.writeUInt16LE(bitsPerSample, 34);
-              wavHeader.write("data", 36);
-              wavHeader.writeUInt32LE(pcmSlice.length, 40);
-              spkSample = Buffer.concat([wavHeader, pcmSlice]);
-              log(dubId, `  Speaker ${spk}: extracted ${(spkSample.length / 1024).toFixed(0)}KB sample (${maxDuration.toFixed(1)}s)`);
-            }
+          for (const seg of sorted) {
+            if (totalBytes >= maxSampleBytes) break;
+            const startByte = 44 + Math.floor((seg.start || 0) * sampleRate) * bytesPerFrame;
+            const segDur = (seg.end || 0) - (seg.start || 0);
+            const endByte = Math.min(startByte + Math.floor(segDur * sampleRate) * bytesPerFrame, origAudioBuffer.length);
+            if (startByte >= endByte || startByte >= origAudioBuffer.length) continue;
+            const slice = origAudioBuffer.subarray(startByte, endByte);
+            pcmParts.push(slice);
+            totalBytes += slice.length;
+          }
+
+          if (totalBytes > 1000) {
+            const pcmConcat = Buffer.concat(pcmParts);
+            const wavHeader = Buffer.alloc(44);
+            wavHeader.write("RIFF", 0);
+            wavHeader.writeUInt32LE(36 + pcmConcat.length, 4);
+            wavHeader.write("WAVE", 8);
+            wavHeader.write("fmt ", 12);
+            wavHeader.writeUInt32LE(16, 16);
+            wavHeader.writeUInt16LE(1, 20);
+            wavHeader.writeUInt16LE(channels, 22);
+            wavHeader.writeUInt32LE(sampleRate, 24);
+            wavHeader.writeUInt32LE(sampleRate * channels * (bitsPerSample / 8), 28);
+            wavHeader.writeUInt16LE(channels * (bitsPerSample / 8), 32);
+            wavHeader.writeUInt16LE(bitsPerSample, 34);
+            wavHeader.write("data", 36);
+            wavHeader.writeUInt32LE(pcmConcat.length, 40);
+            spkSample = Buffer.concat([wavHeader, pcmConcat]);
+            const sampleDuration = pcmConcat.length / (sampleRate * channels * (bitsPerSample / 8));
+            log(dubId, `  Speaker ${spk}: extracted ${(spkSample.length / 1024).toFixed(0)}KB sample (${sampleDuration.toFixed(1)}s from ${pcmParts.length} segments)`);
           }
         }
 
