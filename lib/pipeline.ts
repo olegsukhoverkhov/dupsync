@@ -12,6 +12,98 @@ function log(dubId: string, msg: string) {
   console.log(`[DUB:${dubId.slice(0, 8)}] ${msg}`);
 }
 
+// ── Video resolution check ──────────────────────────────────
+
+/**
+ * Ensure video meets minimum resolution for lip sync.
+ * If too small, upscale via ffmpeg and upload as a new file.
+ * Returns the storage path to use (original or upscaled).
+ */
+async function ensureMinResolution(
+  supabase: Awaited<ReturnType<typeof createServiceClient>>,
+  videoPath: string,
+  minHeight: number,
+  dubId: string,
+): Promise<string> {
+  const videoDir = videoPath.split("/").slice(0, -1).join("/");
+  const upscaledPath = `${videoDir}/upscaled.mp4`;
+
+  // Check if already upscaled
+  const { data: existing } = await supabase.storage.from("videos").list(videoDir, { search: "upscaled" });
+  if (existing && existing.some(f => f.name === "upscaled.mp4")) {
+    log(dubId, `[RESOLUTION] Using previously upscaled video`);
+    return upscaledPath;
+  }
+
+  const fs = await import("fs");
+  const os = await import("os");
+  const path = await import("path");
+  const { execSync } = await import("child_process");
+
+  // Download video
+  const { data: videoData } = await supabase.storage.from("videos").download(videoPath);
+  if (!videoData) return videoPath;
+  const videoBuffer = Buffer.from(await videoData.arrayBuffer());
+
+  const tmpIn = path.join(os.tmpdir(), `res-check-${Date.now()}.mp4`);
+  const tmpOut = path.join(os.tmpdir(), `res-upscaled-${Date.now()}.mp4`);
+  fs.writeFileSync(tmpIn, videoBuffer);
+
+  // Get resolution via ffprobe (ffmpeg-static includes it)
+  try {
+    const ffmpegPath = (await import("ffmpeg-static")).default;
+    if (!ffmpegPath || !fs.existsSync(ffmpegPath as string)) return videoPath;
+
+    // Get video dimensions
+    const probeOut = execSync(
+      `"${ffmpegPath}" -i "${tmpIn}" -hide_banner 2>&1 || true`,
+      { timeout: 10000 }
+    ).toString();
+    const match = probeOut.match(/(\d{3,4})x(\d{3,4})/);
+    if (!match) { try { fs.unlinkSync(tmpIn); } catch {} return videoPath; }
+
+    const width = parseInt(match[1], 10);
+    const height = parseInt(match[2], 10);
+    const minDim = Math.min(width, height);
+
+    log(dubId, `[RESOLUTION] Video: ${width}x${height}, min dimension: ${minDim}, required: ${minHeight}`);
+
+    if (minDim >= minHeight) {
+      try { fs.unlinkSync(tmpIn); } catch {}
+      return videoPath; // Already meets requirement
+    }
+
+    // Upscale — scale shortest side to minHeight, keep aspect ratio
+    const scale = height < width
+      ? `scale=-2:${minHeight}` // landscape: set height
+      : `scale=${minHeight}:-2`; // portrait: set width
+
+    log(dubId, `[RESOLUTION] Upscaling with ${scale}...`);
+    execSync(
+      `"${ffmpegPath}" -i "${tmpIn}" -vf "${scale}" -c:v libx264 -preset fast -crf 23 -c:a copy "${tmpOut}" -y`,
+      { timeout: 60000, stdio: "pipe" }
+    );
+
+    const upscaledBuffer = fs.readFileSync(tmpOut);
+    log(dubId, `[RESOLUTION] Upscaled: ${(upscaledBuffer.length / 1024 / 1024).toFixed(1)}MB`);
+
+    // Upload
+    await supabase.storage.from("videos").upload(upscaledPath, upscaledBuffer, {
+      contentType: "video/mp4", upsert: true,
+    });
+
+    try { fs.unlinkSync(tmpIn); } catch {}
+    try { fs.unlinkSync(tmpOut); } catch {}
+
+    return upscaledPath;
+  } catch (err) {
+    log(dubId, `[RESOLUTION] Upscale failed: ${err instanceof Error ? err.message : err}`);
+    try { fs.unlinkSync(tmpIn); } catch {}
+    try { fs.unlinkSync(tmpOut); } catch {}
+    return videoPath;
+  }
+}
+
 // ── Audio mixing ────────────────────────────────────────────
 
 /**
@@ -1002,10 +1094,18 @@ export async function runLipSync(dubId: string) {
     log(dubId, "Stage 2: Lip sync (async webhook)");
     await supabase.from("dubs").update({ status: "lip_syncing", progress: 82 }).eq("id", dubId);
 
+    // Ensure video meets minimum resolution for lip sync (720p)
+    let videoStoragePath = project.original_video_url as string;
+    try {
+      videoStoragePath = await ensureMinResolution(supabase, videoStoragePath, 720, dubId);
+    } catch (e) {
+      log(dubId, `Resolution check failed (non-fatal): ${e instanceof Error ? e.message : e}`);
+    }
+
     const audioPath = dub.dubbed_video_url;
     const { data: videoSigned } = await supabase.storage
       .from("videos")
-      .createSignedUrl(project.original_video_url as string, 3600 * 4);
+      .createSignedUrl(videoStoragePath, 3600 * 4);
     const { data: audioSigned } = await supabase.storage
       .from("videos")
       .createSignedUrl(audioPath, 3600 * 4);
