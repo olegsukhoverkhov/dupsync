@@ -582,35 +582,115 @@ async function runDubbingAudioOnce(
       }
     }
 
-    const fallbackVoiceId = ai.getMultilingualVoice(project.id as string);
-    const clone = await getOrCreateVoiceClone(
-      project.id as string, sampleBuffer, dubId, fallbackVoiceId,
-      project.original_language as string || "en", supabase
-    );
-    let voiceId = clone.voiceId;
-    let voiceSource: "cloned" | "premade" = clone.voiceSource;
-    const cloneProvider = clone.provider;
+    // Detect unique speakers from transcript
+    const speakers = new Set(transcript.map((s: TranscriptSegment) => s.speaker || "A"));
+    const speakerList = [...speakers];
+    log(dubId, `Detected ${speakerList.length} speaker(s): ${speakerList.join(", ")}`);
 
-    // Never use premade voice — if clone failed, throw error so user can retry
-    if (cloneProvider === "premade") {
+    // Clone voice per speaker
+    const speakerVoiceMap = new Map<string, { voiceId: string; provider: string }>();
+    const fallbackVoiceId = ai.getMultilingualVoice(project.id as string);
+    const originalLanguage = project.original_language as string || "en";
+
+    if (speakerList.length > 1 && sampleBuffer) {
+      // Multi-speaker: extract audio per speaker from original WAV and clone each
+      log(dubId, `Multi-speaker mode: cloning ${speakerList.length} voices`);
+      const origAudioPath = `${videoDir}/extracted-audio.wav`;
+      let origAudioBuffer: Buffer | null = null;
+      try {
+        const { data: origData } = await supabase.storage.from("videos").download(origAudioPath);
+        if (origData) origAudioBuffer = Buffer.from(await origData.arrayBuffer());
+      } catch {}
+
+      for (const spk of speakerList) {
+        // Find segments for this speaker and extract their audio portions
+        const spkSegments = transcript.filter((s: TranscriptSegment) => (s.speaker || "A") === spk);
+        let spkSample: Buffer | null = null;
+
+        if (origAudioBuffer && origAudioBuffer.length > 44) {
+          // Extract audio from the longest segment of this speaker (up to 10s)
+          const bestSeg = spkSegments.reduce((best, s) => {
+            const dur = (s.end || 0) - (s.start || 0);
+            const bestDur = (best.end || 0) - (best.start || 0);
+            return dur > bestDur ? s : best;
+          }, spkSegments[0]);
+
+          if (bestSeg) {
+            const sampleRate = origAudioBuffer.readUInt32LE(24);
+            const channels = origAudioBuffer.readUInt16LE(22);
+            const bitsPerSample = origAudioBuffer.readUInt16LE(34);
+            const bytesPerFrame = (bitsPerSample / 8) * channels;
+            const startByte = 44 + Math.floor(bestSeg.start * sampleRate) * bytesPerFrame;
+            const maxDuration = Math.min((bestSeg.end || 0) - (bestSeg.start || 0), 10);
+            const endByte = Math.min(startByte + Math.floor(maxDuration * sampleRate) * bytesPerFrame, origAudioBuffer.length);
+            const pcmSlice = origAudioBuffer.subarray(startByte, endByte);
+
+            if (pcmSlice.length > 1000) {
+              // Build WAV from slice
+              const wavHeader = Buffer.alloc(44);
+              wavHeader.write("RIFF", 0);
+              wavHeader.writeUInt32LE(36 + pcmSlice.length, 4);
+              wavHeader.write("WAVE", 8);
+              wavHeader.write("fmt ", 12);
+              wavHeader.writeUInt32LE(16, 16);
+              wavHeader.writeUInt16LE(1, 20);
+              wavHeader.writeUInt16LE(channels, 22);
+              wavHeader.writeUInt32LE(sampleRate, 24);
+              wavHeader.writeUInt32LE(sampleRate * channels * (bitsPerSample / 8), 28);
+              wavHeader.writeUInt16LE(channels * (bitsPerSample / 8), 32);
+              wavHeader.writeUInt16LE(bitsPerSample, 34);
+              wavHeader.write("data", 36);
+              wavHeader.writeUInt32LE(pcmSlice.length, 40);
+              spkSample = Buffer.concat([wavHeader, pcmSlice]);
+              log(dubId, `  Speaker ${spk}: extracted ${(spkSample.length / 1024).toFixed(0)}KB sample (${maxDuration.toFixed(1)}s)`);
+            }
+          }
+        }
+
+        // Clone this speaker's voice
+        const cacheKey = `${project.id}:${spk}`;
+        const clone = await getOrCreateVoiceClone(
+          cacheKey, spkSample || sampleBuffer, dubId, fallbackVoiceId, originalLanguage, supabase
+        );
+        speakerVoiceMap.set(spk, { voiceId: clone.voiceId, provider: clone.provider });
+        log(dubId, `  Speaker ${spk}: voice=${clone.voiceId.slice(0, 12)}, provider=${clone.provider}`);
+      }
+    } else {
+      // Single speaker: clone once (current behavior)
+      const clone = await getOrCreateVoiceClone(
+        project.id as string, sampleBuffer, dubId, fallbackVoiceId, originalLanguage, supabase
+      );
+      speakerVoiceMap.set(speakerList[0] || "A", { voiceId: clone.voiceId, provider: clone.provider });
+    }
+
+    // Check that at least one voice was cloned (not premade)
+    const anyCloned = [...speakerVoiceMap.values()].some(v => v.provider !== "premade");
+    if (!anyCloned) {
       throw new Error(
         "Voice cloning failed. Please try again — if the issue persists, " +
         "try uploading an MP4 video (not MOV) with at least 10 seconds of clear speech."
       );
     }
 
+    // Default voice for segments without speaker label
+    const defaultVoice = speakerVoiceMap.get(speakerList[0] || "A")!;
+    let voiceId = defaultVoice.voiceId;
+    let voiceSource: "cloned" | "premade" = defaultVoice.provider === "premade" ? "premade" : "cloned";
+    const cloneProvider = defaultVoice.provider as "cartesia" | "fish" | "premade";
+
     // For backward compat: fishModelId is set when provider is fish
     const fishModelId = cloneProvider === "fish" ? voiceId : "";
 
     // Per-segment TTS with exact timing matching original video
     const videoDuration = (project.duration_seconds as number) || 0;
-    log(dubId, `TTS: ${translatedSegments.length} segments, video=${videoDuration}s`);
+    log(dubId, `TTS: ${translatedSegments.length} segments, video=${videoDuration}s, speakers=${speakerVoiceMap.size}`);
 
-    // Use original transcript timestamps for segment placement
+    // Use original transcript timestamps and speaker labels for segment placement
     const segmentsWithTiming = translatedSegments.map((seg, i) => ({
       ...seg,
       start: transcript[i]?.start ?? seg.start,
       end: transcript[i]?.end ?? seg.end,
+      speaker: (transcript[i] as TranscriptSegment)?.speaker || "A",
     }));
 
     let audioBuffer: Buffer;
@@ -618,14 +698,17 @@ async function runDubbingAudioOnce(
 
     if (cloneProvider === "cartesia") {
       // ── Cartesia TTS path (primary) ────────────────────────
-      log(dubId, `Using Cartesia TTS (voice=${voiceId}, lang=${targetLanguageCode}, segments=${segmentsWithTiming.length})`);
+      log(dubId, `Using Cartesia TTS (voices=${speakerVoiceMap.size}, lang=${targetLanguageCode}, segments=${segmentsWithTiming.length})`);
       let firstError = "";
       const segmentBuffers: Buffer[] = [];
       for (let i = 0; i < segmentsWithTiming.length; i++) {
         const seg = segmentsWithTiming[i];
         if (!seg.text.trim()) continue;
+        // Use the correct voice for this speaker
+        const spkVoice = speakerVoiceMap.get(seg.speaker || "A") || defaultVoice;
+        const segVoiceId = spkVoice.voiceId;
         try {
-          const buf = await cartesia.textToSpeech(seg.text, voiceId, targetLanguageCode);
+          const buf = await cartesia.textToSpeech(seg.text, segVoiceId, targetLanguageCode);
           segmentBuffers.push(buf);
           log(dubId, `  Segment ${i + 1}/${segmentsWithTiming.length}: ${(buf.length / 1024).toFixed(0)}KB`);
         } catch (err) {

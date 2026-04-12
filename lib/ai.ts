@@ -356,6 +356,7 @@ export async function transcribeWithAssemblyAI(
       speech_models: ["universal-2"],
       language_code: languageHint && languageHint !== "auto" ? languageHint : undefined,
       language_detection: !languageHint || languageHint === "auto",
+      speaker_labels: true,
     }),
   });
 
@@ -372,27 +373,41 @@ export async function transcribeWithAssemblyAI(
     const data = await pollRes.json();
 
     if (data.status === "completed") {
-      const segments: TranscriptSegment[] = (data.words || []).reduce(
-        (acc: TranscriptSegment[], word: { start: number; end: number; text: string }) => {
-          const lastSeg = acc[acc.length - 1];
-          const wStart = (word.start || 0) / 1000;
-          const wEnd = (word.end || 0) / 1000;
+      // Prefer utterances (speaker-labeled) if available from diarization
+      let segments: TranscriptSegment[];
+      const utterances = data.utterances as Array<{ start: number; end: number; text: string; speaker: string }> | null;
 
-          if (!lastSeg || wStart - lastSeg.end > 1.0 || wEnd - lastSeg.start > 5.0) {
-            acc.push({ start: wStart, end: wEnd, text: word.text || "" });
-          } else {
-            lastSeg.end = wEnd;
-            lastSeg.text += " " + (word.text || "");
-          }
-          return acc;
-        },
-        []
-      );
+      if (utterances && utterances.length > 0) {
+        // Use utterances — each has speaker label ("A", "B", etc.)
+        segments = utterances.map((u) => ({
+          start: (u.start || 0) / 1000,
+          end: (u.end || 0) / 1000,
+          text: u.text || "",
+          speaker: u.speaker || "A",
+        }));
+        const speakers = new Set(segments.map(s => s.speaker));
+        console.log(`[ASSEMBLYAI] Diarization: ${speakers.size} speaker(s) detected: ${[...speakers].join(", ")}`);
+      } else {
+        // Fallback: group words by silence gaps (no diarization)
+        segments = (data.words || []).reduce(
+          (acc: TranscriptSegment[], word: { start: number; end: number; text: string; speaker?: string }) => {
+            const lastSeg = acc[acc.length - 1];
+            const wStart = (word.start || 0) / 1000;
+            const wEnd = (word.end || 0) / 1000;
+
+            if (!lastSeg || wStart - lastSeg.end > 1.0 || wEnd - lastSeg.start > 5.0) {
+              acc.push({ start: wStart, end: wEnd, text: word.text || "", speaker: word.speaker });
+            } else {
+              lastSeg.end = wEnd;
+              lastSeg.text += " " + (word.text || "");
+            }
+            return acc;
+          },
+          []
+        );
+      }
 
       // AssemblyAI returns regional codes like "en_us", "en_uk", "en_au".
-      // We normalize to plain ISO 639-1 ("en") so downstream lookups in
-      // LANGUAGE_MAP succeed and we don't pass weird strings to APIs that
-      // expect BCP 47 format.
       const rawLang = (data.language_code || languageHint || "en") as string;
       const lang = rawLang.toLowerCase().split(/[_-]/)[0];
       console.log(`[ASSEMBLYAI] Done: ${segments.length} segments, lang=${lang} (raw=${rawLang})`);
