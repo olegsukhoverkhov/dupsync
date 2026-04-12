@@ -105,7 +105,7 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-2xl">
+      <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-2xl">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors cursor-pointer"
@@ -117,7 +117,7 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
         </h2>
 
         {loading ? (
-          <div className="flex items-center justify-center py-10">
+          <div className="flex items-center justify-center" style={{ minHeight: 200 }}>
             <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
           </div>
         ) : (
