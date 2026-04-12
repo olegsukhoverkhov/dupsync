@@ -213,22 +213,51 @@ export async function POST(req: NextRequest) {
           console.log(`[DODO_WEBHOOK] User ${profile.id} changed plan: ${profile.plan} → ${newPlan}`);
         } else if (newPlan) {
           const planConfig = PLAN_LIMITS[newPlan];
-          await supabase
-            .from("profiles")
-            .update({ credits_remaining: planConfig.credits, subscription_expired: false, ...(renewExpiresAt ? { subscription_expires_at: renewExpiresAt } : {}) })
-            .eq("id", profile.id);
-          const renewAmount = Number(data.recurring_pre_tax_amount || 0);
-          const periodCount = Number(data.subscription_period_count || 1);
-          await upsertTransaction(supabase, profile.id, {
-            type: "subscription",
-            amount: renewAmount,
-            credits: planConfig.credits,
-            description: `Renewed ${planConfig.name} plan (period ${periodCount})${isTest ? " [TEST]" : ""}`,
-            is_test: isTest,
-            payment_method: methodLabel || undefined,
-            raw_webhook: data,
-          });
-          console.log(`[DODO_WEBHOOK] User ${profile.id} renewed ${newPlan}`);
+
+          // Check if we already recorded a renewal in the last 5 minutes (dedup)
+          const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+          const { data: recentRenewal } = await supabase
+            .from("transactions")
+            .select("id")
+            .eq("user_id", profile.id)
+            .eq("type", "subscription")
+            .gte("created_at", fiveMinAgo)
+            .ilike("description", "%Renewed%")
+            .limit(1)
+            .single();
+
+          if (!recentRenewal) {
+            await supabase
+              .from("profiles")
+              .update({ credits_remaining: planConfig.credits, subscription_expired: false, ...(renewExpiresAt ? { subscription_expires_at: renewExpiresAt } : {}) })
+              .eq("id", profile.id);
+
+            // Count previous subscription transactions to determine period
+            const { count } = await supabase
+              .from("transactions")
+              .select("id", { count: "exact", head: true })
+              .eq("user_id", profile.id)
+              .eq("type", "subscription");
+            const periodNum = (count || 0) + 1;
+
+            const renewAmount = Number(data.recurring_pre_tax_amount || 0);
+            await upsertTransaction(supabase, profile.id, {
+              type: "subscription",
+              amount: renewAmount,
+              credits: planConfig.credits,
+              description: `Renewed ${planConfig.name} plan (period ${periodNum})${isTest ? " [TEST]" : ""}`,
+              is_test: isTest,
+              payment_method: methodLabel || undefined,
+              raw_webhook: data,
+            });
+            console.log(`[DODO_WEBHOOK] User ${profile.id} renewed ${newPlan} (period ${periodNum})`);
+          } else {
+            // Duplicate webhook — just update expiry silently
+            if (renewExpiresAt) {
+              await supabase.from("profiles").update({ subscription_expires_at: renewExpiresAt }).eq("id", profile.id);
+            }
+            console.log(`[DODO_WEBHOOK] Skipped duplicate renewal for ${profile.id}`);
+          }
         }
       }
       break;
