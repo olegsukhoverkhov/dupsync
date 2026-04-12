@@ -148,11 +148,13 @@ export async function POST(req: NextRequest) {
         .eq("id", userId);
 
       const subAmount = Number(data.recurring_pre_tax_amount || data.total_amount || data.total || data.amount || 0);
+      const periodCount = Number(data.subscription_period_count || 1);
+      const isRenewal = periodCount > 1;
       await upsertTransaction(supabase, userId, {
         type: "subscription",
         amount: subAmount,
         credits: planConfig.credits,
-        description: `Subscribed to ${planConfig.name} plan${isTest ? " [TEST]" : ""}`,
+        description: `${isRenewal ? "Renewed" : "Subscribed to"} ${planConfig.name} plan${isRenewal ? ` (period ${periodCount})` : ""}${isTest ? " [TEST]" : ""}`,
         is_test: isTest,
         payment_method: methodLabel || undefined,
         raw_webhook: data,
@@ -300,6 +302,10 @@ function extractPaymentMethod(data: Record<string, unknown>): string | null {
   for (const m of knownMethods) {
     if (allValues.includes(m)) return m.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
   }
+
+  // Last resort: show payment_method_id if present
+  const pmId = flat["payment_method_id"];
+  if (pmId) return `pm:${String(pmId).slice(-8)}`;
 
   return null;
 }
