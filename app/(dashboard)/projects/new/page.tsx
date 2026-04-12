@@ -18,7 +18,7 @@ import { LanguageSelector } from "@/components/project/language-selector";
 import { createClient } from "@/lib/supabase/client";
 import { PLAN_LIMITS, SUPPORTED_LANGUAGES } from "@/lib/supabase/constants";
 import type { Profile, TranscriptSegment, Project } from "@/lib/supabase/types";
-import { ArrowLeft, ArrowRight, Loader2, Check, AlertTriangle, Globe } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Check, AlertTriangle, Globe, Upload, Link2 } from "lucide-react";
 import { ProcessingIndicator } from "@/components/ui/processing-indicator";
 import { AlertModal, Modal } from "@/components/ui/modal";
 import { LANGUAGE_MAP } from "@/lib/supabase/constants";
@@ -42,6 +42,9 @@ export default function NewProjectPage() {
   const [transcript, setTranscript] = useState<TranscriptSegment[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [sourceLanguage, setSourceLanguage] = useState("");
+  const [uploadMode, setUploadMode] = useState<"file" | "url">("file");
+  const [importUrl, setImportUrl] = useState("");
+  const [importLoading, setImportLoading] = useState(false);
   const [uploadedPath, setUploadedPath] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
@@ -457,13 +460,118 @@ export default function NewProjectPage() {
                         className="mt-1"
                       />
                     </div>
-                    <VideoUpload
-                      userId={profile.id}
-                      maxSizeMB={planLimits.maxFileSize}
-                      maxDurationSec={planLimits.maxVideoSeconds}
-                      planName={planLimits.name}
-                      onUploadComplete={handleUploadComplete}
-                    />
+
+                    {/* Upload mode toggle */}
+                    <div className="flex rounded-xl border border-white/10 bg-white/5 p-1 gap-1">
+                      <button
+                        onClick={() => setUploadMode("file")}
+                        className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors cursor-pointer ${
+                          uploadMode === "file" ? "bg-white/10 text-white" : "text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        <Upload className="h-4 w-4" />
+                        {t("dashboard.newProject.uploadFile", "Upload File")}
+                      </button>
+                      <button
+                        onClick={() => setUploadMode("url")}
+                        className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors cursor-pointer ${
+                          uploadMode === "url" ? "bg-white/10 text-white" : "text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        <Link2 className="h-4 w-4" />
+                        {t("dashboard.newProject.importFromUrl", "Import from URL")}
+                      </button>
+                    </div>
+
+                    {uploadMode === "file" ? (
+                      <VideoUpload
+                        userId={profile.id}
+                        maxSizeMB={planLimits.maxFileSize}
+                        maxDurationSec={planLimits.maxVideoSeconds}
+                        planName={planLimits.name}
+                        onUploadComplete={handleUploadComplete}
+                      />
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
+                          <p className="text-xs text-slate-400 mb-3">
+                            {t("dashboard.newProject.importUrlDescription", "Paste a link from YouTube, Instagram, TikTok, or Facebook")}
+                          </p>
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="https://youtube.com/watch?v=..."
+                              value={importUrl}
+                              onChange={(e) => setImportUrl(e.target.value)}
+                              disabled={importLoading}
+                              className="flex-1"
+                            />
+                            <Button
+                              onClick={async () => {
+                                if (!importUrl.trim()) return;
+                                setImportLoading(true);
+                                try {
+                                  const res = await fetch("/api/projects/import-url", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                      url: importUrl.trim(),
+                                      language: sourceLanguage || "auto",
+                                    }),
+                                  });
+                                  const data = await res.json();
+                                  if (!res.ok) {
+                                    setAlertModal({
+                                      title: t("dashboard.newProject.importError", "Import Failed"),
+                                      message: data.error || "Failed to import video",
+                                      type: "error",
+                                    });
+                                    return;
+                                  }
+                                  // Project created + transcription done
+                                  setProject(data);
+                                  setUploadedPath(data.original_video_url);
+                                  if (data.transcript) setTranscript(data.transcript);
+                                  if (data.original_language) {
+                                    setDetectedLanguage(data.original_language);
+                                    setCorrectedLanguage(data.original_language);
+                                  }
+                                  setStep("confirm-language");
+                                } catch {
+                                  setAlertModal({
+                                    title: t("dashboard.newProject.importError", "Import Failed"),
+                                    message: "Network error. Please try again.",
+                                    type: "error",
+                                  });
+                                } finally {
+                                  setImportLoading(false);
+                                }
+                              }}
+                              disabled={importLoading || !importUrl.trim()}
+                            >
+                              {importLoading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                t("dashboard.newProject.importButton", "Import")
+                              )}
+                            </Button>
+                          </div>
+                          {importLoading && (
+                            <div className="mt-4 flex items-center gap-3">
+                              <Loader2 className="h-4 w-4 animate-spin text-pink-400" />
+                              <p className="text-sm text-slate-300">
+                                {t("dashboard.newProject.importingVideo", "Downloading and processing video...")}
+                              </p>
+                            </div>
+                          )}
+                          <div className="mt-4 flex items-center gap-4 text-[10px] text-slate-600">
+                            <span>YouTube</span>
+                            <span>Instagram</span>
+                            <span>TikTok</span>
+                            <span>Facebook</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </>
                 )}
 
