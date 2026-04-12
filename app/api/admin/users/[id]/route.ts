@@ -89,6 +89,25 @@ export async function PATCH(
   }
 
   const admin = await createServiceClient();
+
+  // If expiry date is set to the past, also cancel in Dodo
+  if (updates.subscription_expired === true) {
+    const { data: targetProfile } = await admin
+      .from("profiles")
+      .select("stripe_customer_id")
+      .eq("id", targetId)
+      .single();
+    if (targetProfile?.stripe_customer_id) {
+      try {
+        const { cancelSubscription } = await import("@/lib/dodo-payments");
+        await cancelSubscription(targetProfile.stripe_customer_id);
+        console.log(`[ADMIN] Auto-cancelled Dodo subscription for ${targetId} (expiry set to past)`);
+      } catch (err) {
+        console.warn(`[ADMIN] Dodo cancel failed for ${targetId}:`, err instanceof Error ? err.message : err);
+      }
+    }
+  }
+
   const { data, error } = await admin
     .from("profiles")
     .update(updates)
