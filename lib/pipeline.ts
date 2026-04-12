@@ -1111,8 +1111,8 @@ export async function completeLipSyncFromWebhook(
  * same model first, then falls back to the other model on the last try.
  * Retries: attempt 1 (original), 2 (retry 30s), 3 (retry 1m), 4 (fallback model).
  */
-const MAX_LIP_SYNC_ATTEMPTS = 4;
-const RETRY_DELAYS_MS = [0, 30_000, 60_000, 180_000]; // per attempt
+const MAX_LIP_SYNC_ATTEMPTS = 6;
+const RETRY_DELAYS_MS = [0, 15_000, 30_000, 60_000, 120_000, 180_000]; // per attempt
 
 export async function handleLipSyncFailureFromWebhook(
   dubId: string,
@@ -1155,11 +1155,11 @@ export async function handleLipSyncFailureFromWebhook(
   }
 
   // Determine which model to use for the retry
-  // Last attempt: try the OTHER model as fallback
+  // Alternate between models: odd attempts = primary, even = fallback
+  const primaryModel = (currentModel as string) || "fal-ai/latentsync";
+  const altModel = primaryModel === "fal-ai/sync-lipsync" ? "fal-ai/latentsync" : "fal-ai/sync-lipsync";
   const useModel: "fal-ai/sync-lipsync" | "fal-ai/latentsync" =
-    nextAttempt === MAX_LIP_SYNC_ATTEMPTS
-      ? (currentModel === "fal-ai/sync-lipsync" ? "fal-ai/latentsync" : "fal-ai/sync-lipsync")
-      : (currentModel as "fal-ai/sync-lipsync" | "fal-ai/latentsync") || "fal-ai/latentsync";
+    nextAttempt % 2 === 0 ? (altModel as "fal-ai/sync-lipsync" | "fal-ai/latentsync") : (primaryModel as "fal-ai/sync-lipsync" | "fal-ai/latentsync");
 
   const delayMs = RETRY_DELAYS_MS[nextAttempt - 1] || 0;
   log(dubId, `Attempt ${attempt} failed (${failureReason}). Retry ${nextAttempt}/${MAX_LIP_SYNC_ATTEMPTS} with ${useModel} in ${delayMs / 1000}s`);
