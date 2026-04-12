@@ -28,10 +28,10 @@ export function FunnelChart({ steps }: Props) {
       <div className="space-y-1">
         {steps.map((step, i) => {
           const widthPct = Math.max((step.value / max) * 100, 2);
-          const prevValue = i > 0 ? steps[i - 1].value : null;
+          const firstValue = steps[0].value;
           const convRate =
-            prevValue !== null && prevValue > 0
-              ? ((step.value / prevValue) * 100).toFixed(1)
+            i > 0 && firstValue > 0
+              ? ((step.value / firstValue) * 100).toFixed(1)
               : null;
 
           return (

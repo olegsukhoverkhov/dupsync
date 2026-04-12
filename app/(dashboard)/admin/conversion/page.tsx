@@ -83,28 +83,28 @@ export default async function ConversionPage({
 
   const metricCards = [
     {
-      label: "Visitor \u2192 Signup",
+      label: "Visit \u2192 Signup",
       value: rate(funnel.signups, funnel.visitors),
       icon: Users,
       sub: `${funnel.signups} of ${funnel.visitors}`,
     },
     {
-      label: "Signup \u2192 First Dub",
-      value: rate(funnel.firstDubbers, funnel.signups),
+      label: "Visit \u2192 First Dub",
+      value: rate(funnel.firstDubbers, funnel.visitors),
       icon: Zap,
-      sub: `${funnel.firstDubbers} of ${funnel.signups}`,
+      sub: `${funnel.firstDubbers} of ${funnel.visitors}`,
     },
     {
-      label: "First Dub \u2192 Paid",
-      value: rate(funnel.paidUsers, funnel.firstDubbers),
-      icon: DollarSign,
-      sub: `${funnel.paidUsers} of ${funnel.firstDubbers}`,
-    },
-    {
-      label: "Overall Visitor \u2192 Paid",
+      label: "Visit \u2192 Paid",
       value: rate(funnel.paidUsers, funnel.visitors),
-      icon: Target,
+      icon: DollarSign,
       sub: `${funnel.paidUsers} of ${funnel.visitors}`,
+    },
+    {
+      label: "Signup \u2192 Paid",
+      value: rate(funnel.paidUsers, funnel.signups),
+      icon: Target,
+      sub: `${funnel.paidUsers} of ${funnel.signups}`,
     },
     {
       label: "Avg. Signup \u2192 Dub",
