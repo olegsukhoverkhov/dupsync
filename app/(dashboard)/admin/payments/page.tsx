@@ -46,45 +46,17 @@ export default function AdminPaymentsPage() {
     if (!profile?.is_admin) return;
     setIsAdmin(true);
 
-    let query = supabase
-      .from("transactions")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(200);
+    // Fetch via server API (service client bypasses RLS)
+    const params = new URLSearchParams();
+    if (filterType && filterType !== "all") params.set("type", filterType);
+    if (range.from) params.set("from", range.from);
+    if (range.to) params.set("to", range.to);
 
-    if (filterType && filterType !== "all") {
-      query = query.eq("type", filterType);
-    }
-    if (range.from) {
-      query = query.gte("created_at", range.from);
-    }
-    if (range.to) {
-      query = query.lt("created_at", range.to);
-    }
+    const res = await fetch(`/api/admin/transactions/list?${params.toString()}`);
+    if (!res.ok) { setLoading(false); return; }
+    const { transactions: data } = await res.json();
 
-    const { data } = await query;
-    if (!data) { setLoading(false); return; }
-
-    // Fetch user info for all transactions
-    const userIds = [...new Set(data.map((t) => t.user_id))];
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, email, full_name")
-      .in("id", userIds);
-
-    const profileMap = new Map<string, { email: string; full_name: string | null }>();
-    for (const p of profiles || []) {
-      profileMap.set(p.id, p);
-    }
-
-    setTransactions(data.map((t) => {
-      const p = profileMap.get(t.user_id);
-      return {
-        ...t,
-        user_email: p?.email || "",
-        user_name: p?.full_name || "",
-      };
-    }));
+    setTransactions(data || []);
     setLoading(false);
   }, [filterType, range.from, range.to]);
 
