@@ -57,25 +57,37 @@ export async function POST(request: Request) {
       }),
     });
 
+    const cobaltText = await cobaltRes.text();
+    console.log(`[IMPORT_URL] Cobalt HTTP ${cobaltRes.status}: ${cobaltText.slice(0, 500)}`);
+
     if (!cobaltRes.ok) {
-      const errText = await cobaltRes.text().catch(() => "");
-      console.error(`[IMPORT_URL] Cobalt error: ${cobaltRes.status} ${errText.slice(0, 300)}`);
       if (cobaltRes.status === 400) {
         return NextResponse.json(
           { error: "This video is private, unavailable, or not supported." },
           { status: 400 }
         );
       }
-      throw new Error(`Cobalt API error: ${cobaltRes.status}`);
+      return NextResponse.json(
+        { error: `Video download service error (${cobaltRes.status}). Try again later.` },
+        { status: 502 }
+      );
     }
 
-    const cobaltData = await cobaltRes.json() as {
+    let cobaltData: {
       status: string;
       url?: string;
       filename?: string;
       error?: { code?: string };
       picker?: Array<{ url: string; type: string }>;
     };
+    try {
+      cobaltData = JSON.parse(cobaltText);
+    } catch {
+      return NextResponse.json(
+        { error: `Invalid response from download service: ${cobaltText.slice(0, 100)}` },
+        { status: 502 }
+      );
+    }
 
     console.log(`[IMPORT_URL] Cobalt response: status=${cobaltData.status}`);
 
