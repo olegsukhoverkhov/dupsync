@@ -495,7 +495,7 @@ export default function NewProjectPage() {
                       <div className="space-y-3">
                         <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
                           <p className="text-xs text-slate-400 mb-3">
-                            {t("dashboard.newProject.importUrlDescription", "Paste a link from YouTube, Instagram, TikTok, or Facebook")}
+                            {t("dashboard.newProject.importUrlDescription", "Paste a link from YouTube, TikTok, or Facebook")}
                           </p>
                           <div className="flex gap-2">
                             <Input
@@ -565,7 +565,6 @@ export default function NewProjectPage() {
                           )}
                           <div className="mt-4 flex items-center gap-4 text-[10px] text-slate-600">
                             <span>YouTube</span>
-                            <span>Instagram</span>
                             <span>TikTok</span>
                             <span>Facebook</span>
                           </div>
