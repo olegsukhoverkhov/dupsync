@@ -12,6 +12,134 @@ function log(dubId: string, msg: string) {
   console.log(`[DUB:${dubId.slice(0, 8)}] ${msg}`);
 }
 
+// ── Audio mixing ────────────────────────────────────────────
+
+/**
+ * Mix TTS segment buffers into the original audio track at their
+ * correct timestamps. Keeps background sounds/music where there's
+ * no speech, replaces speech windows with TTS.
+ *
+ * Both original and TTS must be 16-bit PCM WAV.
+ * Returns a new WAV buffer with the full video duration.
+ */
+async function mixTtsWithOriginal(
+  supabase: Awaited<ReturnType<typeof createServiceClient>>,
+  videoDir: string,
+  ttsSegmentBuffers: Buffer[],
+  segmentsWithTiming: Array<{ start: number; end: number }>,
+  videoDuration: number,
+  dubId: string,
+): Promise<Buffer | null> {
+  try {
+    // Download original extracted audio
+    const audioPath = `${videoDir}/extracted-audio.wav`;
+    const { data: origData } = await supabase.storage.from("videos").download(audioPath);
+    if (!origData) {
+      log(dubId, "[MIX] No original audio found, skipping mix");
+      return null;
+    }
+
+    const origBuffer = Buffer.from(await origData.arrayBuffer());
+    if (origBuffer.length < 44) return null;
+
+    // Parse original WAV header
+    const origSampleRate = origBuffer.readUInt32LE(24);
+    const origChannels = origBuffer.readUInt16LE(22);
+    const origBitsPerSample = origBuffer.readUInt16LE(34);
+    const origBytesPerSample = origBitsPerSample / 8;
+    const origPcm = origBuffer.subarray(44);
+
+    // Target format: match original (44100Hz, 16-bit, mono expected)
+    const sampleRate = origSampleRate;
+    const channels = origChannels;
+    const bytesPerFrame = origBytesPerSample * channels;
+
+    // Create output PCM buffer — same length as original
+    const outputPcm = Buffer.from(origPcm);
+
+    // Crossfade samples (5ms)
+    const fadeSamples = Math.min(Math.floor(sampleRate * 0.005), 220);
+
+    let segIdx = 0;
+    for (let i = 0; i < ttsSegmentBuffers.length; i++) {
+      const ttsBuf = ttsSegmentBuffers[i];
+      if (!ttsBuf || ttsBuf.length <= 44) { segIdx++; continue; }
+
+      const seg = segmentsWithTiming[segIdx];
+      if (!seg) { segIdx++; continue; }
+      segIdx++;
+
+      const ttsPcm = ttsBuf.subarray(44);
+      const startSample = Math.floor(seg.start * sampleRate);
+      const startByte = startSample * bytesPerFrame;
+
+      // How many bytes to write (limited by output buffer size)
+      const maxBytes = Math.min(ttsPcm.length, outputPcm.length - startByte);
+      if (maxBytes <= 0) continue;
+
+      // Copy TTS PCM into output at the correct position
+      ttsPcm.copy(outputPcm, startByte, 0, maxBytes);
+
+      // Apply crossfade at start boundary (fade from original to TTS)
+      if (origBytesPerSample === 2 && fadeSamples > 0) {
+        for (let f = 0; f < fadeSamples && (startByte + f * bytesPerFrame) < outputPcm.length; f++) {
+          const gain = f / fadeSamples;
+          const byteOff = startByte + f * bytesPerFrame;
+          for (let ch = 0; ch < channels; ch++) {
+            const off = byteOff + ch * 2;
+            if (off + 1 >= outputPcm.length) break;
+            const ttsSample = ttsPcm.readInt16LE(f * channels * 2 + ch * 2) || 0;
+            const origSample = origPcm.readInt16LE(off) || 0;
+            const mixed = Math.round(origSample * (1 - gain) + ttsSample * gain);
+            outputPcm.writeInt16LE(Math.max(-32768, Math.min(32767, mixed)), off);
+          }
+        }
+      }
+
+      // Apply crossfade at end boundary (fade from TTS to original)
+      const endByte = startByte + maxBytes;
+      if (origBytesPerSample === 2 && fadeSamples > 0) {
+        for (let f = 0; f < fadeSamples; f++) {
+          const gain = f / fadeSamples; // 0→1 = TTS→original
+          const byteOff = endByte - (f + 1) * bytesPerFrame;
+          if (byteOff < startByte || byteOff < 0) break;
+          for (let ch = 0; ch < channels; ch++) {
+            const off = byteOff + ch * 2;
+            if (off + 1 >= outputPcm.length || off < 0) break;
+            const ttsSample = outputPcm.readInt16LE(off);
+            const origSample = origPcm.readInt16LE(off) || 0;
+            const mixed = Math.round(ttsSample * gain + origSample * (1 - gain));
+            outputPcm.writeInt16LE(Math.max(-32768, Math.min(32767, mixed)), off);
+          }
+        }
+      }
+    }
+
+    // Build WAV header
+    const dataSize = outputPcm.length;
+    const header = Buffer.alloc(44);
+    header.write("RIFF", 0);
+    header.writeUInt32LE(36 + dataSize, 4);
+    header.write("WAVE", 8);
+    header.write("fmt ", 12);
+    header.writeUInt32LE(16, 16);
+    header.writeUInt16LE(1, 20);
+    header.writeUInt16LE(channels, 22);
+    header.writeUInt32LE(sampleRate, 24);
+    header.writeUInt32LE(sampleRate * channels * origBytesPerSample, 28);
+    header.writeUInt16LE(channels * origBytesPerSample, 32);
+    header.writeUInt16LE(origBitsPerSample, 34);
+    header.write("data", 36);
+    header.writeUInt32LE(dataSize, 40);
+
+    log(dubId, `[MIX] Mixed ${ttsSegmentBuffers.filter(b => b.length > 44).length} TTS segments into ${(dataSize / sampleRate / channels / origBytesPerSample).toFixed(1)}s original audio`);
+    return Buffer.concat([header, outputPcm]);
+  } catch (err) {
+    log(dubId, `[MIX] Failed: ${err instanceof Error ? err.message : err}`);
+    return null;
+  }
+}
+
 /**
  * Extract audio from a video file server-side using ffmpeg-static.
  * Saves the extracted WAV to Supabase storage alongside the video.
@@ -564,9 +692,21 @@ async function runDubbingAudioOnce(
       header.write("data", 36);
       header.writeUInt32LE(dataSize, 40);
 
-      audioBuffer = Buffer.concat([header, pcmData]);
+      const concatenatedBuffer = Buffer.concat([header, pcmData]);
       newAudioDuration = dataSize / (sampleRate * channels * (bitsPerSample / 8));
       log(dubId, `Cartesia TTS done: ${nonEmpty.length} segments, ${newAudioDuration.toFixed(2)}s`);
+
+      // Mix TTS segments into original audio (keeps background sounds)
+      const videoDir = (project.original_video_url as string).split("/").slice(0, -1).join("/");
+      const mixedBuffer = await mixTtsWithOriginal(
+        supabase, videoDir, segmentBuffers, segmentsWithTiming, videoDuration, dubId
+      );
+      if (mixedBuffer) {
+        audioBuffer = mixedBuffer;
+        newAudioDuration = (mixedBuffer.length - 44) / (sampleRate * channels * (bitsPerSample / 8));
+      } else {
+        audioBuffer = concatenatedBuffer;
+      }
 
     } else if (fishModelId) {
       // ── Fish Audio TTS path (fallback) ─────────────────────
@@ -641,9 +781,21 @@ async function runDubbingAudioOnce(
       wavHeader.write("data", 36);
       wavHeader.writeUInt32LE(dataSize, 40);
 
-      audioBuffer = Buffer.concat([wavHeader, pcmData]);
+      const concatenatedBuffer = Buffer.concat([wavHeader, pcmData]);
       newAudioDuration = dataSize / (sampleRate * channels * (bitsPerSample / 8));
       log(dubId, `Fish Audio TTS done: ${segmentBuffers.length} segments, ${newAudioDuration.toFixed(2)}s`);
+
+      // Mix TTS segments into original audio (keeps background sounds)
+      const videoDir2 = (project.original_video_url as string).split("/").slice(0, -1).join("/");
+      const mixedBuffer2 = await mixTtsWithOriginal(
+        supabase, videoDir2, segmentBuffers, segmentsWithTiming, videoDuration, dubId
+      );
+      if (mixedBuffer2) {
+        audioBuffer = mixedBuffer2;
+        newAudioDuration = (mixedBuffer2.length - 44) / (sampleRate * channels * (bitsPerSample / 8));
+      } else {
+        audioBuffer = concatenatedBuffer;
+      }
 
       // Voice model cleanup is now handled by cleanupVoiceClone()
       // after ALL parallel dubs complete (called from /api/dub route).
