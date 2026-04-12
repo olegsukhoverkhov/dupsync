@@ -108,12 +108,12 @@ export async function POST(request: Request) {
       console.log(`[IMPORT_URL] Cobalt error code: ${errorCode}`);
       if (platform === "instagram" && errorCode.includes("fetch.empty")) {
         return NextResponse.json(
-          { error: "Instagram requires authentication. Please download the video manually and upload it as a file." },
+          { error: "Could not access this Instagram video. It may be private or age-restricted. Please download the video manually and upload it as a file." },
           { status: 400 }
         );
       }
       return NextResponse.json(
-        { error: "This video is private, unavailable, or not supported." },
+        { error: "This video is private, age-restricted, or unavailable. Make sure the video is public and not age-restricted." },
         { status: 400 }
       );
     }
