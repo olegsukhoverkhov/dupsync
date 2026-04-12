@@ -176,12 +176,17 @@ export async function POST(req: NextRequest) {
         .single();
       if (!profile) break;
 
-      if (status === "cancelled" || status === "expired") {
+      if (status === "expired") {
+        // Subscription period ended — downgrade to free
         await supabase
           .from("profiles")
           .update({ plan: "free", credits_remaining: 1 })
           .eq("id", profile.id);
-        console.log(`[DODO_WEBHOOK] User ${profile.id} cancelled → free`);
+        console.log(`[DODO_WEBHOOK] User ${profile.id} expired → free`);
+      } else if (status === "cancelled") {
+        // User cancelled but period not over yet — keep current plan,
+        // just log it. Downgrade happens when status becomes "expired".
+        console.log(`[DODO_WEBHOOK] User ${profile.id} cancelled — keeping plan until period ends`);
       } else if (status === "active") {
         const productId = data.product_id as string;
         const newPlan = productIdToPlan(productId);

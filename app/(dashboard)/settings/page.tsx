@@ -202,6 +202,13 @@ export default function SettingsPage() {
                 >
                   {t("dashboard.settingsPage.upgradeToPro", "Upgrade to Pro")}
                 </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleUpgradeCheckout("enterprise")}
+                  disabled={billingLoading}
+                >
+                  {t("dashboard.settingsPage.upgradeToEnterprise", "Upgrade to Enterprise")}
+                </Button>
               </>
             ) : (
               <Button
