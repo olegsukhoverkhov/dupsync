@@ -569,7 +569,7 @@ export default function NewProjectPage() {
                             <span>TikTok</span>
                             <span>Facebook</span>
                           </div>
-                          <p className="mt-2 text-[10px] text-slate-600">
+                          <p className="mt-3 text-xs text-amber-400/80">
                             {t("dashboard.newProject.importPublicOnly", "Video must be public and not age-restricted")}
                           </p>
                         </div>
