@@ -1332,20 +1332,24 @@ async function sendProjectCompleteEmail(
   supabase: Awaited<ReturnType<typeof createServiceClient>>,
   projectId: string
 ) {
+  console.log(`[EMAIL] sendProjectCompleteEmail called for project ${projectId}`);
+
   const { data: project } = await supabase
     .from("projects")
     .select("title, user_id, is_demo")
     .eq("id", projectId)
     .single();
-  if (!project || project.is_demo) return; // Don't email for demo projects
+  if (!project) { console.warn(`[EMAIL] Project ${projectId} not found`); return; }
+  if (project.is_demo) { console.log(`[EMAIL] Skipping demo project ${projectId}`); return; }
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("email, locale, credits_remaining, plan")
     .eq("id", project.user_id)
     .single();
-  if (!profile?.email) return;
+  if (!profile?.email) { console.warn(`[EMAIL] No email for user ${project.user_id}`); return; }
 
+  console.log(`[EMAIL] Sending dub_complete to ${profile.email} for "${project.title}"`);
   const { sendDubCompleteEmail, sendCreditsLowEmail } = await import("./email");
 
   await sendDubCompleteEmail({
@@ -1354,19 +1358,20 @@ async function sendProjectCompleteEmail(
     projectTitle: project.title,
     locale: profile.locale,
   });
+  console.log(`[EMAIL] dub_complete sent to ${profile.email}`);
 
   // Also check if credits are low (< 20% of plan)
   const { PLAN_LIMITS } = await import("./supabase/constants");
   const planCredits = PLAN_LIMITS[profile.plan as keyof typeof PLAN_LIMITS]?.credits || 0;
-  if (planCredits > 0) {
-    const remaining = Number(profile.credits_remaining);
-    if (remaining <= planCredits * 0.2) {
-      await sendCreditsLowEmail({
-        to: profile.email,
-        creditsRemaining: remaining,
-        locale: profile.locale,
-      });
-    }
+  const remaining = Number(profile.credits_remaining);
+  console.log(`[EMAIL] Credits check: plan=${profile.plan}, planCredits=${planCredits}, remaining=${remaining}`);
+  if (planCredits > 0 && remaining <= planCredits * 0.2) {
+    await sendCreditsLowEmail({
+      to: profile.email,
+      creditsRemaining: remaining,
+      locale: profile.locale,
+    });
+    console.log(`[EMAIL] credits_low sent to ${profile.email}`);
   }
 }
 
