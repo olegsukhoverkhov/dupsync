@@ -80,20 +80,11 @@ export async function POST(req: NextRequest) {
   const metadata = (data.metadata || {}) as Record<string, string>;
   const isTest = process.env.DODO_PAYMENTS_ENV !== "production";
 
-  console.log(`[DODO_WEBHOOK] ${eventType}`, JSON.stringify(data).slice(0, 500));
+  const dataStr = JSON.stringify(data);
+  console.log(`[DODO_WEBHOOK] ${eventType}`, dataStr.slice(0, 1500));
 
-  // Extract payment method from Dodo data
-  const paymentMethod = (
-    data.payment_method_type || data.payment_method || data.card_brand ||
-    (data.card as Record<string, unknown>)?.brand ||
-    (data.payment_details as Record<string, unknown>)?.type ||
-    ""
-  ) as string;
-  const cardLast4 = (
-    data.card_last4 || (data.card as Record<string, unknown>)?.last4 ||
-    (data.payment_details as Record<string, unknown>)?.last4 || ""
-  ) as string;
-  const methodLabel = [paymentMethod, cardLast4 ? `****${cardLast4}` : ""].filter(Boolean).join(" ") || null;
+  // Extract payment method — walk the entire payload to find it
+  const methodLabel = extractPaymentMethod(data);
 
   const supabase = await createServiceClient();
 
@@ -251,6 +242,73 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ ok: true });
+}
+
+/**
+ * Walk the Dodo webhook payload and extract a human-readable payment method.
+ * Dodo can send the method in many places depending on event type.
+ * Covers: card (Visa/MC), Google Pay, Apple Pay, PayPal, bank transfer, etc.
+ */
+function extractPaymentMethod(data: Record<string, unknown>): string | null {
+  // Recursively search for payment method indicators
+  const flat = flattenObject(data);
+
+  // 1. Look for explicit payment method fields
+  const methodType = flat["payment_method_type"] || flat["payment_method.type"] ||
+    flat["payment_details.type"] || flat["payment_details.payment_method_type"] ||
+    flat["payment_channel"] || flat["payment_type"] || flat["method"] || "";
+
+  // 2. Look for card brand
+  const brand = flat["card.brand"] || flat["card_brand"] || flat["payment_method.card.brand"] ||
+    flat["payment_details.card.brand"] || flat["payment_details.brand"] || "";
+
+  // 3. Look for last 4 digits
+  const last4 = flat["card.last4"] || flat["card_last4"] || flat["payment_method.card.last4"] ||
+    flat["payment_details.card.last4"] || flat["payment_details.last4"] || flat["last_four"] || "";
+
+  // 4. Look for wallet type (Google Pay, Apple Pay)
+  const wallet = flat["wallet.type"] || flat["payment_method.wallet.type"] ||
+    flat["payment_details.wallet"] || flat["wallet_type"] || "";
+
+  // Build label
+  const parts: string[] = [];
+
+  if (wallet) {
+    parts.push(String(wallet));
+  } else if (methodType) {
+    parts.push(String(methodType));
+  }
+
+  if (brand) parts.push(String(brand));
+  if (last4) parts.push(`****${last4}`);
+
+  if (parts.length > 0) return parts.join(" ");
+
+  // Fallback: search all string values for known payment method keywords
+  const allValues = Object.values(flat).map(String).join(" ").toLowerCase();
+  const knownMethods = ["google_pay", "google pay", "apple_pay", "apple pay", "paypal",
+    "visa", "mastercard", "amex", "discover", "bank_transfer", "bank transfer",
+    "ideal", "sofort", "sepa", "klarna", "afterpay", "alipay", "wechat"];
+  for (const m of knownMethods) {
+    if (allValues.includes(m)) return m.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  return null;
+}
+
+/** Flatten nested object to dot-notation keys */
+function flattenObject(obj: unknown, prefix = ""): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  if (!obj || typeof obj !== "object") return result;
+  for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      Object.assign(result, flattenObject(value, path));
+    } else {
+      result[path] = value;
+    }
+  }
+  return result;
 }
 
 function productIdToPlan(productId: string): PlanType | null {
