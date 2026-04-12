@@ -16,7 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { createClient } from "@/lib/supabase/client";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
 import type { Profile } from "@/lib/supabase/types";
-import { Loader2, ExternalLink } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { LanguageSwitcher } from "@/components/dashboard/language-switcher";
 import { useDashboardT } from "@/components/dashboard/locale-provider";
 import { SubscriptionModal } from "@/components/dashboard/subscription-modal";
@@ -48,15 +48,14 @@ export default function SettingsPage() {
     loadProfile();
   }, []);
 
-  async function handleBillingAction(action: string, plan?: string) {
+  async function handleUpgradeCheckout(plan: string) {
     setBillingLoading(true);
     try {
       const res = await fetch("/api/billing", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, plan }),
+        body: JSON.stringify({ action: "checkout", plan }),
       });
-
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
@@ -188,7 +187,7 @@ export default function SettingsPage() {
             {profile.plan === "free" ? (
               <>
                 <Button
-                  onClick={() => handleBillingAction("checkout", "starter")}
+                  onClick={() => handleUpgradeCheckout("starter")}
                   disabled={billingLoading}
                 >
                   {billingLoading && (
@@ -198,7 +197,7 @@ export default function SettingsPage() {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => handleBillingAction("checkout", "pro")}
+                  onClick={() => handleUpgradeCheckout("pro")}
                   disabled={billingLoading}
                 >
                   {t("dashboard.settingsPage.upgradeToPro", "Upgrade to Pro")}
