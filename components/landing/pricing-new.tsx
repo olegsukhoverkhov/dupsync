@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import { Check, ArrowRight, HelpCircle } from "lucide-react";
 import { PLAN_LIMITS } from "@/lib/supabase/constants";
@@ -13,15 +10,7 @@ const PLANS: { key: PlanType; popular?: boolean }[] = [
   { key: "enterprise" },
 ];
 
-const ANNUAL_SAVINGS: Partial<Record<PlanType, number>> = {
-  starter: 48,
-  pro: 120,
-  enterprise: 360,
-};
-
 export function PricingNew() {
-  const [annual, setAnnual] = useState(false);
-
   return (
     <section id="pricing" className="py-24 border-t border-white/5">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -32,26 +21,6 @@ export function PricingNew() {
           <p className="mt-4 text-slate-400 text-lg">
             AI video dubbing plans with lip sync included. Starting at $19.99/month.
           </p>
-
-          {/* Monthly/Annual toggle */}
-          <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 p-1">
-            <button
-              onClick={() => setAnnual(false)}
-              className={`rounded-full px-5 py-2 text-sm font-medium transition-all cursor-pointer ${
-                !annual ? "bg-white text-black" : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setAnnual(true)}
-              className={`rounded-full px-5 py-2 text-sm font-medium transition-all cursor-pointer ${
-                annual ? "bg-white text-black" : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              Annual <span className="text-green-400 text-xs ml-1">-20%</span>
-            </button>
-          </div>
         </div>
 
         <div className="text-center text-sm text-slate-400 mb-8 border border-white/5 bg-white/5 rounded-xl px-4 py-3 max-w-xl mx-auto">
@@ -61,7 +30,7 @@ export function PricingNew() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {PLANS.map(({ key, popular }) => {
             const plan = PLAN_LIMITS[key];
-            const priceRaw = annual ? plan.priceAnnual : plan.price;
+            const priceRaw = plan.price;
             const price = (priceRaw / 100).toFixed(2);
             const showDecimal = priceRaw > 0;
 
@@ -90,16 +59,6 @@ export function PricingNew() {
                       <span className="text-slate-500 ml-1">/month</span>
                     )}
                   </div>
-                  {annual && priceRaw > 0 && (
-                    <p className="text-xs text-green-400 mt-1">
-                      Billed ${((priceRaw / 100) * 12).toFixed(2)}/year
-                    </p>
-                  )}
-                  {annual && ANNUAL_SAVINGS[key] && (
-                    <p className="text-xs text-green-400 font-medium mt-1">
-                      Save ${ANNUAL_SAVINGS[key]}/year
-                    </p>
-                  )}
                 </div>
 
                 <ul className="space-y-3 flex-1">

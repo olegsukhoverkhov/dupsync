@@ -53,10 +53,6 @@ const PRICING_FAQS = [
     a: "We offer a free plan with 5 minutes of dubbing per month so you can test the quality. Paid plans do not have a separate trial, but you can cancel within the first 7 days for a full refund.",
   },
   {
-    q: "How does annual billing work?",
-    a: "Annual plans are billed once per year at a discounted rate (typically 20% off). You get the same features as the monthly plan but pay less overall. Annual subscriptions can be canceled at any time, with access continuing until the end of the paid period.",
-  },
-  {
     q: "Do you offer refunds?",
     a: "We offer a 7-day refund policy for new paid subscriptions. After the first 7 days, fees are non-refundable. Unused dubbing minutes do not carry over between billing periods.",
   },

@@ -77,7 +77,7 @@ export default function TermsPage() {
             6. Billing and Payments
           </h2>
           <p className="text-zinc-300 leading-relaxed">
-            Paid plans are billed monthly or annually in advance. All fees are
+            Paid plans are billed monthly in advance. All fees are
             non-refundable except where required by law. You may cancel your
             subscription at any time; access continues until the end of the
             current billing period. We reserve the right to change pricing with

@@ -139,9 +139,7 @@ export default function AiDubbingPricingComparisonPage() {
           approximate EUR/USD rate of 1.09 for comparison purposes.
         </li>
         <li>
-          <strong>All prices are monthly billing:</strong> Annual plans typically
-          offer 15-25% discounts but are not included here since they require upfront
-          commitment.
+          <strong>All prices are monthly billing.</strong>
         </li>
       </ul>
 

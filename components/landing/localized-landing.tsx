@@ -748,7 +748,7 @@ const EN_FAQS = [
   },
   {
     q: "How much does AI video dubbing cost?",
-    a: "DubSync offers a free plan (1 video up to 15 seconds), Starter at $19.99/month (20 credits), Pro at $49.99/month (50 credits), and Business at $149.99/month (150 credits). Annual billing saves 20%. Every credit includes lip sync.",
+    a: "DubSync offers a free plan (1 video up to 15 seconds), Starter at $19.99/month (20 credits), Pro at $49.99/month (50 credits), and Business at $149.99/month (150 credits). Every credit includes lip sync.",
   },
   {
     q: "What does 1 credit mean in DubSync?",
