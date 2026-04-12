@@ -135,6 +135,7 @@ export async function POST(req: NextRequest) {
       const planConfig = PLAN_LIMITS[plan];
       const subscriptionId = (data.subscription_id || data.id) as string;
 
+      const expiresAt = (data.current_period_end || data.next_billing_date || data.ends_at || null) as string | null;
       await supabase
         .from("profiles")
         .update({
@@ -142,6 +143,7 @@ export async function POST(req: NextRequest) {
           credits_remaining: planConfig.credits,
           stripe_customer_id: subscriptionId,
           subscription_expired: false,
+          ...(expiresAt ? { subscription_expires_at: expiresAt } : {}),
         })
         .eq("id", userId);
 
@@ -187,20 +189,21 @@ export async function POST(req: NextRequest) {
         // just log it. Downgrade happens when status becomes "expired".
         console.log(`[DODO_WEBHOOK] User ${profile.id} cancelled — keeping plan until period ends`);
       } else if (status === "active") {
+        const renewExpiresAt = (data.current_period_end || data.next_billing_date || data.ends_at || null) as string | null;
         const productId = data.product_id as string;
         const newPlan = productIdToPlan(productId);
         if (newPlan && newPlan !== profile.plan) {
           const planConfig = PLAN_LIMITS[newPlan];
           await supabase
             .from("profiles")
-            .update({ plan: newPlan, credits_remaining: planConfig.credits, subscription_expired: false })
+            .update({ plan: newPlan, credits_remaining: planConfig.credits, subscription_expired: false, ...(renewExpiresAt ? { subscription_expires_at: renewExpiresAt } : {}) })
             .eq("id", profile.id);
           console.log(`[DODO_WEBHOOK] User ${profile.id} changed plan: ${profile.plan} → ${newPlan}`);
         } else if (newPlan) {
           const planConfig = PLAN_LIMITS[newPlan];
           await supabase
             .from("profiles")
-            .update({ credits_remaining: planConfig.credits, subscription_expired: false })
+            .update({ credits_remaining: planConfig.credits, subscription_expired: false, ...(renewExpiresAt ? { subscription_expires_at: renewExpiresAt } : {}) })
             .eq("id", profile.id);
           console.log(`[DODO_WEBHOOK] User ${profile.id} renewed ${newPlan}`);
         }
