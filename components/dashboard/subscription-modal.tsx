@@ -80,7 +80,7 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
 
   function formatDate(iso: string | null) {
     if (!iso) return "—";
-    return new Date(iso).toLocaleDateString(undefined, {
+    return new Date(iso).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -168,11 +168,22 @@ export function SubscriptionModal({ open, onClose, plan, planPrice }: Props) {
 
             {/* Auto-renew toggle or cancelled state */}
             {cancelled ? (
-              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
-                <p className="text-sm text-amber-300">
-                  {t("dashboard.subscriptionModal.cancelledMessage",
-                    "Your subscription has been cancelled. You'll retain access until the end of your billing period.")}
-                </p>
+              <div className="space-y-3">
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
+                  <p className="text-sm text-amber-300">
+                    {t("dashboard.subscriptionModal.cancelledMessage",
+                      "Your subscription has been cancelled. You'll retain access until the end of your billing period.")}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    onClose();
+                    window.location.href = "/settings";
+                  }}
+                  className="w-full rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 px-4 py-3 text-sm font-semibold text-white hover:opacity-90 transition-opacity cursor-pointer"
+                >
+                  {t("dashboard.subscriptionModal.renewSubscription", "Renew Subscription")}
+                </button>
               </div>
             ) : !showCancelConfirm ? (
               <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-4">

@@ -211,12 +211,31 @@ export default function SettingsPage() {
                 </Button>
               </>
             ) : (
-              <Button
-                variant="outline"
-                onClick={() => setShowSubModal(true)}
-              >
-                {t("dashboard.settingsPage.manageSubscription", "Manage Subscription")}
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSubModal(true)}
+                >
+                  {t("dashboard.settingsPage.manageSubscription", "Manage Subscription")}
+                </Button>
+                {profile.plan === "starter" && (
+                  <>
+                    <Button onClick={() => handleUpgradeCheckout("pro")} disabled={billingLoading}>
+                      {billingLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {t("dashboard.settingsPage.upgradeToPro", "Upgrade to Pro")}
+                    </Button>
+                    <Button variant="outline" onClick={() => handleUpgradeCheckout("enterprise")} disabled={billingLoading}>
+                      {t("dashboard.settingsPage.upgradeToEnterprise", "Upgrade to Enterprise")}
+                    </Button>
+                  </>
+                )}
+                {profile.plan === "pro" && (
+                  <Button onClick={() => handleUpgradeCheckout("enterprise")} disabled={billingLoading}>
+                    {billingLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {t("dashboard.settingsPage.upgradeToEnterprise", "Upgrade to Enterprise")}
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </CardContent>
