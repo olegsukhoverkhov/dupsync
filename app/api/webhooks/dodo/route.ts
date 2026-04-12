@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 async function upsertTransaction(
   supabase: Awaited<ReturnType<typeof createServiceClient>>,
   userId: string,
-  update: { type: string; amount: number; credits: number; description: string; is_test: boolean }
+  update: { type: string; amount: number; credits: number; description: string; is_test: boolean; payment_method?: string }
 ) {
   // Find the latest checkout_initiated for this user (within last 2 hours)
   const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
@@ -36,6 +36,7 @@ async function upsertTransaction(
         amount: update.amount,
         credits: update.credits,
         description: update.description,
+        ...(update.payment_method ? { payment_method: update.payment_method } : {}),
       })
       .eq("id", pending.id);
     console.log(`[DODO_WEBHOOK] Updated checkout ${pending.id} → ${update.type}`);
@@ -81,6 +82,19 @@ export async function POST(req: NextRequest) {
 
   console.log(`[DODO_WEBHOOK] ${eventType}`, JSON.stringify(data).slice(0, 500));
 
+  // Extract payment method from Dodo data
+  const paymentMethod = (
+    data.payment_method_type || data.payment_method || data.card_brand ||
+    (data.card as Record<string, unknown>)?.brand ||
+    (data.payment_details as Record<string, unknown>)?.type ||
+    ""
+  ) as string;
+  const cardLast4 = (
+    data.card_last4 || (data.card as Record<string, unknown>)?.last4 ||
+    (data.payment_details as Record<string, unknown>)?.last4 || ""
+  ) as string;
+  const methodLabel = [paymentMethod, cardLast4 ? `****${cardLast4}` : ""].filter(Boolean).join(" ") || null;
+
   const supabase = await createServiceClient();
 
   switch (eventType) {
@@ -113,6 +127,7 @@ export async function POST(req: NextRequest) {
         credits,
         description: `Top-up: ${credits} credits via Dodo Payments${isTest ? " [TEST]" : ""}`,
         is_test: isTest,
+        payment_method: methodLabel || undefined,
       });
       break;
     }
@@ -149,6 +164,7 @@ export async function POST(req: NextRequest) {
         credits: planConfig.credits,
         description: `Subscribed to ${planConfig.name} plan${isTest ? " [TEST]" : ""}`,
         is_test: isTest,
+        payment_method: methodLabel || undefined,
       });
 
       console.log(`[DODO_WEBHOOK] User ${userId} subscribed to ${plan}`);
@@ -223,6 +239,7 @@ export async function POST(req: NextRequest) {
         credits: 0,
         description: fullError.slice(0, 500),
         is_test: isTest,
+        payment_method: methodLabel || undefined,
       });
 
       console.log(`[DODO_WEBHOOK] Payment failed for ${userId}: ${errorMessage || eventType}`);

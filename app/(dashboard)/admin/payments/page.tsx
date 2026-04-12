@@ -16,6 +16,7 @@ type Transaction = {
   amount: number;
   credits: number;
   description: string | null;
+  payment_method: string | null;
   is_test: boolean;
   created_at: string;
   user_email?: string;
@@ -205,6 +206,7 @@ export default function AdminPaymentsPage() {
                   <th className="px-4 py-3">Type</th>
                   <th className="px-4 py-3 text-right">Amount</th>
                   <th className="px-4 py-3 text-right">Credits</th>
+                  <th className="px-4 py-3">Method</th>
                   <th className="px-4 py-3">Description</th>
                   <th className="px-4 py-3">Date</th>
                 </tr>
@@ -254,6 +256,9 @@ export default function AdminPaymentsPage() {
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums text-slate-300">
                         {tx.credits}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-300 whitespace-nowrap">
+                        {tx.payment_method || "—"}
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-400 truncate max-w-[250px]">
                         {tx.description || "—"}
