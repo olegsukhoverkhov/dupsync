@@ -424,7 +424,9 @@ function EditForm({
   const [topup, setTopup] = useState<string>(
     String(Math.floor(user.topup_credits))
   );
+  const [subExpired, setSubExpired] = useState(user.subscription_expired);
   const [saving, setSaving] = useState(false);
+  const [togglingRenew, setTogglingRenew] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
@@ -446,7 +448,7 @@ function EditForm({
       const res = await fetch(`/api/admin/users/${user.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan, credits_remaining: creditsNumber, topup_credits: topupNumber }),
+        body: JSON.stringify({ plan, credits_remaining: creditsNumber, topup_credits: topupNumber, subscription_expired: subExpired }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -511,6 +513,54 @@ function EditForm({
             className="w-full rounded-lg border border-white/10 bg-slate-900/50 px-3 py-2.5 text-sm text-white focus:border-pink-500/50 focus:outline-none"
           />
         </div>
+
+        {/* Subscription management — only for paid users with a Dodo subscription */}
+        {user.stripe_customer_id && user.plan !== "free" && (
+          <div className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-3">
+            <label className="block text-xs font-medium uppercase tracking-wider text-slate-500">
+              Subscription
+            </label>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-300">Subscription ID</span>
+              <span className="text-xs text-slate-500 font-mono">{user.stripe_customer_id.slice(0, 16)}...</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-300">Expired</span>
+              <button
+                type="button"
+                onClick={() => setSubExpired(!subExpired)}
+                className={`relative h-5 w-9 rounded-full transition-colors cursor-pointer ${subExpired ? "bg-red-500" : "bg-emerald-500"}`}
+              >
+                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${subExpired ? "left-0.5" : "left-[18px]"}`} />
+              </button>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-300">Auto-renew (Dodo)</span>
+              <button
+                type="button"
+                disabled={togglingRenew}
+                onClick={async () => {
+                  setTogglingRenew(true);
+                  setError(null);
+                  try {
+                    const res = await fetch(`/api/admin/users/${user.id}/subscription`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ action: "toggle" }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) setError(data.error || "Failed");
+                    else setError(null);
+                  } catch { setError("Failed to toggle"); }
+                  finally { setTogglingRenew(false); }
+                }}
+                className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-medium text-slate-300 hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {togglingRenew ? <Loader2 className="h-3 w-3 animate-spin" /> : "Toggle in Dodo"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {error && (
