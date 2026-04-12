@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Ban, LogOut } from "lucide-react";
+import { Ban, LogOut, LifeBuoy } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useDashboardT } from "./locale-provider";
 
@@ -37,12 +37,13 @@ export function SuspendedModal() {
           )}
         </p>
 
-        <a
-          href="/support"
-          className="inline-flex items-center justify-center w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-white hover:bg-white/[0.06] transition-colors"
+        <button
+          onClick={() => router.push("/support")}
+          className="inline-flex items-center justify-center gap-2 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
         >
+          <LifeBuoy className="h-4 w-4" />
           {t("dashboard.suspended.contactSupport", "Contact Support")}
-        </a>
+        </button>
 
         <button
           onClick={handleLogout}

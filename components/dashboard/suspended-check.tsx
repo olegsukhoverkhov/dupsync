@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { SuspendedModal } from "./suspended-modal";
 
 /**
  * Client component that checks if the current user is suspended.
- * Renders a blocking modal that covers the entire dashboard.
- * Placed in the dashboard layout so it runs on every page.
+ * Renders a blocking modal that covers the entire dashboard,
+ * EXCEPT on /support where the user can create a ticket.
  */
 export function SuspendedCheck() {
   const [suspended, setSuspended] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     async function check() {
@@ -29,6 +31,7 @@ export function SuspendedCheck() {
     check();
   }, []);
 
-  if (!suspended) return null;
+  // Allow suspended users to access /support page
+  if (!suspended || pathname === "/support") return null;
   return <SuspendedModal />;
 }
