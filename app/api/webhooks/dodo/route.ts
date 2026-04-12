@@ -205,14 +205,23 @@ export async function POST(req: NextRequest) {
       if (!userId) break;
 
       const failedAmount = Number(data.total_amount || data.recurring_pre_tax_amount || data.total || data.amount || 0);
-      const errorMessage = (data.error_message || data.failure_reason || data.status_reason || data.decline_reason || "") as string;
-      const paymentType = metadata.type === "topup" ? "top-up" : "subscription";
+      // Collect all possible error fields from Dodo for full context
+      const errorParts = [
+        data.error_message,
+        data.failure_reason,
+        data.status_reason,
+        data.decline_reason,
+        data.decline_code,
+        data.error_code,
+        data.status,
+      ].filter(Boolean).map(String);
+      const fullError = errorParts.length > 0 ? errorParts.join(" | ") : JSON.stringify(data).slice(0, 400);
 
       await upsertTransaction(supabase, userId, {
         type: "payment_failed",
         amount: failedAmount,
         credits: 0,
-        description: `Failed ${paymentType}: ${errorMessage || eventType}`.slice(0, 500),
+        description: fullError.slice(0, 500),
         is_test: isTest,
       });
 
