@@ -56,6 +56,18 @@ export async function POST(request: Request) {
       returnUrl: `${origin}/credits?topup=success`,
     });
 
+    // Track checkout initiated (non-blocking)
+    const { createServiceClient } = await import("@/lib/supabase/server");
+    const service = await createServiceClient();
+    service.from("transactions").insert({
+      user_id: user.id,
+      type: "checkout_initiated",
+      amount: quote.totalCents,
+      credits,
+      description: `Checkout started: ${credits} credits top-up ($${(quote.totalCents / 100).toFixed(2)})`,
+      is_test: process.env.DODO_PAYMENTS_ENV !== "production",
+    }).then(() => {});
+
     return NextResponse.json({ url });
   }
 

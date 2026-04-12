@@ -167,6 +167,30 @@ export async function POST(req: NextRequest) {
       break;
     }
 
+    // ── Payment failed ──────────────────────────────────────
+    case "payment.failed":
+    case "payment.cancelled":
+    case "subscription.failed": {
+      const userId = metadata.userId;
+      if (!userId) break;
+
+      const failedAmount = Number(data.total_amount || data.recurring_pre_tax_amount || data.total || data.amount || 0);
+      const errorMessage = (data.error_message || data.failure_reason || data.status_reason || data.decline_reason || "") as string;
+      const paymentType = metadata.type === "topup" ? "top-up" : "subscription";
+
+      await supabase.from("transactions").insert({
+        user_id: userId,
+        type: "payment_failed",
+        amount: failedAmount,
+        credits: 0,
+        description: `Failed ${paymentType}: ${errorMessage || eventType}`.slice(0, 500),
+        is_test: isTest,
+      });
+
+      console.log(`[DODO_WEBHOOK] Payment failed for ${userId}: ${errorMessage || eventType}`);
+      break;
+    }
+
     default:
       console.log(`[DODO_WEBHOOK] Unhandled event: ${eventType}`);
   }

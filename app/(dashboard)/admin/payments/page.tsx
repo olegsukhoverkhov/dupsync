@@ -136,10 +136,15 @@ export default function AdminPaymentsPage() {
   if (!isAdmin && !loading) return null;
 
   // Stats from filtered data
-  const totalRevenue = transactions.reduce((s, t) => s + Number(t.amount || 0), 0);
+  const paidTx = transactions.filter((t) => t.type === "subscription" || t.type === "topup");
+  const totalRevenue = paidTx.reduce((s, t) => s + Number(t.amount || 0), 0);
   const subRevenue = transactions.filter((t) => t.type === "subscription").reduce((s, t) => s + Number(t.amount || 0), 0);
   const topupRevenue = transactions.filter((t) => t.type === "topup").reduce((s, t) => s + Number(t.amount || 0), 0);
-  const totalCredits = transactions.reduce((s, t) => s + Number(t.credits || 0), 0);
+  const totalCredits = paidTx.reduce((s, t) => s + Number(t.credits || 0), 0);
+  const checkoutsStarted = transactions.filter((t) => t.type === "checkout_initiated").length;
+  const checkoutsCompleted = transactions.filter((t) => t.type === "subscription" || t.type === "topup").length;
+  const failedPayments = transactions.filter((t) => t.type === "payment_failed").length;
+  const abandonedCheckouts = Math.max(0, checkoutsStarted - checkoutsCompleted - failedPayments);
 
   const selectedCount = selectedIds.size;
   const selectedHasTest = [...selectedIds].some((id) => transactions.find((t) => t.id === id)?.is_test);
@@ -157,20 +162,27 @@ export default function AdminPaymentsPage() {
       <RangeFilter currentPreset={rangePreset} currentFrom={customFrom} currentTo={customTo} />
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6 mt-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-3 mt-4">
         <StatCard label="Total Revenue" value={`$${(totalRevenue / 100).toFixed(2)}`} />
         <StatCard label="Subscriptions" value={`$${(subRevenue / 100).toFixed(2)}`} />
         <StatCard label="Top-ups" value={`$${(topupRevenue / 100).toFixed(2)}`} />
         <StatCard label="Credits Granted" value={String(totalCredits)} />
       </div>
+      <div className="grid gap-4 sm:grid-cols-3 mb-6">
+        <StatCard label="Checkouts Started" value={String(checkoutsStarted)} />
+        <StatCard label="Abandoned" value={String(abandonedCheckouts)} />
+        <StatCard label="Failed Payments" value={String(failedPayments)} />
+      </div>
 
       {/* Type filter + bulk actions */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {[
             { value: "", label: "All" },
             { value: "subscription", label: "Subscriptions" },
             { value: "topup", label: "Top-ups" },
+            { value: "checkout_initiated", label: "Checkouts" },
+            { value: "payment_failed", label: "Failed" },
           ].map((opt) => (
             <a
               key={opt.value}
@@ -235,7 +247,11 @@ export default function AdminPaymentsPage() {
                       ? "border-violet-500/30 bg-violet-500/10 text-violet-400"
                       : tx.type === "topup"
                         ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                        : "border-slate-500/30 bg-slate-500/10 text-slate-400";
+                        : tx.type === "checkout_initiated"
+                          ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
+                          : tx.type === "payment_failed"
+                            ? "border-red-500/30 bg-red-500/10 text-red-400"
+                            : "border-slate-500/30 bg-slate-500/10 text-slate-400";
                   return (
                     <tr key={tx.id} className={`hover:bg-white/[0.02] ${selectedIds.has(tx.id) ? "bg-white/[0.03]" : ""}`}>
                       <td className="px-4 py-3">
@@ -256,7 +272,7 @@ export default function AdminPaymentsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${typeBadge}`}>
-                          {tx.type}
+                          {tx.type === "checkout_initiated" ? "checkout" : tx.type === "payment_failed" ? "failed" : tx.type}
                         </span>
                         {tx.is_test && (
                           <span className="ml-1 inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-400">

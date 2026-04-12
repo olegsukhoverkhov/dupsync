@@ -50,6 +50,18 @@ export async function POST(request: Request) {
         returnUrl,
       });
 
+      // Track checkout initiated (non-blocking)
+      const { createServiceClient } = await import("@/lib/supabase/server");
+      const service = await createServiceClient();
+      service.from("transactions").insert({
+        user_id: user.id,
+        type: "checkout_initiated",
+        amount: 0,
+        credits: 0,
+        description: `Checkout started: ${plan} plan`,
+        is_test: process.env.DODO_PAYMENTS_ENV !== "production",
+      }).then(() => {});
+
       return NextResponse.json({ url });
     }
 
