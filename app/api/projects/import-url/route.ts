@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     let duration = 0;
     try {
       const metaRaw = execSync(
-        `"${ytdlpPath}" --no-download --print title --print duration ${JSON.stringify(url)}`,
+        `"${ytdlpPath}" --no-warnings --no-download --print title --print duration ${JSON.stringify(url)}`,
         { timeout: 30000, stdio: ["pipe", "pipe", "pipe"] }
       ).toString().trim();
       const lines = metaRaw.split("\n");
@@ -80,12 +80,15 @@ export async function POST(request: Request) {
 
     try {
       execSync(
-        `"${ytdlpPath}" -f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/b" --no-playlist --max-filesize ${planLimits.maxFileSize}M -o ${JSON.stringify(tmpFile)} ${JSON.stringify(url)}`,
+        `"${ytdlpPath}" --no-warnings -f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/b" --no-playlist --max-filesize ${planLimits.maxFileSize}M -o ${JSON.stringify(tmpFile)} ${JSON.stringify(url)}`,
         { timeout: 240000, stdio: ["pipe", "pipe", "pipe"] }
       );
     } catch (dlErr) {
-      const msg = dlErr instanceof Error ? dlErr.message : String(dlErr);
-      if (msg.includes("Private") || msg.includes("login") || msg.includes("Sign in")) {
+      const errObj = dlErr as { stderr?: Buffer; message?: string };
+      const stderr = errObj.stderr ? errObj.stderr.toString() : "";
+      const msg = stderr || errObj.message || String(dlErr);
+      console.error(`[IMPORT_URL] Download error:`, msg.slice(0, 500));
+      if (msg.includes("Private") || msg.includes("login") || msg.includes("Sign in") || msg.includes("requires authentication")) {
         return NextResponse.json(
           { error: "This video is private or requires login. Only public videos can be imported." },
           { status: 403 }
@@ -95,6 +98,12 @@ export async function POST(request: Request) {
         return NextResponse.json(
           { error: `Video file is too large (max ${planLimits.maxFileSize}MB for ${planLimits.name} plan).` },
           { status: 413 }
+        );
+      }
+      if (msg.includes("not available") || msg.includes("Video unavailable") || msg.includes("404")) {
+        return NextResponse.json(
+          { error: "Video not found or unavailable." },
+          { status: 404 }
         );
       }
       throw new Error(`Download failed: ${msg.slice(0, 300)}`);
