@@ -522,7 +522,7 @@ export default function NewProjectPage() {
                                   if (!res.ok) {
                                     setAlertModal({
                                       title: t("dashboard.newProject.importError", "Import Failed"),
-                                      message: data.error || "Failed to import video",
+                                      message: (data.error || "Failed to import video") + "\n\nMake sure the video is public and not age-restricted.",
                                       type: "error",
                                     });
                                     return;
